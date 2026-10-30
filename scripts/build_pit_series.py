@@ -28,7 +28,7 @@ def build(rows):
             decision = date(row["decision_date"])
             vintage = date(row["vintage_date"])
             observation = date(row["observation_date"])
-            if publication > decision or vintage > decision:
+            if publication < observation or vintage < observation:\n                raise ValueError("release precedes observation date")\n            if publication > decision or vintage > decision:
                 raise ValueError("future information at decision date")
             if not row["source_url"].startswith("https://"):
                 raise ValueError("non-HTTPS publisher evidence URL")
