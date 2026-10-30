@@ -28,6 +28,8 @@ jobs:
         run: timeout 220s python -u scripts/milestone1.py --output audit-output
       - name: Attempt official BLS public API fallback
         if: always()
+        env:
+          BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
         run: timeout 240s python -u scripts/bls_api.py --output audit-output/bls-api
       - name: Attempt official FRED API fallback
         if: always()
