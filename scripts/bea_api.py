@@ -29,7 +29,7 @@ def parse_bea(payload):
             continue
         month = {"1":"01","2":"04","3":"07","4":"10"}[period[-1]]
         date = period[:4] + "-" + month + "-01"
-        value = float(str(row["DataValue"]).replace(",", ""))
+        value = float(str(row["DataValue"]).replace(",", "")) / 1000.0
         if date in result:
             raise ValueError("duplicate BEA GDP quarter: " + date)
         result[date] = value
@@ -52,7 +52,7 @@ def acquire(output, key):
     observations = parse_bea(raw)
     (output / "bea_gdpc1_normalized.json").write_text(json.dumps(observations, sort_keys=True))
     report = {"source": "BEA NIPA T10106 line 1 quarterly chained-dollar real GDP",
-        "sha256": hashlib.sha256(raw).hexdigest(), "observations": len(observations),
+        "sha256": hashlib.sha256(raw).hexdigest(), "unit_conversion": "BEA millions to FRED billions (divide by 1000)", "observations": len(observations),
         "first": min(observations), "last": max(observations),
         "status": "ACQUIRED NOT RECONCILED", "promotion": "BLOCKED"}
     (output / "bea_report.json").write_text(json.dumps(report, indent=2))
