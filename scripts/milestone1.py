@@ -25,11 +25,17 @@ SERIES = {
 def download(name, directory):
     destination = directory / (name + ".txt")
     request = urllib.request.Request(SOURCES[name], headers={"User-Agent": "Economic-Cycle-Research/1.0 (source-validation)"})
-    with urllib.request.urlopen(request, timeout=90) as response, destination.open("wb") as output:
+    digest = hashlib.sha256()
+    total = 0
+    with urllib.request.urlopen(request, timeout=45) as response, destination.open("wb") as output:
         while chunk := response.read(1024 * 1024):
+            total += len(chunk)
+            if total > 150_000_000:
+                raise ValueError("Publisher download exceeds 150 MB safety limit")
             output.write(chunk)
-    return {"path": str(destination), "bytes": destination.stat().st_size,
-            "sha256": hashlib.sha256(destination.read_bytes()).hexdigest(), "url": SOURCES[name]}
+            digest.update(chunk)
+    return {"path": str(destination), "bytes": total,
+            "sha256": digest.hexdigest(), "url": SOURCES[name]}
 
 def parse_bls(path, series):
     out = {}
@@ -83,8 +89,10 @@ def run(destination):
               "promotion": "BLOCKED", "vintage_certification": "NOT_PERFORMED",
               "downloads": {}, "series": {}, "errors": []}
     for name in SOURCES:
+        print(f"Acquiring {name}: {SOURCES[name]}", flush=True)
         try:
             result["downloads"][name] = download(name, destination)
+            print(f"Acquired {name}: {result[\'downloads\'][name][\'bytes\']} bytes", flush=True)
         except Exception as exc:
             result["errors"].append(f"{name}: {type(exc).__name__}: {exc}")
     for series, (bls_key, fred_key, bls_id, tolerance) in SERIES.items():
