@@ -20,13 +20,13 @@ def windows(start, end, span=10):
         yield year, min(end, year + span - 1)
 
 def fetch(series, start, end, key=None):
-    payload = {"seriesid": json.dumps([series]), "startyear": str(start), "endyear": str(end)}
+    payload = {"seriesid": [series], "startyear": str(start), "endyear": str(end)}
     if key:
         payload["registrationkey"] = key
     request = urllib.request.Request(
         "https://api.bls.gov/publicAPI/v2/timeseries/data/",
-        data=urllib.parse.urlencode(payload).encode(),
-        headers={"User-Agent": "Economic-Cycle-Research/1.0", "Content-Type": "application/x-www-form-urlencoded"},
+        data=json.dumps(payload).encode(),
+        headers={"User-Agent": "Economic-Cycle-Research/1.0", "Content-Type": "application/json"},
         method="POST")
     with urllib.request.urlopen(request, timeout=25) as response:
         raw = response.read(5_000_000)
