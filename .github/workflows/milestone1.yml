@@ -39,6 +39,19 @@ jobs:
           else
             echo 'FRED_API_KEY not configured; FRED API fallback skipped (still blocked).'
           fi
+      - name: Acquire BEA official GDP data
+        if: always()
+        env:
+          BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+        run: |
+          if [ -n "$BEA_API_KEY" ]; then
+            timeout 100s python -u scripts/bea_api.py --output audit-output/bea-api
+          else
+            echo 'BEA_API_KEY not configured; BEA acquisition skipped (still blocked).'
+          fi
+      - name: Reconcile BEA and FRED GDP
+        if: always()
+        run: python -u scripts/gdp_api_crosscheck.py
       - name: Reconcile BLS API and FRED API observations\n        if: always()\n        run: python -u scripts/api_crosscheck.py --bls audit-output/bls-api --fred audit-output/fred-api\n      - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
