@@ -54,7 +54,10 @@ jobs:
       - name: Reconcile BEA and FRED GDP
         if: always()
         run: python -u scripts/gdp_api_crosscheck.py
-      - name: Reconcile BLS API and FRED API observations\n        if: always()\n        run: python -u scripts/api_crosscheck.py --bls audit-output/bls-api --fred audit-output/fred-api\n      - name: Preserve source evidence even on failure
+      - name: Reconcile BLS API and FRED API observations
+        if: always()
+        run: python -u scripts/api_crosscheck.py --bls audit-output/bls-api --fred audit-output/fred-api
+      - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
