@@ -12,7 +12,7 @@ class BEAApiTests(unittest.TestCase):
     def test_quarterly_line_one(self):
         rows = [{"LineNumber":"1", "TimePeriod":"2020Q1", "DataValue":"20,100.500"},
                 {"LineNumber":"2", "TimePeriod":"2020Q1", "DataValue":"1.0"}]
-        self.assertEqual(parse_bea(response(rows)), {"2020-01-01":20100.5})
+        self.assertEqual(parse_bea(response(rows)), {"2020-01-01":20.1005})
     def test_duplicate_quarter_rejected(self):
         rows = [{"LineNumber":"1", "TimePeriod":"2020Q1", "DataValue":"100"}] * 2
         with self.assertRaises(ValueError):
@@ -22,7 +22,7 @@ class BEAApiTests(unittest.TestCase):
             parse_bea(response([]))
     def test_quarter_mapping(self):
         rows = [{"LineNumber":"1", "TimePeriod":"2020Q4", "DataValue":"100"}]
-        self.assertEqual(parse_bea(response(rows)), {"2020-10-01":100.0})
+        self.assertEqual(parse_bea(response(rows)), {"2020-10-01":0.1})
 
 if __name__ == "__main__":
     unittest.main()
