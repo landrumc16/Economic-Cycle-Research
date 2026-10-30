@@ -67,8 +67,12 @@ def main():
     p.add_argument("--as-of", required=True, help="Evaluation date YYYY-MM-DD")
     p.add_argument("--output", default="audit-output/financial_housing_overlay.json")
     a = p.parse_args()
-    rows = json.loads(Path(a.input).read_text())
+    source = json.loads(Path(a.input).read_text())
+    rows = source["rows"] if isinstance(source, dict) else source
     report = build_overlay(rows, a.as_of)
+    if isinstance(source, dict):
+        report["snapshot_date"] = source.get("snapshot_date")
+        report["snapshot_type"] = source.get("snapshot_type")
     dest = Path(a.output)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(report, indent=2) + "\n")
