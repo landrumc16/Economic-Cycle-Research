@@ -92,7 +92,7 @@ def run(destination):
         print(f"Acquiring {name}: {SOURCES[name]}", flush=True)
         try:
             result["downloads"][name] = download(name, destination)
-            print(f"Acquired {name}: {result[\'downloads\'][name][\'bytes\']} bytes", flush=True)
+            print("Acquired {}: {} bytes".format(name, result["downloads"][name]["bytes"]), flush=True)
         except Exception as exc:
             result["errors"].append(f"{name}: {type(exc).__name__}: {exc}")
     for series, (bls_key, fred_key, bls_id, tolerance) in SERIES.items():
