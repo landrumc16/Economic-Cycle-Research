@@ -82,6 +82,9 @@ jobs:
       - name: Calculate descriptive macro transformations (research only)
         if: always()
         run: python -u scripts/descriptive_macro_metrics.py --input audit-output/fred-api --output audit-output/descriptive_macro_metrics.json
+      - name: Explain macro directions across growth labor and inflation
+        if: always()
+        run: python -u scripts/cycle_research_readout.py --metrics audit-output/descriptive_macro_metrics.json --output audit-output/cycle_research_readout.json
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
