@@ -68,8 +68,7 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     report = {"values": values, "errors": errors, "source_authenticity": "NOT VERIFIED",
               "promotion": "BLOCKED"}
-    out.write_text(json.dumps(report, indent=2) + "
-")
+    out.write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps({"selected": len(values), "errors": len(errors),
                       "source_authenticity": "NOT VERIFIED", "promotion": "BLOCKED"}))
     if errors or not values:
