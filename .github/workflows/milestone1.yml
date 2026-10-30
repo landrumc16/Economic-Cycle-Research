@@ -14,17 +14,32 @@ concurrency:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Compile all Python modules\n        run: python -m compileall -q scripts tests\n      - name: Verify parser and comparison tests
+      - name: Compile all Python modules
+        run: python -m compileall -q scripts tests
+      - name: Verify parser and comparison tests
         run: python -m unittest discover -s tests -v
       - name: Acquire and crosscheck official series
-        run: timeout 360s python -u scripts/milestone1.py --output audit-output
-      - name: Attempt official BLS public API fallback\n        if: always()\n        run: timeout 240s python -u scripts/bls_api.py --output audit-output/bls-api\n      - name: Attempt official FRED API fallback\n        if: \${{ always() && env.FRED_API_KEY != '' }}\n        env:\n          FRED_API_KEY: \${{ secrets.FRED_API_KEY }}\n        run: |\n          if [ -n "$FRED_API_KEY" ]; then\n            timeout 240s python -u scripts/fred_api.py --output audit-output/fred-api\n          else\n            echo 'FRED_API_KEY not configured; FRED API fallback skipped (still blocked).'\n          fi\n      - name: Preserve source evidence even on failure
+        run: timeout 220s python -u scripts/milestone1.py --output audit-output
+      - name: Attempt official BLS public API fallback
+        if: always()
+        run: timeout 240s python -u scripts/bls_api.py --output audit-output/bls-api
+      - name: Attempt official FRED API fallback
+        if: always()
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          if [ -n "$FRED_API_KEY" ]; then
+            timeout 240s python -u scripts/fred_api.py --output audit-output/fred-api
+          else
+            echo 'FRED_API_KEY not configured; FRED API fallback skipped (still blocked).'
+          fi
+      - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
