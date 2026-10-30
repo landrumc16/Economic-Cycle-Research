@@ -60,7 +60,10 @@ def run(out, start=1947, end=2026, key=None):
                             date = f'{int(datum["year"]):04d}-{int(period[1:]):02d}-01'
                             if date in observations:
                                 raise ValueError("duplicate " + date)
-                            observations[date] = float(datum["value"])
+                            raw_value = str(datum["value"]).strip()
+                            if raw_value in ("", "-", "NA", "N/A"):
+                                continue
+                            observations[date] = float(raw_value)
                 (out / f"{series}_{a}_{b}.json").write_bytes(raw)
             except Exception as exc:
                 report["errors"].append({"series": series, "years": [a,b], "error": f"{type(exc).__name__}: {exc}"})
