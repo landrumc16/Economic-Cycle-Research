@@ -16,7 +16,7 @@ def parse_bea(payload):
     obj = json.loads(payload)
     root = obj.get("BEAAPI", {})
     if root.get("Error") or root.get("Results", {}).get("Error"):
-        raise ValueError("BEA API returned an error")
+        raise ValueError("BEA API error: " + json.dumps(root.get("Error") or root.get("Results", {}).get("Error"))[:1000])
     records = root.get("Results", {}).get("Data", [])
     if not isinstance(records, list) or not records:
         raise ValueError("BEA API response contains no observations")
