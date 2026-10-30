@@ -41,7 +41,7 @@ def run(out, start=1947, end=2026, key=None):
     for series in SERIES:
         observations = {}
         raw_hashes = []
-        # Unregistered BLS API has restrictive daily request quotas; avoid exhausting it.\n        for a, b in windows(start, end):
+        # Unregistered BLS API has restrictive daily request quotas; avoid exhausting it.\n        series_windows = list(windows(start, end))\n        if not key and len(series_windows) * len(SERIES) > 10:\n            report["errors"].append({"series": series, "error": "Unregistered BLS API request quota insufficient for full history; configure BLS_API_KEY or narrow years"})\n            break\n        for a, b in series_windows:
             print(f"BLS API {series} {a}-{b}", flush=True)
             try:
                 obj, raw = fetch(series, a, b, key)
@@ -73,8 +73,7 @@ if __name__ == "__main__":
     p.add_argument("--output", default="audit-output/bls-api")
     p.add_argument("--start", type=int, default=1947)
     p.add_argument("--end", type=int, default=2026)
-    args = p.parse_args()
-    report = run(pathlib.Path(args.output), args.start, args.end)
+    args = p.parse_args()\n    import os\n    report = run(pathlib.Path(args.output), args.start, args.end, os.environ.get("BLS_API_KEY"))
     print(json.dumps({"series": report["series"], "errors": report["errors"]}, indent=2))
     if report["errors"]:
         raise SystemExit(1)
