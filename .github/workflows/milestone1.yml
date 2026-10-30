@@ -79,6 +79,9 @@ jobs:
       - name: Build source-qualified economic observation readout
         if: always()
         run: python -u scripts/economic_observation_readout.py --input audit-output/fred-api --gate audit-output/milestone1_gate.json --output audit-output/economic_observation_readout.json
+      - name: Calculate descriptive macro transformations (research only)
+        if: always()
+        run: python -u scripts/descriptive_macro_metrics.py --input audit-output/fred-api --output audit-output/descriptive_macro_metrics.json
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
