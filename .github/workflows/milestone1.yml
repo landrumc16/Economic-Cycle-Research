@@ -61,6 +61,9 @@ jobs:
       - name: Build retrospective event panel (non-PIT exploratory)
         if: always()
         run: python -u scripts/retrospective_event_panel.py --input audit-output/fred-api --output audit-output/phase2
+      - name: Compare historical crash economic trajectories (retrospective)
+        if: always()
+        run: python -u scripts/compare_crash_events.py --input audit-output/fred-api --output audit-output/phase2
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
