@@ -58,6 +58,9 @@ jobs:
       - name: Reconcile BLS API and FRED API observations
         if: always()
         run: python -u scripts/api_crosscheck.py --bls audit-output/bls-api --fred audit-output/fred-api
+      - name: Build retrospective event panel (non-PIT exploratory)
+        if: always()
+        run: python -u scripts/retrospective_event_panel.py --input audit-output/fred-api --output audit-output/phase2
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
