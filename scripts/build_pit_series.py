@@ -28,7 +28,9 @@ def build(rows):
             decision = date(row["decision_date"])
             vintage = date(row["vintage_date"])
             observation = date(row["observation_date"])
-            if publication < observation or vintage < observation:\n                raise ValueError("release precedes observation date")\n            if publication > decision or vintage > decision:
+            if publication < observation or vintage < observation:
+                raise ValueError("release precedes observation date")
+            if publication > decision or vintage > decision:
                 raise ValueError("future information at decision date")
             if not row["source_url"].startswith("https://"):
                 raise ValueError("non-HTTPS publisher evidence URL")
@@ -66,7 +68,8 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     report = {"values": values, "errors": errors, "source_authenticity": "NOT VERIFIED",
               "promotion": "BLOCKED"}
-    out.write_text(json.dumps(report, indent=2) + "\n")
+    out.write_text(json.dumps(report, indent=2) + "
+")
     print(json.dumps({"selected": len(values), "errors": len(errors),
                       "source_authenticity": "NOT VERIFIED", "promotion": "BLOCKED"}))
     if errors or not values:
