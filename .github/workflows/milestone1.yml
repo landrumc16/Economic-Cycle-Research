@@ -64,6 +64,18 @@ jobs:
       - name: Compare historical crash economic trajectories (retrospective)
         if: always()
         run: python -u scripts/compare_crash_events.py --input audit-output/fred-api --output audit-output/phase2
+      - name: Generate fail-closed operational model status
+        if: always()
+        run: |
+          mkdir -p audit-output
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          evidence = Path("audit-output/milestone1_gate.json")
+          if not evidence.exists():
+              evidence.write_text(json.dumps({"series": {}, "all_evidence_pass": False}, indent=2) + "\n")
+          PY
+          python -u scripts/operational_model_status.py --gate audit-output/milestone1_gate.json --output audit-output/operational_model_status.json
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
