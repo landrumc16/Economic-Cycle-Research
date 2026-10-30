@@ -85,6 +85,9 @@ jobs:
       - name: Explain macro directions across growth labor and inflation
         if: always()
         run: python -u scripts/cycle_research_readout.py --metrics audit-output/descriptive_macro_metrics.json --output audit-output/cycle_research_readout.json
+      - name: Stage workbook financial and housing research snapshot
+        if: always()
+        run: python -u scripts/financial_housing_overlay.py --input data/workbook_current_risk_snapshot_2026-10-30.json --as-of 2026-10-30 --output audit-output/financial_housing_overlay.json
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
