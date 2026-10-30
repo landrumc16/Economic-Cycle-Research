@@ -24,7 +24,7 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Acquire and crosscheck official series
         run: timeout 360s python -u scripts/milestone1.py --output audit-output
-      - name: Preserve source evidence even on failure
+      - name: Attempt official BLS public API fallback\n        if: always()\n        run: timeout 240s python -u scripts/bls_api.py --output audit-output/bls-api\n      - name: Attempt official FRED API fallback\n        if: \${{ always() && env.FRED_API_KEY != '' }}\n        env:\n          FRED_API_KEY: \${{ secrets.FRED_API_KEY }}\n        run: timeout 240s python -u scripts/fred_api.py --output audit-output/fred-api\n      - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
         with:
