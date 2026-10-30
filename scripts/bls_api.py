@@ -41,7 +41,7 @@ def run(out, start=1947, end=2026, key=None):
     for series in SERIES:
         observations = {}
         raw_hashes = []
-        for a, b in windows(start, end):
+        # Unregistered BLS API has restrictive daily request quotas; avoid exhausting it.\n        for a, b in windows(start, end):
             try:
                 obj, raw = fetch(series, a, b, key)
                 raw_hashes.append({"years": [a,b], "sha256": hashlib.sha256(raw).hexdigest()})
