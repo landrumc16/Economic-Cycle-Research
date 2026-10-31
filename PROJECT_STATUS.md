@@ -1,3 +1,9 @@
+## Checkpoint — publisher vintage contract automation (2026-10-30)
+- Run #90 failed in BLS API fallback and BLS/FRED reconciliation; historical integrity step did not fail. Source pipeline remains unresolved; do not bypass.
+- Historical Python syntax repaired in `9bc8ea1`; publisher evidence manifest in `cf787e8`.
+- Added `scripts/validate_publisher_vintage_manifest.py`, tests and CI contract step in commits `aaf9685`, `7294fcb`, `155ede0`. The contract verifies required fields, publisher identity, expected series and explicitly blocks PIT certification and prediction. It does **not** prove original evidence exists.
+- Next: inspect Actions for new commit; diagnose BLS source failures, then populate actual publisher-original release records and independently crosscheck decision-time eligibility.
+
 # PROJECT STATUS — Economic Cycle Research
 **Last updated:** 2026-10-30
 **Active implementation branch:** `milestone-1-data-pipeline` (PR #1)
