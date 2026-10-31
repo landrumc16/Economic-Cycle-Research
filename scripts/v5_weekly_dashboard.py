@@ -16,6 +16,12 @@ def render(report):
                    esc(x.get("observation_date", "N/A")) + "</td></tr>" for x in metrics)
     if not rows:
         rows = '<tr><td colspan="3">No dated macro transformations available</td></tr>'
+    gaps = report.get("macro_coverage_gaps", [])
+    coverage = "<p>Available: " + esc(report.get("macro_metric_count", len(metrics))) + " / " + esc(report.get("macro_metric_total", len(metrics))) + " standardized measures</p>"
+    if gaps:
+        coverage += "<p>Unavailable: " + ", ".join(
+            esc(x.get("series", "unknown")) + " (" + esc(x.get("status", "UNAVAILABLE")) + ")"
+            for x in gaps) + "</p>"
     pathways = "".join("<li><strong>" + esc(name.replace("_", " ").title()) +
                        "</strong>: " + esc(len(data.get("pit_features_verified", []))) +
                        " verified PIT indicators / " + esc(len(data.get("required_features", []))) +
@@ -29,7 +35,7 @@ section{background:white;padding:22px;margin:18px 0;border-radius:10px;border:1p
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px;border-bottom:1px solid #ddd}
 small{color:#576574}header small{color:#dbe6f2}</style></head><body>
 <header><h1>Weekly Economic Research</h1><small>Version 5 | As of """ + esc(report["as_of"]) + """</small></header>
-<section><h2>Standardized economic measures</h2><table><thead><tr><th>Measure</th><th>Value</th><th>Observation date</th></tr></thead><tbody>""" + rows + """</tbody></table></section>
+<section><h2>Standardized economic measures</h2><table><thead><tr><th>Measure</th><th>Value</th><th>Observation date</th></tr></thead><tbody>""" + rows + """</tbody></table>""" + coverage + """</section>
 <section><h2>Downturn mechanisms</h2><ul>""" + pathways + """</ul></section>
 <section><h2>Historical validation coverage</h2><p>Outcome coverage: """ + esc(report.get("outcome_coverage_status", "UNVERIFIED")) + """</p>
 <p>Publisher-original replay observations: """ + esc(report.get("original_vintage_replay_coverage", 0)) + """</p>
