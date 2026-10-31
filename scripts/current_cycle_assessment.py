@@ -65,7 +65,9 @@ def assess(integrated):
         lens["observed_evidence"] = evidence[name]["observations"]
         lens["missing"] = evidence[name]["missing"]
         lens["status"] = "CONTEXT_ONLY_NOT_CLASSIFIED" if any(
-            value is not None and value != {} for value in evidence[name]["observations"].values()
+            (isinstance(value, dict) and isinstance(value.get("value"), (int, float)) and value.get("quality") == "APPROVED_SOURCE")
+            or (isinstance(value, (int, float)) and not isinstance(value, bool))
+            for value in evidence[name]["observations"].values()
         ) else "INSUFFICIENT_EVIDENCE"
     financial_status = {name: financial_fact(name) for name in (
         "credit", "yield_curve", "housing_starts", "household_debt_service", "equity_volatility"
