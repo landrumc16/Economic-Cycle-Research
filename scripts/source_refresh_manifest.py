@@ -1,6 +1,7 @@
 """Fail-closed inventory of refreshed macro series; no implied source certification."""
 import argparse
 import json
+import math
 from datetime import date
 from pathlib import Path
 
@@ -21,7 +22,7 @@ def inventory(folder, as_of):
                 dates = sorted(date.fromisoformat(k) for k in values)
                 if dates[-1] > cutoff:
                     raise ValueError("Future observation relative to evaluation date")
-                if any(not isinstance(v, (float, int)) or isinstance(v, bool) for v in values.values()):
+                if any(not isinstance(v, (float, int)) or isinstance(v, bool) or not math.isfinite(v) for v in values.values()):
                     raise ValueError("Invalid numeric observation")
                 item.update(status="STAGED_REVISED_NOT_PIT", latest_observation=dates[-1].isoformat(),
                             observation_count=len(values), age_days=(cutoff-dates[-1]).days)
