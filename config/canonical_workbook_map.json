@@ -1,0 +1,21 @@
+{
+  "authority": {
+    "workbook": "https://docs.google.com/spreadsheets/d/1ocdo4Y036ZB93egyY96INfuRcJkw0uHAO5BK416bVnE/edit",
+    "policy_tab": "PROJECT LAWS & RESTART",
+    "approval_tab": "DATA PROMOTION GATE",
+    "research_inventory": "docs/EXISTING_RESEARCH_RECONCILIATION.md"
+  },
+  "core_inputs": {
+    "UNRATE": {"workbook_tab": "MONTHLY INPUT", "publisher": "BLS", "unit": "percent seasonally adjusted", "frequency": "monthly", "required_gate": "publisher release and vintage"},
+    "CPIAUCSL": {"workbook_tab": "MONTHLY INPUT", "publisher": "BLS", "unit": "seasonally adjusted index", "frequency": "monthly", "required_gate": "publisher release and vintage"},
+    "GDPC1": {"workbook_tab": "QUARTERLY INPUT", "publisher": "BEA", "unit": "billions chained dollars SAAR", "frequency": "quarterly", "required_gate": "publisher release and vintage"}
+  },
+  "domains": {
+    "economic_cycle": {"owner": "INTEGRATED CYCLE", "research": ["NBER CYCLES", "CYCLE EPISODE SEQUENCES", "POLICY REGIME INTERACTION AUDIT"], "published_view": "ECONOMY AT A GLANCE", "prediction_authorized": false},
+    "crash_mechanisms": {"owner": "CRASH PATHWAY TYPOLOGY", "research": ["CRASH EVENTS", "NASDAQ PARENT CRASH CLUSTERS", "CURVE CREDIT MONTHLY AUDIT", "STRESS FIRST PATHWAY AUDIT"], "published_view": "ECONOMY AT A GLANCE", "prediction_authorized": false},
+    "equity_drawdown_vulnerability": {"owner": "WALK FORWARD RULE AUDIT", "research": ["WARNING NONCRASH BASELINES", "CRASH LEAD WINDOW SUMMARY", "CLEAN SIGNAL RULE SUMMARY", "ERA HOLDOUT DIAGNOSTIC"], "published_view": "ECONOMY AT A GLANCE", "prediction_authorized": false},
+    "sector_opportunities": {"owner": "SECTOR OPPORTUNITIES", "research": ["SOURCE REGISTRY"], "published_view": "SECTOR OPPORTUNITIES", "prediction_authorized": false},
+    "social_context": {"owner": "SOCIAL CONTEXT", "research": ["SOCIAL CONTEXT"], "published_view": "ECONOMY AT A GLANCE", "prediction_authorized": false}
+  },
+  "provenance": "Existing Google Sheets tab names verified 2026-10-30. This is a schema map, not an export of observations or proof of vintage authenticity."
+}

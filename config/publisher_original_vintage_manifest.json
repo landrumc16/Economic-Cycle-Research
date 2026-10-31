@@ -1,0 +1,90 @@
+{
+  "authority": {
+    "workbook": "SEM_Historical_Crash_Research_v1",
+    "policy_tab": "PROJECT LAWS & RESTART",
+    "promotion_tab": "DATA PROMOTION GATE",
+    "methodology_tab": "METHODOLOGY"
+  },
+  "status": "EVIDENCE_INCOMPLETE_NO_PIT_CERTIFICATION",
+  "publication": "BLOCKED",
+  "purpose": "Track publisher-original releases, not current-revised FRED observations",
+  "series": [
+    {
+      "id": "UNRATE",
+      "publisher": "BLS",
+      "original_measure": "U-3 civilian unemployment rate seasonally adjusted",
+      "frequency": "monthly",
+      "workbook_evidence_tabs": [
+        "UNRATE VINTAGE EVIDENCE",
+        "BLS DIRECT AUDIT",
+        "PRECRASH 2008 RELEASES",
+        "CRISIS VINTAGE CASE STUDIES"
+      ],
+      "evidence_state": "PARTIAL_CASE_STUDY_NOT_FULL_HISTORY",
+      "required": [
+        "original_release_url_or_archive",
+        "observation_month",
+        "publisher_release_timestamp_timezone",
+        "original_reported_value",
+        "publisher_original_file_hash",
+        "decision_timestamp",
+        "independent_crosscheck",
+        "revision_and_methodology_breaks"
+      ],
+      "pit_certified": false,
+      "human_approved": false
+    },
+    {
+      "id": "CPIAUCSL",
+      "publisher": "BLS",
+      "original_measure": "CPI all urban consumers seasonally adjusted index",
+      "frequency": "monthly",
+      "workbook_evidence_tabs": [
+        "SOURCE VERIFICATION LEDGER",
+        "FULL SERIES RECONCILIATION",
+        "DATA PROMOTION GATE"
+      ],
+      "evidence_state": "STRUCTURAL_AND_REVISED_RECONCILIATION_ONLY",
+      "required": [
+        "original_release_url_or_archive",
+        "observation_month",
+        "publisher_release_timestamp_timezone",
+        "original_reported_value",
+        "publisher_original_file_hash",
+        "decision_timestamp",
+        "seasonal_adjustment_vintage",
+        "independent_crosscheck",
+        "methodology_breaks"
+      ],
+      "pit_certified": false,
+      "human_approved": false
+    },
+    {
+      "id": "GDPC1",
+      "publisher": "BEA",
+      "original_measure": "real GDP chained dollars seasonally adjusted annual rate",
+      "frequency": "quarterly",
+      "workbook_evidence_tabs": [
+        "SOURCE VERIFICATION LEDGER",
+        "FULL SERIES RECONCILIATION",
+        "DATA PROMOTION GATE"
+      ],
+      "evidence_state": "STRUCTURAL_AND_REVISED_RECONCILIATION_ONLY",
+      "required": [
+        "original_release_url_or_archive",
+        "observation_quarter",
+        "publisher_release_timestamp_timezone",
+        "original_reported_value",
+        "publisher_original_file_hash",
+        "decision_timestamp",
+        "estimate_release_number",
+        "independent_crosscheck",
+        "benchmark_revision"
+      ],
+      "pit_certified": false,
+      "human_approved": false
+    }
+  ],
+  "gate_rule": "Never promote to canonical predictive input until publisher-original vintage, decision-time eligibility, corroboration, no-lookahead and human approval are evidenced.",
+  "snapshot_date": "2026-10-30"
+}

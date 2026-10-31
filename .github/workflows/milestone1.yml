@@ -1,0 +1,132 @@
+name: Milestone 1 - Economic Data Acquisition and QA
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '15 14 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: milestone1-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile all Python modules
+        run: python -m compileall -q scripts tests
+      - name: Verify parser and comparison tests
+        run: python -m unittest discover -s tests -v
+      - name: Legacy bulk-source diagnostic (non-gating)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        run: timeout 220s python -u scripts/milestone1.py --output audit-output
+      - name: Attempt official BLS public API fallback
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
+        run: timeout 240s python -u scripts/bls_api.py --output audit-output/bls-api
+      - name: Attempt official FRED API fallback
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          if [ -n "$FRED_API_KEY" ]; then
+            timeout 240s python -u scripts/fred_api.py --output audit-output/fred-api
+          else
+            echo 'FRED_API_KEY not configured; FRED API fallback skipped (still blocked).'
+          fi
+      - name: Acquire BEA official GDP data
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+        run: |
+          if [ -n "$BEA_API_KEY" ]; then
+            timeout 100s python -u scripts/bea_api.py --output audit-output/bea-api
+          else
+            echo 'BEA_API_KEY not configured; BEA acquisition skipped (still blocked).'
+          fi
+      - name: Reconcile BEA and FRED GDP
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python -u scripts/gdp_api_crosscheck.py
+      - name: Reconcile BLS API and FRED API observations
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python -u scripts/api_crosscheck.py --bls audit-output/bls-api --fred audit-output/fred-api
+      - name: Build retrospective event panel (non-PIT exploratory)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python -u scripts/retrospective_event_panel.py --input audit-output/fred-api --output audit-output/phase2
+      - name: Compare historical crash economic trajectories (retrospective)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        run: python -u scripts/compare_crash_events.py --input audit-output/fred-api --output audit-output/phase2
+      - name: Generate fail-closed operational model status
+        if: always()
+        run: |
+          mkdir -p audit-output
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          evidence = Path("audit-output/milestone1_gate.json")
+          if not evidence.exists():
+              evidence.write_text(json.dumps({"series": {}, "all_evidence_pass": False}, indent=2) + "\n")
+          PY
+          python -u scripts/operational_model_status.py --gate audit-output/milestone1_gate.json --output audit-output/operational_model_status.json
+      - name: Build source-qualified economic observation readout
+        if: always()
+        run: python -u scripts/economic_observation_readout.py --input audit-output/fred-api --gate audit-output/milestone1_gate.json --output audit-output/economic_observation_readout.json
+      - name: Calculate descriptive macro transformations (research only)
+        if: always()
+        run: python -u scripts/descriptive_macro_metrics.py --input audit-output/fred-api --output audit-output/descriptive_macro_metrics.json
+      - name: Explain macro directions across growth labor and inflation
+        if: always()
+        run: python -u scripts/cycle_research_readout.py --metrics audit-output/descriptive_macro_metrics.json --output audit-output/cycle_research_readout.json
+      - name: Stage workbook financial and housing research snapshot
+        if: always()
+        run: python -u scripts/financial_housing_overlay.py --input data/workbook_current_risk_snapshot_2026-10-30.json --as-of 2026-10-30 --output audit-output/financial_housing_overlay.json
+      - name: Combine provenance-aware research domains (non-predictive)
+        if: always()
+        run: python -u scripts/integrated_research_readout.py --macro audit-output/cycle_research_readout.json --financial audit-output/financial_housing_overlay.json --output audit-output/integrated_research_readout.json
+      - name: Attach canonical historical pathways and noncrash controls
+        if: always()
+        run: python -u scripts/historical_research_bridge.py --input audit-output/integrated_research_readout.json --output audit-output/integrated_research_readout.json
+      - name: Read canonical historical observations (dated snapshot, non-PIT)
+        if: always()
+        run: python -u scripts/workbook_historical_observations.py --input data/workbook_historical_research_snapshot_2026-10-30.json --output audit-output/historical_workbook_observations.json --require-complete
+      - name: Validate publisher-original vintage evidence contract (not PIT certification)
+        if: always()
+        run: python -u scripts/validate_publisher_vintage_manifest.py --input config/publisher_original_vintage_manifest.json --output audit-output/publisher_vintage_contract.json
+      - name: Validate original publisher release staging and no-lookahead timestamps
+        if: always()
+        run: python -u scripts/validate_release_evidence.py --input data/publisher_original_release_records.json --output audit-output/publisher_release_evidence.json
+      - name: Record per-series macro refresh status
+        if: always()
+        run: python -u scripts/source_refresh_manifest.py --input audit-output/fred-api --as-of "$(date -u +%F)" --output audit-output/dashboard/source_refresh_manifest.json
+      - name: Build usable research dashboard from existing workbook snapshots
+        if: always()
+        run: python -u scripts/build_dashboard.py --macro audit-output/cycle_research_readout.json --strict-macro --refresh-manifest audit-output/dashboard/source_refresh_manifest.json --output audit-output/dashboard/index.html --json-output audit-output/dashboard/state.json
+      - name: Publish static dashboard to job summary
+        if: always()
+        run: |
+          {
+            echo '## Economic Cycle Research dashboard'
+            echo ''
+            echo 'The HTML dashboard and state.json are in the milestone1-audit-evidence artifact under dashboard/.'
+            echo ''
+            echo 'This is a dated descriptive research snapshot, not a live forecast or investment recommendation.'
+            echo ''
+            echo 'Source: SEM_Historical_Crash_Research_v1; no predictive approval.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve source evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: milestone1-audit-evidence
+          path: audit-output/
+          if-no-files-found: warn
+          retention-days: 30

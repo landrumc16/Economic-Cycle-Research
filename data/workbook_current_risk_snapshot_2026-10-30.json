@@ -1,0 +1,66 @@
+{
+  "source_workbook": "SEM_Historical_Crash_Research_v1",
+  "source_tab": "CURRENT RISK INPUTS",
+  "source_range": "A2:L7",
+  "snapshot_date": "2026-10-30",
+  "snapshot_type": "manual_connector_snapshot_not_automatic_live_sync",
+  "rows": [
+    {
+      "series_id": "BAA10Y",
+      "observation_date": "2026-10-28",
+      "value": 1.43,
+      "unit": "percentage points",
+      "source_url": "https://fred.stlouisfed.org/series/BAA10Y",
+      "publisher_verified": true,
+      "vintage_verified": true,
+      "workbook_usable": true,
+      "human_approved": false,
+      "notes": "Workbook usable YES; separate model promotion not authorized"
+    },
+    {
+      "series_id": "T10Y2Y",
+      "observation_date": "2026-10-29",
+      "value": 0.37,
+      "unit": "percentage points",
+      "source_url": "https://fred.stlouisfed.org/series/T10Y2Y",
+      "publisher_verified": true,
+      "vintage_verified": false,
+      "workbook_usable": false,
+      "human_approved": false
+    },
+    {
+      "series_id": "HOUST",
+      "observation_date": "2026-09-01",
+      "value": 1221,
+      "unit": "thousands SAAR",
+      "source_url": "https://fred.stlouisfed.org/series/HOUST",
+      "publisher_verified": true,
+      "vintage_verified": true,
+      "workbook_usable": true,
+      "human_approved": false,
+      "notes": "Workbook says monthly decline not statistically significant"
+    },
+    {
+      "series_id": "TDSP",
+      "observation_date": "2026-06-30",
+      "value": 11.11144,
+      "unit": "percent disposable income",
+      "source_url": "https://fred.stlouisfed.org/series/TDSP",
+      "publisher_verified": true,
+      "vintage_verified": true,
+      "workbook_usable": true,
+      "human_approved": false
+    },
+    {
+      "series_id": "VIXCLS",
+      "observation_date": "2026-10-28",
+      "value": 16.91,
+      "unit": "index points",
+      "source_url": "https://fred.stlouisfed.org/series/VIXCLS",
+      "publisher_verified": true,
+      "vintage_verified": false,
+      "workbook_usable": false,
+      "human_approved": false
+    }
+  ]
+}
