@@ -1,3 +1,9 @@
+## Release-evidence staging checkpoint — 2026-10-30
+- Commits `1447c42`, `558c5cd`, `f2ce5c3`, `51595b5`: created empty original publisher release register, validator, no-lookahead tests, and CI step. No publisher observations or timestamps were fabricated.
+- Validator rejects invalid source identifiers, missing timezone, malformed hashes, and releases after decision times; metadata plausibility never certifies source authenticity or authorizes prediction.
+- Workflow #97 was cancelled by concurrency; not a passing result. Check the newest workflow before closure.
+- Next: verify offline CI, then populate actual original BLS/BEA release artifacts with hashes, release timing and corroboration; resolve quota constraints without re-running full historical downloads unnecessarily.
+
 ## CI quota separation checkpoint — 2026-10-30
 - Workflow #95 was in progress when checked. The BLS key's daily quota was exhausted on earlier runs.
 - Commit `d0eab05` separates PR code checks from live BLS/FRED/BEA calls: live source acquisition and source reconciliation now run on scheduled or manually dispatched workflows, not on every PR commit. Source evidence remains blocked when absent; offline CI is **not** source certification.
