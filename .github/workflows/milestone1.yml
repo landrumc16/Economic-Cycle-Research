@@ -192,6 +192,10 @@ jobs:
       - name: Build Version 3 weekly dashboard
         if: always()
         run: python -u scripts/v3_weekly_dashboard.py --assessment audit-output/v3_weekly_assessment.json --output audit-output/dashboard/weekly.html
+      - name: Build Version 4 global and social evidence register
+        run: python -u scripts/v4_global_social_register.py --output audit-output/v4_global_social_register.json
+      - name: Evaluate Version 4 predictive validation gate
+        run: python -u scripts/v4_predictive_validation_gate.py --episodes audit-output/v4_historical_episode_registry.json --output audit-output/v4_predictive_validation_gate.json
       - name: Build Version 4 integrated weekly dashboard
         run: python -u scripts/v4_weekly_dashboard.py --output audit-output/dashboard/weekly-v4.html
       - name: Verify Version 3 descriptive weekly release
