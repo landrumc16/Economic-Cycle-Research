@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from datetime import date
 
-def make_dashboard(current, history, macro=None, refresh=None, assessment=None, analogues=None, v2=None):
+def make_dashboard(current, history, macro=None, refresh=None, assessment=None, analogues=None, v2=None, trajectories=None):
     rows = current["rows"]
     snapshot_date = date.fromisoformat(current["snapshot_date"])
     latest_observation = max((date.fromisoformat(r["observation_date"]) for r in rows if r.get("observation_date")), default=None)
@@ -141,6 +141,31 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
             " · Exact prior-month matches: " + esc(summary.get("crashes_with_exact_prior_month_match", 0)) + "</p>"
             "<div class=\"scroll\"><table><thead><tr><th>Peak</th><th>Prior month</th><th>GDP YoY</th><th>Inflation</th><th>Unemployment 3m</th><th>Curve</th><th>Credit</th><th>Policy 12m</th><th>Match status</th></tr></thead><tbody>"
             + "".join(event_rows) + "</tbody></table></div></section>")
+    trajectory_html = ""
+    if isinstance(trajectories, dict) and trajectories.get("status") == "DESCRIPTIVE_ONLY":
+        rows_html = []
+        for profile in trajectories.get("pathway_profiles", []):
+            samples = profile.get("prior_24_months_financial", [])
+            if len(samples) != 24:
+                continue
+            valid = [r for r in samples if r.get("status") == "REVISED_NOT_PIT"]
+            first, last = samples[0], samples[-1]
+            def show(v):
+                return esc("Unavailable" if v is None else v)
+            rows_html.append("<tr><td>" + show(profile.get("peak_date")) + "</td><td>" +
+                show(first.get("month")) + " to " + show(last.get("month")) + "</td><td>" +
+                show(len(valid)) + "/24</td><td>" + show(first.get("curve_pp")) + "</td><td>" +
+                show(last.get("curve_pp")) + "</td><td>" + show(first.get("credit_pp")) + "</td><td>" +
+                show(last.get("credit_pp")) + "</td><td>" +
+                show(sum(r.get("financial_stress") is True for r in valid)) + "</td></tr>")
+        trajectory_html = ("<section><h2>Version 2: 24-month financial lead-up</h2>"
+            "<p class=\"sub\">Retrospective monthly yield curve, credit spread and financial stress observations. "
+            "First and final month values are shown; unavailable data are not zero or no-stress observations. "
+            "These are not publisher-original point-in-time vintages or verified non-crash controls.</p>"
+            "<div class=\"scroll\"><table><thead><tr><th>Crash peak</th><th>Window</th><th>Months available</th>"
+            "<th>Curve start (pp)</th><th>Curve end (pp)</th><th>Credit start (pp)</th><th>Credit end (pp)</th>"
+            "<th>Observed stress months</th></tr></thead><tbody>" + "".join(rows_html) +
+            "</tbody></table></div></section>")
     assessment_html = f'<section class="notice"><strong>Current financial-stress screen: {esc(stress_assessment)}</strong><p>{esc(explanation)}</p><small>Rule: 10Y–2Y spread &lt; 0 pp OR Baa–10Y spread ≥ 2.5 pp. Historical descriptive rule only.</small></section>'
     # Historical comparisons are based on observed spread proximity, not inferred crash likelihood.
     comparisons = []
@@ -159,11 +184,11 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
 <main><header><h1>Economic Cycle Research</h1><p class="sub">First working descriptive dashboard · Snapshot: SNAPSHOT · no live sync</p></header>
 <div class="notice"><strong>Research only — not a forecast.</strong> Current observations are dated workbook exports, not verified real-time data. No cycle-stage prediction, crash probability, investment recommendation, or point-in-time certification is authorized.</div>
 FRESHNESS<h2>Current research observations</h2><div class="cards">CARDS</div>QUALITY
-ASSESSMENTMACROREFRESHCYCLEFINANCIALCONTEXTANALOGUESV2HISTORICAL<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
+ASSESSMENTMACROREFRESHCYCLEFINANCIALCONTEXTANALOGUESV2HISTORICALV2TRAJECTORIES<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
 <p class="sub">HISTORICAL_CONTEXT_TEXT Monthly observations and forward windows overlap; they are not independent trials. Stress is a descriptive flag, not a validated crash predictor.</p>
 <h2>Crash pathway comparison</h2><div class="scroll"><table><thead><tr><th>Cluster</th><th>Daily peak</th><th>Prior month</th><th>20% crossing</th><th>Curve (pp)</th><th>Credit (pp)</th><th>Financial stress?</th></tr></thead><tbody>EVENTS</tbody></table></div>
 <footer>Authority: SEM_Historical_Crash_Research_v1 · dated manual research snapshots. Publisher-original release verification, untouched holdouts and model approval remain incomplete.</footer></main></html>"""
-    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"V2HISTORICAL":v2_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
+    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"V2HISTORICAL":v2_html,"V2TRAJECTORIES":trajectory_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
         page=page.replace(a,b)
     return page
 
@@ -177,6 +202,7 @@ def main():
     p.add_argument("--historical-analogues",default=None,help="Optional descriptive historical macro similarities")
     p.add_argument("--cycle-assessment",default=None,help="Optional descriptive current-cycle assessment")
     p.add_argument("--v2-comparison",default=None,help="Optional Version 2 canonical comparison")
+    p.add_argument("--v2-trajectories",default=None,help="Optional Version 2 24-month pathway trajectories")
     p.add_argument("--refresh-manifest",default=None,help="Optional source refresh manifest JSON")
     p.add_argument("--strict-macro",action="store_true",help="Fail if the requested macro readout is unavailable")
     p.add_argument("--require-macro-values",action="store_true",help="Fail if growth, labor or inflation observation is missing")
@@ -198,7 +224,8 @@ def main():
     assessment=json.loads(Path(a.cycle_assessment).read_text()) if a.cycle_assessment and Path(a.cycle_assessment).exists() else None
     analogues=json.loads(Path(a.historical_analogues).read_text()) if a.historical_analogues and Path(a.historical_analogues).exists() else None
     v2=json.loads(Path(a.v2_comparison).read_text()) if a.v2_comparison and Path(a.v2_comparison).exists() else None
-    target.write_text(make_dashboard(current,historical,macro,refresh,assessment,analogues,v2),encoding="utf-8")
+    trajectories=json.loads(Path(a.v2_trajectories).read_text()) if a.v2_trajectories and Path(a.v2_trajectories).exists() else None
+    target.write_text(make_dashboard(current,historical,macro,refresh,assessment,analogues,v2,trajectories),encoding="utf-8")
     if a.json_output:
         state = {
             "snapshot_date": current["snapshot_date"],
@@ -212,6 +239,7 @@ def main():
             "current_cycle_assessment": assessment,
             "historical_macro_analogues": analogues,
             "v2_historical_comparison": v2,
+            "v2_pathway_trajectories": trajectories,
             "financial_observations": current["rows"],
             "historical_parent_clusters": len(historical["pathways"]["rows"]) - 1,
             "historical_monthly_observations": len(historical["noncrash"]["rows"]) - 1
