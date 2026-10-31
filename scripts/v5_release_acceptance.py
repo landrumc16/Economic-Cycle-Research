@@ -61,8 +61,7 @@ def main():
         result = verify(docs[0], (root / "dashboard/weekly-v5.html").read_text(), *docs[1:])
     target = Path(a.output)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(result, indent=2, sort_keys=True) + "
-")
+    target.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(json.dumps({"status": result["status"], "issues": result["issues"]}))
     if result["status"] == "FAIL":
         raise SystemExit(1)
