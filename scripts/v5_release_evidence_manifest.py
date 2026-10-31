@@ -31,11 +31,20 @@ def summarize(directory):
     dashboard = (root / "dashboard/weekly-v5.html").read_text()
     dashboard_valid = ("<html" in dashboard and "Predictive publication: BLOCKED" in dashboard
                        and str(weekly.get("as_of", "")) in dashboard)
-    passed = (acceptance.get("status") == "PASS_DESCRIPTIVE_ONLY"
-              and date_matches and blocked and dashboard_valid)
+    issues = []
+    if acceptance.get("status") != "PASS_DESCRIPTIVE_ONLY":
+        issues.append("RELEASE_ACCEPTANCE_NOT_PASSED")
+    if not date_matches:
+        issues.append("ARTIFACT_DATE_MISMATCH")
+    if not blocked:
+        issues.append("PREDICTIVE_GATE_MISSING_OR_UNBLOCKED")
+    if not dashboard_valid:
+        issues.append("DASHBOARD_DISCLOSURE_OR_DATE_MISSING")
+    passed = not issues
     return {"schema_version": 1, "report_type": "V5_RELEASE_EVIDENCE_MANIFEST",
             "status": "DESCRIPTIVE_ARTIFACTS_VERIFIED" if passed else "INCOMPLETE",
-            "as_of": weekly.get("as_of"), "missing": [], "artifact_paths": list(REQUIRED),
+            "as_of": weekly.get("as_of"), "missing": [], "issues": issues,
+            "artifact_paths": list(REQUIRED),
             "macro_available": weekly.get("macro_metric_count", 0),
             "macro_total": weekly.get("macro_metric_total", 0),
             "historical_events": weekly.get("historical_event_count", 0),
@@ -54,7 +63,8 @@ def main():
     target = Path(a.output)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
-    print(json.dumps({"status": result["status"], "missing": result["missing"]}))
+    print(json.dumps({"status": result["status"], "missing": result["missing"],
+                      "issues": result.get("issues", [])}))
     if result["status"] != "DESCRIPTIVE_ARTIFACTS_VERIFIED":
         raise SystemExit(1)
 
