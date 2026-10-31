@@ -55,3 +55,18 @@ def audit(snapshot):
             "Observation dates are not publisher release dates; historical vintages remain unverified",
         ],
     }
+
+if __name__ == "__main__":
+    import argparse
+    import json
+    from pathlib import Path
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--snapshot", default="audit-output/v3_weekly_snapshot.json")
+    parser.add_argument("--output", default="audit-output/v4_data_readiness.json")
+    args = parser.parse_args()
+    result = audit(json.loads(Path(args.snapshot).read_text()))
+    target = Path(args.output)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    print(json.dumps({"numeric_sources": result["numeric_sources"], "staged_sources": result["staged_sources"],
+                      "weekly_comparison_verified": result["weekly_comparison_verified"]}))
