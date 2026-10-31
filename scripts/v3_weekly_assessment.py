@@ -7,11 +7,13 @@ try:
     from scripts.v3_pathway_evidence import pathway_evidence
     from scripts.v3_historical_bridge import bridge
     from scripts.v3_weekly_change_summary import summarize
+    from scripts.v3_macro_narrative import narrative
 except ModuleNotFoundError:
     from v3_indicator_interpretation import interpret
     from v3_pathway_evidence import pathway_evidence
     from v3_historical_bridge import bridge
     from v3_weekly_change_summary import summarize
+    from v3_macro_narrative import narrative
 
 LABELS = {
     "UNRATE": ("Unemployment rate", "percentage points", "MONTHLY"),
@@ -65,6 +67,7 @@ def assess(snapshot, historical=None):
         "indicators": rows,
         "directional_evidence": interpret(rows),
         "change_summary": summarize(rows),
+        "macro_narrative": narrative(rows),
         "pathway_evidence": pathway_evidence(rows),
         "historical_bridge": historical_bridge,
         "validated_cycle_stage": None, "crash_probability": None,
@@ -89,6 +92,10 @@ def render_markdown(report):
         "New dated observations: {new_observations}; revisions: {revisions}; carried forward: {carried_forward}; unavailable: {unavailable}; source status transitions: {source_transitions}.".format(**report["change_summary"]["counts"]),
         "",
         report["change_summary"]["baseline_note"],
+        "",
+        "## Economic domain readout",
+        "",
+        *("- **{}**: {}".format(x["domain"].replace("_", " ").title(), x["statement"]) for x in report["macro_narrative"]["domains"]),
         "",
         "## Indicator evidence",
     ]
