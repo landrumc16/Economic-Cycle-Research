@@ -60,10 +60,10 @@ jobs:
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/api_crosscheck.py --bls audit-output/bls-api --fred audit-output/fred-api
       - name: Build retrospective event panel (non-PIT exploratory)
-        if: always()
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/retrospective_event_panel.py --input audit-output/fred-api --output audit-output/phase2
       - name: Compare historical crash economic trajectories (retrospective)
-        if: always()
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/compare_crash_events.py --input audit-output/fred-api --output audit-output/phase2
       - name: Generate fail-closed operational model status
         if: always()
