@@ -32,6 +32,17 @@ def summarize(directory):
     dashboard_valid = ("<html" in dashboard and "Predictive publication: BLOCKED" in dashboard
                        and str(weekly.get("as_of", "")) in dashboard)
     issues = []
+    expected_types = {
+        "v5_weekly_research_readout.json": "V5_WEEKLY_RESEARCH_READOUT",
+        "v5_standardized_macro_metrics.json": "V5_STANDARDIZED_MACRO_METRICS",
+        "v5_mechanism_evidence_gate.json": "V5_MECHANISM_EVIDENCE_GATE",
+        "v5_objective_outcomes.json": None,
+        "v5_pit_replay.json": "V5_PIT_REPLAY",
+        "v5_release_acceptance.json": "V5_RELEASE_ACCEPTANCE",
+    }
+    for name, expected in expected_types.items():
+        if expected and documents[name].get("report_type") != expected:
+            issues.append("INVALID_REPORT_TYPE:" + name)
     if acceptance.get("status") != "PASS_DESCRIPTIVE_ONLY":
         issues.append("RELEASE_ACCEPTANCE_NOT_PASSED")
     if not date_matches:
