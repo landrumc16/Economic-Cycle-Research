@@ -4,8 +4,10 @@ import json
 from pathlib import Path
 try:
     from scripts.v3_indicator_interpretation import interpret
+    from scripts.v3_pathway_evidence import pathway_evidence
 except ModuleNotFoundError:
     from v3_indicator_interpretation import interpret
+    from v3_pathway_evidence import pathway_evidence
 
 LABELS = {
     "UNRATE": ("Unemployment rate", "percentage points", "MONTHLY"),
@@ -55,6 +57,7 @@ def assess(snapshot):
                    "This is a descriptive source and release-change assessment, not a validated economic-cycle classification.",
         "indicators": rows,
         "directional_evidence": interpret(rows),
+        "pathway_evidence": pathway_evidence(rows),
         "validated_cycle_stage": None, "crash_probability": None,
         "pathway_conclusions": [],
         "publication": "DESCRIPTIVE_ONLY",
@@ -85,6 +88,9 @@ def render_markdown(report):
     lines.extend(["", "## Directional evidence (not predictions)"])
     for finding in report["directional_evidence"]["findings"]:
         lines.append("- **{}**: {}".format(finding["series"], finding["interpretation"]))
+    lines.extend(["", "## Crash pathway evidence inventories (not confirmed mechanisms)"])
+    for pathway in report["pathway_evidence"]["pathways"]:
+        lines.append("- **{}**: {} of {} mapped indicators have numeric observations; causal mechanism not verified.".format(pathway["pathway"], pathway["observed"], pathway["required"]))
     lines.extend(["", "## Interpretation limits", *("- " + x for x in report["limitations"]), "",
                   "**Economic-cycle stage:** Not validated.",
                   "**Crash probability:** Not available.", ""])
