@@ -39,6 +39,23 @@ class HistoricalAnalogueTests(unittest.TestCase):
         self.assertEqual(result["analogues"], [])
         self.assertEqual(result["publication"], "BLOCKED")
 
+    def test_missing_historical_sources_produce_explicit_status(self):
+        import subprocess
+        import sys
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "analogue.json"
+            subprocess.run([sys.executable, "scripts/historical_macro_analogues.py",
+                            "--fred", str(Path(tmp) / "missing"), "--metrics",
+                            str(Path(tmp) / "missing.json"), "--output", str(output)],
+                           check=True, capture_output=True, text=True)
+            import json
+            result = json.loads(output.read_text())
+            self.assertEqual(result["status"], "INSUFFICIENT_SOURCE_DATA")
+            self.assertEqual(result["analogues"], [])
+            self.assertEqual(result["publication"], "BLOCKED")
+
     def test_uses_same_quarter_gdp_and_yoy_cpi(self):
         data = {
             "UNRATE": {"2000-03-01": 4.0, "1999-12-01": 4.2},
