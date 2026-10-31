@@ -130,6 +130,9 @@ jobs:
       - name: Evaluate Version 1 research dashboard acceptance
         if: always()
         run: python -u scripts/v1_acceptance.py --html audit-output/dashboard/index.html --state audit-output/dashboard/state.json --output audit-output/dashboard/v1_acceptance.json
+      - name: Evaluate Version 2 milestone 1 acceptance
+        if: always()
+        run: python -u scripts/v2_m1_acceptance.py --comparison audit-output/v2_canonical_comparison.json --html audit-output/dashboard/index.html --state audit-output/dashboard/state.json --output audit-output/v2_m1_acceptance.json
       - name: Publish static dashboard to job summary
         if: always()
         run: |
