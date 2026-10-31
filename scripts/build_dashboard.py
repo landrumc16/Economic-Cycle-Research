@@ -100,11 +100,14 @@ def main():
     p.add_argument("--output",default="dashboard/index.html")
     p.add_argument("--macro",default=None,help="Optional cycle_research_readout.json; missing observations stay unavailable")
     p.add_argument("--json-output",default=None,help="Optional machine-readable dashboard state")
+    p.add_argument("--strict-macro",action="store_true",help="Fail if the requested macro readout is unavailable")
     a=p.parse_args()
     current=json.loads(Path(a.current).read_text())
     historical=json.loads(Path(a.historical).read_text())
     target=Path(a.output)
     target.parent.mkdir(parents=True,exist_ok=True)
+    if a.strict_macro and (not a.macro or not Path(a.macro).exists()):
+        raise FileNotFoundError("Requested macro readout unavailable")
     macro=json.loads(Path(a.macro).read_text()) if a.macro and Path(a.macro).exists() else None
     target.write_text(make_dashboard(current,historical,macro),encoding="utf-8")
     if a.json_output:
