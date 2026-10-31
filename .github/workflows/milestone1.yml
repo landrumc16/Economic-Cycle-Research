@@ -133,7 +133,22 @@ jobs:
           {
             echo '## Economic Cycle Research dashboard'
             echo ''
-            echo 'The HTML dashboard and state.json are in the milestone1-audit-evidence artifact under dashboard/.'
+            echo 'The HTML dashboard, state.json, and v1_acceptance.json are in the milestone1-audit-evidence artifact under dashboard/.'
+            echo ''
+            echo '### Version 1 acceptance'
+            python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          p = Path("audit-output/dashboard/v1_acceptance.json")
+          if not p.exists():
+              print("**INCOMPLETE** — acceptance report missing.")
+          else:
+              report = json.loads(p.read_text())
+              print("**" + report.get("status", "INCOMPLETE") + "**")
+              print("Predictive model: " + report.get("predictive_model_status", "NOT_VALIDATED"))
+              for issue in report.get("issues", []):
+                  print("- " + issue)
+          PY
             echo ''
             echo 'This is a dated descriptive research snapshot, not a live forecast or investment recommendation.'
             echo ''
