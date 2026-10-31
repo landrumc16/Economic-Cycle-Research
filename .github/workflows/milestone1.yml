@@ -198,6 +198,8 @@ jobs:
         run: python -u scripts/v5_objective_outcomes.py --as-of "$(date -u +%F)" --output audit-output/v5_objective_outcomes.json
       - name: Audit Version 5 publisher-original historical replay coverage
         run: python -u scripts/v5_pit_replay.py --as-of "$(date -u +%F)" --output audit-output/v5_pit_replay.json
+      - name: Audit Version 5 mechanism-specific research readiness
+        run: python -u scripts/v5_mechanism_evidence.py --output audit-output/v5_mechanism_evidence_gate.json
       - name: Produce Version 3 weekly assessment with historical evidence coverage
         if: always()
         run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --historical audit-output/v2_pathway_coverage.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
