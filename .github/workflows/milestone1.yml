@@ -194,6 +194,8 @@ jobs:
         run: python -u scripts/v4_historical_episode_registry.py --cohort audit-output/v3_historical_cohort_audit.json --output audit-output/v4_historical_episode_registry.json
       - name: Build Version 5 historical episode and negative-control research artifact
         run: python -u scripts/v5_historical_episode_research.py --episodes audit-output/v4_historical_episode_registry.json --as-of "$(date -u +%F)" --output audit-output/v5_historical_episode_research.json
+      - name: Audit Version 5 objective historical outcome evidence coverage
+        run: python -u scripts/v5_objective_outcomes.py --as-of "$(date -u +%F)" --output audit-output/v5_objective_outcomes.json
       - name: Produce Version 3 weekly assessment with historical evidence coverage
         if: always()
         run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --historical audit-output/v2_pathway_coverage.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
