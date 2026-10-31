@@ -73,6 +73,24 @@ class DashboardIntegrationTests(unittest.TestCase):
         self.assertIn("444", page)
         self.assertIn("not verified non-crash controls", page)
         self.assertNotIn("V2HISTORICAL", page)
+    def test_v2_24_month_financial_lead_up_renders(self):
+        current = {"snapshot_date": "2026-10-30", "rows": []}
+        history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
+        samples = [{"month": "1998-01", "curve_pp": None, "credit_pp": None,
+                    "financial_stress": None, "status": "MISSING_MONTHLY_OBSERVATION"}
+                   for _ in range(24)]
+        samples[-1] = {"month": "1999-12", "curve_pp": -0.1, "credit_pp": 2.0,
+                       "financial_stress": True, "status": "REVISED_NOT_PIT"}
+        trajectories = {"status": "DESCRIPTIVE_ONLY",
+                        "pathway_profiles": [{"peak_date": "2000-03-10",
+                                             "prior_24_months_financial": samples}]}
+        page = make_dashboard(current, history, trajectories=trajectories)
+        self.assertIn("Version 2: 24-month financial lead-up", page)
+        self.assertIn("2000-03-10", page)
+        self.assertIn("1/24", page)
+        self.assertIn("Unavailable", page)
+        self.assertNotIn("V2TRAJECTORIES", page)
+
     def test_unavailable_analogues_are_explicit(self):
         current = {"snapshot_date": "2026-10-30", "rows": []}
         history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
