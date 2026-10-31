@@ -18,6 +18,16 @@ class CanonicalComparisonTests(unittest.TestCase):
         self.assertEqual(len(report["provenance"]["sha256_export"]), 64)
         self.assertEqual(report["provenance"]["extraction_timestamp_status"], "NOT_RECORDED_IN_SOURCE_EXPORT")
 
+    def test_exact_prior_month_matches_preserve_monthly_context(self):
+        raw = SNAPSHOT.read_bytes()
+        report = build(json.loads(raw), raw)
+        matched = [r for r in report["crash_parent_clusters"] if r["matched_prior_month"]]
+        self.assertEqual(report["descriptive_comparison"]["crashes_with_exact_prior_month_match"], len(matched))
+        for crash in matched:
+            self.assertEqual(crash["matched_prior_month"]["month"], crash["prior_month"])
+            self.assertEqual(crash["monthly_match_status"], "EXACT_PRIOR_MONTH_DESCRIPTIVE")
+        self.assertIn("NOT verified non-crash controls", report["limitations"][0])
+
     def test_source_approval_is_not_assumed(self):
         raw = SNAPSHOT.read_bytes()
         data = json.loads(raw)
