@@ -4,9 +4,9 @@ import argparse
 from pathlib import Path
 
 MECHANISMS = {
-    "monetary": ("yield_curve", "policy_rate"),
+    "monetary": ("inflation", "yield_curve", "policy_rate"),
     "credit_banking": ("credit_spread", "financial_stress"),
-    "labor_growth": ("unemployment", "real_gdp"),
+    "labor_growth": ("unemployment", "initial_claims", "real_gdp"),
     "housing": ("housing_starts", "house_prices"),
     "speculative": ("equity_drawdown", "valuation"),
     "external_shock": ("global_trade", "global_financial_stress"),
