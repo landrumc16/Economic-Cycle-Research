@@ -84,7 +84,9 @@ def main():
     p.add_argument("--output", default="audit-output/v3_weekly_snapshot.json")
     a = p.parse_args()
     manifest = json.loads(Path(a.refresh).read_text())
-    previous = json.loads(Path(a.previous).read_text()) if a.previous else None
+    previous = json.loads(Path(a.previous).read_text()) if a.previous and Path(a.previous).exists() else None
+    if previous is not None and date.fromisoformat(previous["as_of"]) >= date.fromisoformat(a.as_of):
+        previous = None  # Same-day or future artifacts are not a prior weekly comparison
     folder = Path(a.observations)
     observations = {}
     for name in manifest["series"]:
