@@ -27,7 +27,7 @@ class V5ManifestTests(unittest.TestCase):
             (self.root / name).write_text(json.dumps(document))
         dashboard = self.root / "dashboard" / "weekly-v5.html"
         dashboard.parent.mkdir(parents=True)
-        dashboard.write_text("<html>Descriptive only</html>")
+        dashboard.write_text("<html>2026-10-31 Predictive publication: BLOCKED</html>")
 
     def test_complete_manifest_passes_without_predictive_claim(self):
         report = summarize(self.root)
@@ -52,6 +52,16 @@ class V5ManifestTests(unittest.TestCase):
         self.documents["v5_standardized_macro_metrics.json"]["as_of"] = "2026-10-30"
         (self.root / "v5_standardized_macro_metrics.json").write_text(
             json.dumps(self.documents["v5_standardized_macro_metrics.json"]))
+        self.assertEqual(summarize(self.root)["status"], "INCOMPLETE")
+
+    def test_missing_predictive_gate_fails(self):
+        del self.documents["v5_pit_replay.json"]["predictive_publication"]
+        (self.root / "v5_pit_replay.json").write_text(
+            json.dumps(self.documents["v5_pit_replay.json"]))
+        self.assertEqual(summarize(self.root)["status"], "INCOMPLETE")
+
+    def test_dashboard_missing_disclosure_fails(self):
+        (self.root / "dashboard" / "weekly-v5.html").write_text("<html>Descriptive only</html>")
         self.assertEqual(summarize(self.root)["status"], "INCOMPLETE")
 
     def test_predictive_unblock_fails(self):
