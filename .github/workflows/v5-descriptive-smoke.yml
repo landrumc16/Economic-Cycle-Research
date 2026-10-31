@@ -1,0 +1,30 @@
+name: Version 5 Descriptive Release Smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v5_*.py'
+      - 'tests/test_v5_*.py'
+      - '.github/workflows/v5-descriptive-smoke.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  descriptive-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile Version 5 Python sources and tests
+        run: python -m compileall -q scripts/v5_*.py tests/test_v5_*.py
+      - name: Run Version 5 regression and end-to-end smoke tests
+        run: python -m unittest discover -s tests -p 'test_v5_*.py' -v
+      - name: Explain smoke test scope
+        if: always()
+        run: |
+          echo '## Version 5 descriptive smoke' >> "$GITHUB_STEP_SUMMARY"
+          echo 'This check tests code contracts and synthetic end-to-end descriptive artifacts.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'It does not certify live source freshness, historical publisher vintages, or predictive accuracy.' >> "$GITHUB_STEP_SUMMARY"
