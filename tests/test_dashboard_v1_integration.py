@@ -56,6 +56,23 @@ class DashboardIntegrationTests(unittest.TestCase):
         self.assertIn("Not assessable", page)
         self.assertNotIn("Historical stress definition met", page)
 
+    def test_v2_historical_conditions_render_in_dashboard(self):
+        current = {"snapshot_date": "2026-10-30", "rows": []}
+        history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
+        v2 = {"status": "DESCRIPTIVE_ONLY",
+              "descriptive_comparison": {"crash_parent_clusters": 8, "monthly_observations": 444,
+                                         "crashes_with_exact_prior_month_match": 8},
+              "crash_parent_clusters": [{"peak_date": "2007-10-31", "prior_month": "2007-09",
+                                         "gdp_yoy_pct": 1.93, "inflation_pct": 1.78,
+                                         "unemployment_3m_pp": 0.2, "curve_pp": 0.62,
+                                         "credit_pp": 2.0, "policy_12m_pp": -0.37,
+                                         "monthly_match_status": "EXACT_PRIOR_MONTH_DESCRIPTIVE"}]}
+        page = make_dashboard(current, history, v2=v2)
+        self.assertIn("Version 2 historical conditions", page)
+        self.assertIn("2007-10-31", page)
+        self.assertIn("444", page)
+        self.assertIn("not verified non-crash controls", page)
+        self.assertNotIn("V2HISTORICAL", page)
     def test_unavailable_analogues_are_explicit(self):
         current = {"snapshot_date": "2026-10-30", "rows": []}
         history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
