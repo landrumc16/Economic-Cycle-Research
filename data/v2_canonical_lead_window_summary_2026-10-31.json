@@ -1,0 +1,22 @@
+{
+  "source_workbook": "SEM_Historical_Crash_Research_v1",
+  "source_spreadsheet_id": "1ocdo4Y036ZB93egyY96INfuRcJkw0uHAO5BK416bVnE",
+  "source_tab": "CRASH LEAD WINDOW SUMMARY",
+  "source_range": "A4:O12",
+  "extraction_date": "2026-10-31",
+  "export_type": "dated_read_only_research_snapshot",
+  "point_in_time_certified": false,
+  "human_approved_for_prediction": false,
+  "headers": ["Crash ID","Daily market peak","Parent max DD","Recession overlap (hindsight)","Available prior months","Curve inverted any 24m?","Credit >=2.5 any 24m?","Either financial any 24m?","Financial any prior 12m?","Earliest warning lead (months)","Most recent warning lead (months)","DFF tightening any 24m?","DFF easing any 24m?","CPI >=4% any 24m?","U3 3m >=0.3pp any 24m?"],
+  "rows": [
+    ["1","1987-08-26","-0.3588718534","NO","7","NO","YES","YES","YES","7","7","NO","YES","YES","NO"],
+    ["2","1989-10-09","-0.3299981471","YES","24","YES","YES","YES","YES","21","1","YES","YES","YES","YES"],
+    ["3","1998-07-20","-0.2954598486","NO","24","YES","NO","YES","YES","1","1","NO","NO","NO","YES"],
+    ["4","2000-03-10","-0.7793238548","YES","24","YES","YES","YES","YES","21","1","NO","NO","YES","NO"],
+    ["5","2007-10-31","-0.5562830521","YES","24","YES","NO","YES","YES","22","5","YES","NO","YES","NO"],
+    ["6","2018-08-29","-0.2363555204","NO","24","NO","YES","YES","NO","24","22","NO","NO","NO","NO"],
+    ["7","2020-02-19","-0.3011567477","YES","24","NO","NO","NO","NO","MISSING","MISSING","YES","NO","YES","NO"],
+    ["8","2021-11-19","-0.3639527845","NO","24","NO","YES","YES","NO","20","13","NO","YES","YES","YES"]
+  ],
+  "notes": "Source summary uses revised research; the 1987 event has only seven prior months. Warning lead is oldest qualifying month, not warning onset. Descriptive only."
+}
