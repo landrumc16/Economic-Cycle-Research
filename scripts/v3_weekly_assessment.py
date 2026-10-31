@@ -2,7 +2,10 @@
 import argparse
 import json
 from pathlib import Path
-from scripts.v3_indicator_interpretation import interpret
+try:
+    from scripts.v3_indicator_interpretation import interpret
+except ModuleNotFoundError:
+    from v3_indicator_interpretation import interpret
 
 LABELS = {
     "UNRATE": ("Unemployment rate", "percentage points", "MONTHLY"),
