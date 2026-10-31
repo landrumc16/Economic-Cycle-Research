@@ -101,6 +101,9 @@ jobs:
       - name: Validate publisher-original vintage evidence contract (not PIT certification)
         if: always()
         run: python -u scripts/validate_publisher_vintage_manifest.py --input config/publisher_original_vintage_manifest.json --output audit-output/publisher_vintage_contract.json
+      - name: Validate original publisher release staging and no-lookahead timestamps
+        if: always()
+        run: python -u scripts/validate_release_evidence.py --input data/publisher_original_release_records.json --output audit-output/publisher_release_evidence.json
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
