@@ -42,3 +42,16 @@ Verified GitHub Actions run **41222896939** on commit **51e157addd0aba17641e58dc
 - Seven scheduled/manual API acquisition and historical-analysis steps were skipped on the push event.
 
 **Decision:** V2 integrated descriptive dashboard passes its scoped acceptance gate, but the combined product is **NOT FULLY ACCEPTED** until the inherited V1 acceptance gaps are resolved or formally scoped and disclosed. Do not misrepresent absent current observations as current economic readings.
+
+## Formal descriptive V2 acceptance — 2026-10-31
+
+**ACCEPTED FOR DESCRIPTIVE RESEARCH SCOPE.** GitHub Actions run [41225609570](https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/41225609570), commit `80f6dd528ac7c32b24b98dbb57e56bcbe052f425`, completed successfully. Inspected downloaded artifact `milestone1-audit-evidence` (ID `13051812755`).
+
+- `v2_release_acceptance.json`: `V2_DESCRIPTIVE_RELEASE_ACCEPTED`, `checks_passed=true`, `issues=[]`.
+- `v2_m1_acceptance.json`: `M1_ACCEPTANCE_CANDIDATE`, `checks_passed=true`, `issues=[]`.
+- Dashboard HTML: all four V2 sections and explicit unemployment transformation warning present.
+- Dashboard state: 8 canonical parent clusters; 8 global channels with **0 historical** and **0 current** observed global channels; `publication=BLOCKED`.
+- Inherited `v1_acceptance.json`: `INCOMPLETE`, solely `HISTORICAL_COMPARISON_NOT_POPULATED` and `CURRENT_MACRO_VALUES_MISSING`; both preserved as `disclosed_source_gaps` in final release report.
+- **Not accepted:** live/current macro coverage, predictive probabilities, validated cycle stage, original-vintage point-in-time certification, independently verified noncrash controls, or global observation acquisition.
+
+This is a finished **descriptive research dashboard release** with transparent source-coverage limitations, not a complete live economic-monitoring or predictive product. Future work on those missing capabilities is separate from this accepted scope.
