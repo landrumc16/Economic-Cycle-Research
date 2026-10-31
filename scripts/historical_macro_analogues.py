@@ -78,8 +78,15 @@ def main():
     parser.add_argument("--output", default="audit-output/historical_macro_analogues.json")
     args = parser.parse_args()
     folder = Path(args.fred)
-    data = {k: json.loads((folder / f"{k}_normalized.json").read_text()) for k in ("UNRATE", "CPIAUCSL", "GDPC1")}
-    report = compare(data, json.loads(Path(args.metrics).read_text()))
+    required = [folder / f"{k}_normalized.json" for k in ("UNRATE", "CPIAUCSL", "GDPC1")]
+    if all(p.exists() for p in required) and Path(args.metrics).exists():
+        data = {k: json.loads((folder / f"{k}_normalized.json").read_text()) for k in ("UNRATE", "CPIAUCSL", "GDPC1")}
+        report = compare(data, json.loads(Path(args.metrics).read_text()))
+    else:
+        report = {"status": "INSUFFICIENT_SOURCE_DATA", "analogues": [], "publication": "BLOCKED",
+                  "validated_cycle_stage": None, "crash_probability": None,
+                  "missing_sources": [str(p) for p in required if not p.exists()],
+                  "limitations": ["No historical comparison when FRED acquisition is unavailable"]}
     dest = Path(args.output)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(report, indent=2) + "\n")
