@@ -74,13 +74,15 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument("--current",default="data/workbook_current_risk_snapshot_2026-10-30.json")
     p.add_argument("--historical",default="data/workbook_historical_research_snapshot_2026-10-30.json")
-    p.add_argument("--output",default="dashboard/index.html")\n    p.add_argument("--macro",default=None,help="Optional cycle_research_readout.json; missing observations stay unavailable")
+    p.add_argument("--output",default="dashboard/index.html")
+    p.add_argument("--macro",default=None,help="Optional cycle_research_readout.json; missing observations stay unavailable")
     a=p.parse_args()
     current=json.loads(Path(a.current).read_text())
     historical=json.loads(Path(a.historical).read_text())
     target=Path(a.output)
     target.parent.mkdir(parents=True,exist_ok=True)
-    macro=json.loads(Path(a.macro).read_text()) if a.macro and Path(a.macro).exists() else None\n    target.write_text(make_dashboard(current,historical,macro),encoding="utf-8")
+    macro=json.loads(Path(a.macro).read_text()) if a.macro and Path(a.macro).exists() else None
+    target.write_text(make_dashboard(current,historical,macro),encoding="utf-8")
     print(f"Built {target}")
 
 if __name__=="__main__":
