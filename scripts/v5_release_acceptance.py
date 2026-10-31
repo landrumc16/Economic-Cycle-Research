@@ -27,6 +27,8 @@ def verify(readout, dashboard, mechanisms, replay, outcomes):
         issues.append("MISSING_PIT_AUDIT")
     elif readout.get("original_vintage_replay_coverage") != replay.get("publisher_original_coverage"):
         issues.append("PIT_COVERAGE_MISMATCH")
+    if readout.get("historical_event_count") != outcomes.get("event_count", 0):
+        issues.append("HISTORICAL_EVENT_COUNT_MISMATCH")
     if readout.get("outcome_coverage_status") != outcomes.get("coverage_status"):
         issues.append("OUTCOME_COVERAGE_MISMATCH")
     if ("<html" not in dashboard or "Predictive publication: BLOCKED" not in dashboard
