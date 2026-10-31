@@ -182,6 +182,8 @@ jobs:
       - name: Audit Version 3 historical cohorts and negative-control gaps
         if: always()
         run: python -u scripts/v3_historical_cohort_audit.py --comparison audit-output/v2_canonical_comparison.json --output audit-output/v3_historical_cohort_audit.json
+      - name: Build Version 4 historical episode registry
+        run: python -u scripts/v4_historical_episode_registry.py --cohort audit-output/v3_historical_cohort_audit.json --output audit-output/v4_historical_episode_registry.json
       - name: Produce Version 3 weekly assessment with historical evidence coverage
         if: always()
         run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --historical audit-output/v2_pathway_coverage.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
