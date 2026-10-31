@@ -1,7 +1,7 @@
 # Version 5 — Descriptive Release Candidate and Verification Checklist
 
 Date: 2026-10-31
-Status: **RELEASE CANDIDATE — NOT YET VERIFIED**
+Status: **SMOKE VERIFIED — FULL WEEKLY RELEASE PENDING**
 Branch: main
 
 ## What is implemented
@@ -19,6 +19,12 @@ Branch: main
 - Runs Python compilation and `python -m unittest discover -s tests -p 'test_v5_*.py' -v`.
 - A passing smoke test establishes code integrity, **not** source freshness or full weekly release acceptance.
 - Full scheduled evidence and acceptance remain in `.github/workflows/milestone1.yml`.
+
+## Verified smoke evidence
+- User-supplied GitHub Actions screenshots show **Version 5 Descriptive Release Smoke #16**, commit `b320010` on `main`, status **Success** (10 seconds), with one uploaded artifact.
+- The job screenshot shows successful compilation, regression tests, isolated descriptive artifact-chain build and validation, and artifact preservation.
+- This is screenshot-based confirmation of the smoke run, not independent inspection of the artifact bytes or full weekly pipeline.
+- Subsequent commits on `main` still require their own verification; run #16 must not be described as validation of later commits.
 
 ## Required before declaring the descriptive release complete
 1. GitHub Actions milestone1.yml must complete successfully on current main HEAD.
