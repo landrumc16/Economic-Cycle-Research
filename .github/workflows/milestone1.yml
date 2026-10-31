@@ -95,6 +95,9 @@ jobs:
       - name: Combine provenance-aware research domains (non-predictive)
         if: always()
         run: python -u scripts/integrated_research_readout.py --macro audit-output/cycle_research_readout.json --financial audit-output/financial_housing_overlay.json --output audit-output/integrated_research_readout.json
+      - name: Assess current economic conditions across crash mechanisms (descriptive only)
+        if: always()
+        run: python -u scripts/current_cycle_assessment.py --input audit-output/integrated_research_readout.json --output audit-output/current_cycle_assessment.json
       - name: Attach canonical historical pathways and noncrash controls
         if: always()
         run: python -u scripts/historical_research_bridge.py --input audit-output/integrated_research_readout.json --output audit-output/integrated_research_readout.json
