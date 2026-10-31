@@ -15,6 +15,8 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("Nasdaq parent crash clusters",page)
         self.assertIn("not a forecast",page)
         self.assertIn("Not eligible for model",page)
+        self.assertIn("Not assessable — source eligibility incomplete",page)
+        self.assertIn("Closest historical spread profiles",page)
         self.assertNotIn("CARDS</div>",page)
 
 if __name__=="__main__":
