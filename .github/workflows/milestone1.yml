@@ -104,6 +104,9 @@ jobs:
       - name: Validate original publisher release staging and no-lookahead timestamps
         if: always()
         run: python -u scripts/validate_release_evidence.py --input data/publisher_original_release_records.json --output audit-output/publisher_release_evidence.json
+      - name: Build usable research dashboard from existing workbook snapshots
+        if: always()
+        run: python -u scripts/build_dashboard.py --output audit-output/dashboard/index.html
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
