@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from datetime import date
 
-def make_dashboard(current, history, macro=None, refresh=None, assessment=None, analogues=None):
+def make_dashboard(current, history, macro=None, refresh=None, assessment=None, analogues=None, v2=None):
     rows = current["rows"]
     snapshot_date = date.fromisoformat(current["snapshot_date"])
     latest_observation = max((date.fromisoformat(r["observation_date"]) for r in rows if r.get("observation_date")), default=None)
@@ -124,6 +124,23 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
                 '</tr></thead><tbody>' + items + '</tbody></table></div></section>')
         else:
             analogue_html = '<section><h2>Historical macro similarities</h2><p>Unavailable: insufficient comparable data.</p></section>'
+    v2_html = ""
+    if isinstance(v2, dict) and v2.get("status") == "DESCRIPTIVE_ONLY":
+        summary = v2.get("descriptive_comparison", {})
+        event_rows = []
+        for event in v2.get("crash_parent_clusters", []):
+            fields = (event.get("peak_date"), event.get("prior_month"), event.get("gdp_yoy_pct"),
+                      event.get("inflation_pct"), event.get("unemployment_3m_pp"),
+                      event.get("curve_pp"), event.get("credit_pp"), event.get("policy_12m_pp"),
+                      event.get("monthly_match_status"))
+            event_rows.append("<tr>" + "".join("<td>" + esc("Unavailable" if x is None else x) + "</td>" for x in fields) + "</tr>")
+        v2_html = ("<section><h2>Version 2 historical conditions</h2>"
+            "<p class=\"sub\">Historical crash-parent clusters, prior-month financial context. Revised, hindsight-selected data; not a forecast. Monthly observations include crash periods and are not verified non-crash controls.</p>"
+            "<p>Crash clusters: " + esc(summary.get("crash_parent_clusters", 0)) +
+            " · Monthly observations: " + esc(summary.get("monthly_observations", 0)) +
+            " · Exact prior-month matches: " + esc(summary.get("crashes_with_exact_prior_month_match", 0)) + "</p>"
+            "<div class=\"scroll\"><table><thead><tr><th>Peak</th><th>Prior month</th><th>GDP YoY</th><th>Inflation</th><th>Unemployment 3m</th><th>Curve</th><th>Credit</th><th>Policy 12m</th><th>Match status</th></tr></thead><tbody>"
+            + "".join(event_rows) + "</tbody></table></div></section>")
     assessment_html = f'<section class="notice"><strong>Current financial-stress screen: {esc(stress_assessment)}</strong><p>{esc(explanation)}</p><small>Rule: 10Y–2Y spread &lt; 0 pp OR Baa–10Y spread ≥ 2.5 pp. Historical descriptive rule only.</small></section>'
     # Historical comparisons are based on observed spread proximity, not inferred crash likelihood.
     comparisons = []
@@ -142,11 +159,11 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
 <main><header><h1>Economic Cycle Research</h1><p class="sub">First working descriptive dashboard · Snapshot: SNAPSHOT · no live sync</p></header>
 <div class="notice"><strong>Research only — not a forecast.</strong> Current observations are dated workbook exports, not verified real-time data. No cycle-stage prediction, crash probability, investment recommendation, or point-in-time certification is authorized.</div>
 FRESHNESS<h2>Current research observations</h2><div class="cards">CARDS</div>QUALITY
-ASSESSMENTMACROREFRESHCYCLEFINANCIALCONTEXTANALOGUES<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
+ASSESSMENTMACROREFRESHCYCLEFINANCIALCONTEXTANALOGUESV2HISTORICAL<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
 <p class="sub">HISTORICAL_CONTEXT_TEXT Monthly observations and forward windows overlap; they are not independent trials. Stress is a descriptive flag, not a validated crash predictor.</p>
 <h2>Crash pathway comparison</h2><div class="scroll"><table><thead><tr><th>Cluster</th><th>Daily peak</th><th>Prior month</th><th>20% crossing</th><th>Curve (pp)</th><th>Credit (pp)</th><th>Financial stress?</th></tr></thead><tbody>EVENTS</tbody></table></div>
 <footer>Authority: SEM_Historical_Crash_Research_v1 · dated manual research snapshots. Publisher-original release verification, untouched holdouts and model approval remain incomplete.</footer></main></html>"""
-    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
+    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"V2HISTORICAL":v2_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
         page=page.replace(a,b)
     return page
 
@@ -159,6 +176,7 @@ def main():
     p.add_argument("--json-output",default=None,help="Optional machine-readable dashboard state")
     p.add_argument("--historical-analogues",default=None,help="Optional descriptive historical macro similarities")
     p.add_argument("--cycle-assessment",default=None,help="Optional descriptive current-cycle assessment")
+    p.add_argument("--v2-comparison",default=None,help="Optional Version 2 canonical comparison")
     p.add_argument("--refresh-manifest",default=None,help="Optional source refresh manifest JSON")
     p.add_argument("--strict-macro",action="store_true",help="Fail if the requested macro readout is unavailable")
     p.add_argument("--require-macro-values",action="store_true",help="Fail if growth, labor or inflation observation is missing")
@@ -179,7 +197,8 @@ def main():
             raise ValueError("Missing required macro observations: " + ", ".join(missing))
     assessment=json.loads(Path(a.cycle_assessment).read_text()) if a.cycle_assessment and Path(a.cycle_assessment).exists() else None
     analogues=json.loads(Path(a.historical_analogues).read_text()) if a.historical_analogues and Path(a.historical_analogues).exists() else None
-    target.write_text(make_dashboard(current,historical,macro,refresh,assessment,analogues),encoding="utf-8")
+    v2=json.loads(Path(a.v2_comparison).read_text()) if a.v2_comparison and Path(a.v2_comparison).exists() else None
+    target.write_text(make_dashboard(current,historical,macro,refresh,assessment,analogues,v2),encoding="utf-8")
     if a.json_output:
         state = {
             "snapshot_date": current["snapshot_date"],
@@ -192,6 +211,7 @@ def main():
             "source_refresh": refresh,
             "current_cycle_assessment": assessment,
             "historical_macro_analogues": analogues,
+            "v2_historical_comparison": v2,
             "financial_observations": current["rows"],
             "historical_parent_clusters": len(historical["pathways"]["rows"]) - 1,
             "historical_monthly_observations": len(historical["noncrash"]["rows"]) - 1
