@@ -38,6 +38,8 @@ class V5IntegrationTests(unittest.TestCase):
         report = assemble(self.standardized, self.mechanisms, self.outcomes, self.replay)
         page = render(report)
         self.assertIn("NO_VERIFIED_OUTCOME_INPUTS", page)
+        self.assertIn("Historical events with independently supplied outcome evidence: 0", page)
+        self.assertIn("independent objective outcome audit", page)
         self.assertIn("Predictive publication: BLOCKED", page)
 
     def test_dashboard_escapes_untrusted_values(self):
