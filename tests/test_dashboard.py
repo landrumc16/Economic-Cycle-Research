@@ -16,7 +16,12 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("not a forecast",page)
         self.assertIn("Not eligible for model",page)
         self.assertIn("Not assessable — source eligibility incomplete",page)
-        self.assertIn("Closest historical spread profiles",page)\n        macro={"domains":{"growth":{"observation":2.1,"unit":"percent year over year","description":"POSITIVE_REAL_GROWTH"},"labor":{"observation":None,"unit":"percentage points over 3 months","description":"MISSING"},"inflation":{"observation":3.0,"unit":"percent year over year","description":"PRICES_RISING"}}}\n        macro_page=make_dashboard(current,history,macro)\n        self.assertIn("Real GDP growth",macro_page)\n        self.assertIn("Unavailable",macro_page)\n        self.assertIn("Consumer price inflation",macro_page)
+        self.assertIn("Closest historical spread profiles",page)
+        macro={"domains":{"growth":{"observation":2.1,"unit":"percent year over year","description":"POSITIVE_REAL_GROWTH"},"labor":{"observation":None,"unit":"percentage points over 3 months","description":"MISSING"},"inflation":{"observation":3.0,"unit":"percent year over year","description":"PRICES_RISING"}}}
+        macro_page=make_dashboard(current,history,macro)
+        self.assertIn("Real GDP growth",macro_page)
+        self.assertIn("Unavailable",macro_page)
+        self.assertIn("Consumer price inflation",macro_page)
         self.assertNotIn("CARDS</div>",page)
 
 if __name__=="__main__":
