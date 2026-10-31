@@ -1,5 +1,5 @@
 import unittest
-from scripts.v5_mechanism_evidence import assess, MECHANISMS
+from scripts.v5_mechanism_evidence import assess, MECHANISMS, adapt_standardized_metrics
 
 class MechanismEvidenceTests(unittest.TestCase):
     def test_all_six_mechanisms_present(self):
@@ -16,7 +16,7 @@ class MechanismEvidenceTests(unittest.TestCase):
         self.assertEqual(result["mechanisms"]["monetary"]["pit_features_verified"], ["yield_curve"])
         self.assertEqual(result["mechanisms"]["monetary"]["ablation"], "NOT_RUN")
 
-    def test_no_fabricated_validation_from_labels(self):
+    def test_standardized_macro_adapter(self):\n        document = {"report_type": "V5_STANDARDIZED_MACRO_METRICS", "metrics": [\n            {"series": "UNRATE", "status": "DESCRIPTIVE_TRANSFORM_AVAILABLE",\n             "value": 0.3, "publisher_original_pit_certified": False}]}\n        mapped = adapt_standardized_metrics(document)\n        self.assertEqual(mapped["unemployment"]["value"], 0.3)\n        self.assertEqual(assess(mapped)["mechanisms"]["labor_growth"]["pit_features_verified"], [])\n\n    def test_no_fabricated_validation_from_labels(self):
         result = assess({}, [{"label": "POSITIVE_RESEARCH_LABEL"}])
         self.assertFalse(result["independent_outcome_validation"])
         self.assertEqual(result["research_outcomes_provided"], 1)
