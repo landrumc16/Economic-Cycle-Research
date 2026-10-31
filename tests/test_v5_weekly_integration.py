@@ -22,7 +22,15 @@ class V5IntegrationTests(unittest.TestCase):
         self.assertEqual(report["predictive_publication"], "BLOCKED")
         self.assertEqual(report["outcome_coverage_status"], "NO_VERIFIED_OUTCOME_INPUTS")
 
-    def test_missing_macro_is_visible_not_fabricated(self):\n        self.standardized["metrics"].append({"series": "GDPC1", "status": "INSUFFICIENT_HISTORY", "value": None})\n        report = assemble(self.standardized, self.mechanisms, self.outcomes, self.replay)\n        self.assertEqual(report["macro_metric_count"], 1)\n        self.assertEqual(report["macro_metric_total"], 2)\n        self.assertIn("GDPC1", render(report))\n        self.assertIn("INSUFFICIENT_HISTORY", render(report))\n\n    def test_missing_replay_rejected(self):
+    def test_missing_macro_is_visible_not_fabricated(self):
+        self.standardized["metrics"].append({"series": "GDPC1", "status": "INSUFFICIENT_HISTORY", "value": None})
+        report = assemble(self.standardized, self.mechanisms, self.outcomes, self.replay)
+        self.assertEqual(report["macro_metric_count"], 1)
+        self.assertEqual(report["macro_metric_total"], 2)
+        self.assertIn("GDPC1", render(report))
+        self.assertIn("INSUFFICIENT_HISTORY", render(report))
+
+    def test_missing_replay_rejected(self):
         with self.assertRaises(ValueError):
             assemble(self.standardized, self.mechanisms, self.outcomes, {})
 
