@@ -208,7 +208,10 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
             status = esc(channel.get("status", "SOURCE_NOT_ACQUIRED"))
             source = esc(channel.get("candidate_primary_source", "Unspecified"))
             cells.append(f"<tr><td>{name}</td><td>{status}</td><td>{source}</td></tr>")
+        acquired = sum(ch.get("status") not in ("SOURCE_NOT_ACQUIRED", "NOT_ASSESSED") for ch in channels)
         global_html = ('<section><h2>International economic transmission</h2>'
+            '<p class="sub">Evidence inventory coverage: ' + esc(acquired) + ' of ' + esc(len(channels))
+            + ' channels have a non-missing inventory status. This is not verified observation coverage.</p>'
             '<p class="sub">Eight international channels are evidence inventories, not observed contagion or validated causal pathways. '
             'Missing historical and current values remain unavailable.</p>'
             '<div class="scroll"><table><thead><tr><th>Channel</th><th>Evidence status</th><th>Candidate source</th></tr></thead><tbody>'
