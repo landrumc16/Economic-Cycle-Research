@@ -1,0 +1,52 @@
+name: Historical Usability Evaluation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/historical_usability_*.py'
+      - 'tests/test_historical_usability_*.py'
+      - 'data/workbook_historical_research_snapshot_2026-10-30.json'
+      - 'data/v2_canonical_lead_window_summary_2026-10-31.json'
+      - '.github/workflows/v5-historical-usability.yml'
+
+jobs:
+  historical-usability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate historical evaluation code
+        run: |
+          python -m compileall -q scripts tests
+          python -m unittest discover -s tests -p 'test_historical_usability_*.py' -v
+      - name: Generate historical inventory and retrospective scorecard
+        run: |
+          python scripts/historical_usability_inventory.py
+          python scripts/historical_usability_scorecard.py
+      - name: Check scorecard boundaries
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          inventory = json.loads(Path("audit-output/historical_usability_inventory.json").read_text())
+          score = json.loads(Path("audit-output/historical_usability_scorecard.json").read_text())
+          assert inventory["point_in_time_certified"] is False
+          assert score["point_in_time_certified"] is False
+          assert score["negative_outcome_coverage_certified"] is False
+          assert score["predictive_publication"] == "BLOCKED"
+          assert score["monthly_observations"] == inventory["monthly_rows"]
+          assert score["mature_observations"] > 0
+          print({key: score[key] for key in ("monthly_observations", "mature_observations", "flagged_months", "flagged_followed_by_listed_peak", "unflagged_followed_by_listed_peak")})
+          PY
+      - name: Preserve historical usability evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: historical-usability-evidence
+          path: |
+            audit-output/historical_usability_inventory.json
+            audit-output/historical_usability_scorecard.json
+          if-no-files-found: warn
