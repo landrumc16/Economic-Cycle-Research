@@ -41,6 +41,21 @@ class DashboardIntegrationTests(unittest.TestCase):
         self.assertIn("Unavailable", page)
         self.assertIn("No observation", page)
 
+    def test_financial_stress_requires_human_approval(self):
+        rows = [
+            {"series_id": "T10Y2Y", "observation_date": "2026-10-28", "value": -0.4,
+             "unit": "pp", "workbook_usable": True, "publisher_verified": True,
+             "vintage_verified": True, "human_approved": False},
+            {"series_id": "BAA10Y", "observation_date": "2026-10-28", "value": 2.8,
+             "unit": "pp", "workbook_usable": True, "publisher_verified": True,
+             "vintage_verified": True, "human_approved": False},
+        ]
+        current = {"snapshot_date": "2026-10-30", "rows": rows}
+        history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
+        page = make_dashboard(current, history)
+        self.assertIn("Not assessable", page)
+        self.assertNotIn("Historical stress definition met", page)
+
     def test_unavailable_analogues_are_explicit(self):
         current = {"snapshot_date": "2026-10-30", "rows": []}
         history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
