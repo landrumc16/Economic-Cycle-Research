@@ -22,6 +22,43 @@ jobs:
         run: python -m compileall -q scripts/v5_*.py tests/test_v5_*.py
       - name: Run Version 5 regression and end-to-end smoke tests
         run: python -m unittest discover -s tests -p 'test_v5_*.py' -v
+      - name: Build and validate an isolated descriptive artifact chain
+        run: |
+          mkdir -p audit-output/v5-smoke
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("audit-output/v5-smoke")
+          inputs = {
+              "standardized": {"report_type": "V5_STANDARDIZED_MACRO_METRICS",
+                               "as_of": "2026-10-31", "metrics": [],
+                               "predictive_publication": "BLOCKED"},
+              "mechanisms": {"report_type": "V5_MECHANISM_EVIDENCE_GATE",
+                             "mechanisms": {}, "prediction_status": "BLOCKED"},
+              "outcomes": {"event_count": 0, "coverage_status": "NO_VERIFIED_OUTCOME_INPUTS",
+                           "predictive_publication": "BLOCKED"},
+              "replay": {"report_type": "V5_PIT_REPLAY", "publisher_original_coverage": 0,
+                         "predictive_publication": "BLOCKED"},
+          }
+          for name, doc in inputs.items():
+              (root / (name + ".json")).write_text(json.dumps(doc))
+          PY
+          python scripts/v5_weekly_research_readout.py --standardized audit-output/v5-smoke/standardized.json --mechanisms audit-output/v5-smoke/mechanisms.json --outcomes audit-output/v5-smoke/outcomes.json --replay audit-output/v5-smoke/replay.json --output audit-output/v5-smoke/v5_weekly_research_readout.json
+          python scripts/v5_weekly_dashboard.py --readout audit-output/v5-smoke/v5_weekly_research_readout.json --output audit-output/v5-smoke/dashboard/weekly-v5.html
+          cp audit-output/v5-smoke/standardized.json audit-output/v5-smoke/v5_standardized_macro_metrics.json
+          cp audit-output/v5-smoke/mechanisms.json audit-output/v5-smoke/v5_mechanism_evidence_gate.json
+          cp audit-output/v5-smoke/outcomes.json audit-output/v5-smoke/v5_objective_outcomes.json
+          cp audit-output/v5-smoke/replay.json audit-output/v5-smoke/v5_pit_replay.json
+          python scripts/v5_release_acceptance.py --directory audit-output/v5-smoke --output audit-output/v5-smoke/v5_release_acceptance.json
+          python scripts/v5_release_evidence_manifest.py --directory audit-output/v5-smoke --output audit-output/v5-smoke/v5_release_evidence_manifest.json
+      - name: Preserve isolated smoke evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v5-synthetic-smoke-evidence
+          path: audit-output/v5-smoke/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Explain smoke test scope
         if: always()
         run: |
