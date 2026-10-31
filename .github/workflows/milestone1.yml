@@ -29,11 +29,13 @@ jobs:
         continue-on-error: true
         run: timeout 220s python -u scripts/milestone1.py --output audit-output
       - name: Attempt official BLS public API fallback
+        continue-on-error: true
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
         run: timeout 240s python -u scripts/bls_api.py --output audit-output/bls-api
       - name: Attempt official FRED API fallback
+        continue-on-error: true
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
@@ -44,6 +46,7 @@ jobs:
             echo 'FRED_API_KEY not configured; FRED API fallback skipped (still blocked).'
           fi
       - name: Acquire BEA official GDP data
+        continue-on-error: true
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
@@ -54,15 +57,19 @@ jobs:
             echo 'BEA_API_KEY not configured; BEA acquisition skipped (still blocked).'
           fi
       - name: Reconcile BEA and FRED GDP
+        continue-on-error: true
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/gdp_api_crosscheck.py
       - name: Reconcile BLS API and FRED API observations
+        continue-on-error: true
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/api_crosscheck.py --bls audit-output/bls-api --fred audit-output/fred-api
       - name: Build retrospective event panel (non-PIT exploratory)
+        continue-on-error: true
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/retrospective_event_panel.py --input audit-output/fred-api --output audit-output/phase2
       - name: Compare historical crash economic trajectories (retrospective)
+        continue-on-error: true
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/compare_crash_events.py --input audit-output/fred-api --output audit-output/phase2
       - name: Generate fail-closed operational model status
