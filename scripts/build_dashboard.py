@@ -65,7 +65,8 @@ def make_dashboard(current, history, macro=None, refresh=None):
             value = domain.get("observation")
             value_label = "Unavailable" if value is None else f"{value:g}"
             descriptor = domain.get("description", "MISSING")
-            panels.append(f'<article class="card"><small>{esc(label)}</small><h2>{esc(value_label)}</h2><p>{esc(domain.get("unit", ""))}</p><span>{esc(descriptor.replace("_", " ").title())}</span></article>')
+            observed = domain.get("latest_date") or "Not available"
+            panels.append(f'<article class="card"><small>{esc(label)}</small><h2>{esc(value_label)}</h2><p>{esc(domain.get("unit", ""))}</p><small>Observed: {esc(observed)}</small><span>{esc(descriptor.replace("_", " ").title())}</span></article>')
         macro_html = '<h2>Growth, labor and inflation</h2><p class="sub">Descriptive current-revised research; no validated cycle-stage inference.</p><div class="cards">' + "".join(panels) + "</div>"
     refresh_html = ""
     if isinstance(refresh, dict):
