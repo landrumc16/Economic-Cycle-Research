@@ -49,11 +49,11 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
                         r.get("vintage_verified") is True for r in (curve, credit))
     if eligible_pair:
         active = float(curve["value"]) < 0 or float(credit["value"]) >= 2.5
-        assessment = ("Historical stress definition met" if active else
+        stress_assessment = ("Historical stress definition met" if active else
                       "Historical stress definition not met")
         explanation = "Both curve and credit spread passed workbook eligibility checks; this is not a crash forecast."
     else:
-        assessment = "Not assessable — source eligibility incomplete"
+        stress_assessment = "Not assessable — source eligibility incomplete"
         explanation = "Yield curve and credit spread must both be verified and workbook-usable; an unverified observation cannot be treated as a negative signal."
     macro_html = ""
     if isinstance(macro, dict):
@@ -103,7 +103,7 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
                 '</tr></thead><tbody>' + items + '</tbody></table></div></section>')
         else:
             analogue_html = '<section><h2>Historical macro similarities</h2><p>Unavailable: insufficient comparable data.</p></section>'
-    assessment_html = f'<section class="notice"><strong>Current financial-stress screen: {esc(assessment)}</strong><p>{esc(explanation)}</p><small>Rule: 10Y–2Y spread &lt; 0 pp OR Baa–10Y spread ≥ 2.5 pp. Historical descriptive rule only.</small></section>'
+    assessment_html = f'<section class="notice"><strong>Current financial-stress screen: {esc(stress_assessment)}</strong><p>{esc(explanation)}</p><small>Rule: 10Y–2Y spread &lt; 0 pp OR Baa–10Y spread ≥ 2.5 pp. Historical descriptive rule only.</small></section>'
     # Historical comparisons are based on observed spread proximity, not inferred crash likelihood.
     comparisons = []
     if eligible_pair:
