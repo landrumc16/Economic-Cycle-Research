@@ -90,6 +90,7 @@ def main():
     p.add_argument("--historical",default="data/workbook_historical_research_snapshot_2026-10-30.json")
     p.add_argument("--output",default="dashboard/index.html")
     p.add_argument("--macro",default=None,help="Optional cycle_research_readout.json; missing observations stay unavailable")
+    p.add_argument("--json-output",default=None,help="Optional machine-readable dashboard state")
     a=p.parse_args()
     current=json.loads(Path(a.current).read_text())
     historical=json.loads(Path(a.historical).read_text())
@@ -97,6 +98,22 @@ def main():
     target.parent.mkdir(parents=True,exist_ok=True)
     macro=json.loads(Path(a.macro).read_text()) if a.macro and Path(a.macro).exists() else None
     target.write_text(make_dashboard(current,historical,macro),encoding="utf-8")
+    if a.json_output:
+        state = {
+            "snapshot_date": current["snapshot_date"],
+            "snapshot_type": current.get("snapshot_type"),
+            "publication": "BLOCKED",
+            "point_in_time_certified": False,
+            "crash_probability": None,
+            "validated_cycle_stage": None,
+            "macro_domains": macro.get("domains", {}) if isinstance(macro, dict) else {},
+            "financial_observations": current["rows"],
+            "historical_parent_clusters": len(historical["pathways"]["rows"]) - 1,
+            "historical_monthly_observations": len(historical["noncrash"]["rows"]) - 1
+        }
+        output = Path(a.json_output)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(json.dumps(state, indent=2), encoding="utf-8")
     print(f"Built {target}")
 
 if __name__=="__main__":
