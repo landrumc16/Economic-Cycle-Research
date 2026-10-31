@@ -46,6 +46,17 @@ def build(snapshot, raw_bytes):
             "financial_stress": row[4] == "YES",
             "source_status": "REVISED_NOT_PIT_NOT_PREDICTIVE",
         })
+    monthly_by_month = {r["month"]: r for r in monthly}
+    for crash in crashes:
+        matched = monthly_by_month.get(crash["prior_month"])
+        crash["matched_prior_month"] = (
+            {"month": matched["month"], "curve_pp": matched["curve_pp"],
+             "credit_pp": matched["credit_pp"], "financial_stress": matched["financial_stress"]}
+            if matched is not None else None
+        )
+        crash["monthly_match_status"] = (
+            "EXACT_PRIOR_MONTH_DESCRIPTIVE" if matched is not None else "NO_MONTHLY_MATCH"
+        )
     stress_crashes = sum(r["financial_stress"] for r in crashes)
     stress_months = sum(r["financial_stress"] for r in monthly)
     return {
@@ -70,6 +81,7 @@ def build(snapshot, raw_bytes):
         "monthly_stress_baseline": monthly,
         "descriptive_comparison": {
             "crash_parent_clusters": len(crashes),
+            "crashes_with_exact_prior_month_match": sum(r["matched_prior_month"] is not None for r in crashes),
             "crash_parent_clusters_with_stress": stress_crashes,
             "crash_stress_fraction": stress_crashes / len(crashes),
             "monthly_observations": len(monthly),
