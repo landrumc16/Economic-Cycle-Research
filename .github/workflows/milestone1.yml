@@ -97,6 +97,9 @@ jobs:
       - name: Read canonical historical observations (dated snapshot, non-PIT)
         if: always()
         run: python -u scripts/workbook_historical_observations.py --input data/workbook_historical_research_snapshot_2026-10-30.json --output audit-output/historical_workbook_observations.json --require-complete
+      - name: Validate publisher-original vintage evidence contract (not PIT certification)
+        if: always()
+        run: python -u scripts/validate_publisher_vintage_manifest.py --input config/publisher_original_vintage_manifest.json --output audit-output/publisher_vintage_contract.json
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
