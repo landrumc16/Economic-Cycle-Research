@@ -8,6 +8,7 @@ on:
     - cron: '15 14 * * 1'
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: milestone1-${{ github.ref }}
   cancel-in-progress: true
@@ -183,6 +184,8 @@ jobs:
       - name: Build Version 3 weekly dashboard
         if: always()
         run: python -u scripts/v3_weekly_dashboard.py --assessment audit-output/v3_weekly_assessment.json --output audit-output/dashboard/weekly.html
+      - name: Verify Version 3 descriptive weekly release
+        run: python -u scripts/v3_release_acceptance.py --assessment audit-output/v3_weekly_assessment.json --dashboard audit-output/dashboard/weekly.html --output audit-output/v3_release_acceptance.json
       - name: Build usable research dashboard from existing workbook snapshots
         if: always()
         run: |
