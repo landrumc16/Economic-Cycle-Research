@@ -1,3 +1,8 @@
+## CI quota separation checkpoint — 2026-10-30
+- Workflow #95 was in progress when checked. The BLS key's daily quota was exhausted on earlier runs.
+- Commit `d0eab05` separates PR code checks from live BLS/FRED/BEA calls: live source acquisition and source reconciliation now run on scheduled or manually dispatched workflows, not on every PR commit. Source evidence remains blocked when absent; offline CI is **not** source certification.
+- Next: verify new PR run, review remaining non-source failures, and prepare release evidence collection in bounded, non-duplicative batches. Do not force additional BLS calls until quota permits.
+
 ## Latest source acquisition diagnosis — 2026-10-30
 - Workflow #90 failed specifically because the BLS API reported that the registered key's **daily request threshold was reached**. This is a quota limit, not evidence of bad macro observations. BLS/FRED reconciliation also failed because independent BLS evidence was unavailable.
 - Added BLS quota circuit breaker in commit `614a9dc` to stop further calls immediately after the first quota rejection; the pipeline still fails closed and records the error.
