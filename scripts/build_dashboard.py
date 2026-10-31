@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from datetime import date
 
-def make_dashboard(current, history, macro=None, refresh=None):
+def make_dashboard(current, history, macro=None, refresh=None, assessment=None):
     rows = current["rows"]
     snapshot_date = date.fromisoformat(current["snapshot_date"])
     latest_observation = max((date.fromisoformat(r["observation_date"]) for r in rows if r.get("observation_date")), default=None)
@@ -79,6 +79,13 @@ def make_dashboard(current, history, macro=None, refresh=None):
             observed = entry.get("latest_observation") or "Not available"
             cells.append(f'<article class="card"><small>{esc(label)} · {esc(series)}</small><h2>{esc(status.replace("_", " ").title())}</h2><p>Latest: {esc(observed)}</p><small>Revised-source staging; not point-in-time certified</small></article>')
         refresh_html = '<h2>Economic source refresh</h2><p class="sub">Acquisition status only. Missing source observations are not zeros; historical workbook snapshot remains separate.</p><div class="cards">' + "".join(cells) + '</div>'
+    cycle_html = ""
+    if isinstance(assessment, dict):
+        observed = assessment.get("observed_domains", {})
+        descriptions = [f"{key.title()}: {obj.get('interpretation', 'Unknown')}" for key, obj in observed.items()]
+        mechanisms = assessment.get("mechanism_lenses", {})
+        lenses = "".join(f"<li>{esc(name.replace('_', ' ').title())}: {esc(details.get('status', 'UNKNOWN'))}</li>" for name, details in mechanisms.items())
+        cycle_html = '<section><h2>Integrated economic-cycle assessment</h2><p class="sub">' + esc("; ".join(descriptions)) + '</p><p>Crash mechanisms are research lenses, not validated forecasts.</p><ul>' + lenses + '</ul></section>'
     assessment_html = f'<section class="notice"><strong>Current financial-stress screen: {esc(assessment)}</strong><p>{esc(explanation)}</p><small>Rule: 10Y–2Y spread &lt; 0 pp OR Baa–10Y spread ≥ 2.5 pp. Historical descriptive rule only.</small></section>'
     # Historical comparisons are based on observed spread proximity, not inferred crash likelihood.
     comparisons = []
@@ -97,11 +104,11 @@ def make_dashboard(current, history, macro=None, refresh=None):
 <main><header><h1>Economic Cycle Research</h1><p class="sub">First working descriptive dashboard · Snapshot: SNAPSHOT · no live sync</p></header>
 <div class="notice"><strong>Research only — not a forecast.</strong> Current observations are dated workbook exports, not verified real-time data. No cycle-stage prediction, crash probability, investment recommendation, or point-in-time certification is authorized.</div>
 FRESHNESS<h2>Current research observations</h2><div class="cards">CARDS</div>QUALITY
-ASSESSMENTMACROREFRESH<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
+ASSESSMENTMACROREFRESHCYCLE<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
 <p class="sub">HISTORICAL_CONTEXT_TEXT Monthly observations and forward windows overlap; they are not independent trials. Stress is a descriptive flag, not a validated crash predictor.</p>
 <h2>Crash pathway comparison</h2><div class="scroll"><table><thead><tr><th>Cluster</th><th>Daily peak</th><th>Prior month</th><th>20% crossing</th><th>Curve (pp)</th><th>Credit (pp)</th><th>Financial stress?</th></tr></thead><tbody>EVENTS</tbody></table></div>
 <footer>Authority: SEM_Historical_Crash_Research_v1 · dated manual research snapshots. Publisher-original release verification, untouched holdouts and model approval remain incomplete.</footer></main></html>"""
-    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
+    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
         page=page.replace(a,b)
     return page
 
@@ -112,6 +119,7 @@ def main():
     p.add_argument("--output",default="dashboard/index.html")
     p.add_argument("--macro",default=None,help="Optional cycle_research_readout.json; missing observations stay unavailable")
     p.add_argument("--json-output",default=None,help="Optional machine-readable dashboard state")
+    p.add_argument("--cycle-assessment",default=None,help="Optional descriptive current-cycle assessment")
     p.add_argument("--refresh-manifest",default=None,help="Optional source refresh manifest JSON")
     p.add_argument("--strict-macro",action="store_true",help="Fail if the requested macro readout is unavailable")
     p.add_argument("--require-macro-values",action="store_true",help="Fail if growth, labor or inflation observation is missing")
@@ -130,7 +138,8 @@ def main():
                    if domains.get(key, {}).get("observation") is None]
         if missing:
             raise ValueError("Missing required macro observations: " + ", ".join(missing))
-    target.write_text(make_dashboard(current,historical,macro,refresh),encoding="utf-8")
+    assessment=json.loads(Path(a.cycle_assessment).read_text()) if a.cycle_assessment and Path(a.cycle_assessment).exists() else None
+    target.write_text(make_dashboard(current,historical,macro,refresh,assessment),encoding="utf-8")
     if a.json_output:
         state = {
             "snapshot_date": current["snapshot_date"],
@@ -141,6 +150,7 @@ def main():
             "validated_cycle_stage": None,
             "macro_domains": macro.get("domains", {}) if isinstance(macro, dict) else {},
             "source_refresh": refresh,
+            "current_cycle_assessment": assessment,
             "financial_observations": current["rows"],
             "historical_parent_clusters": len(historical["pathways"]["rows"]) - 1,
             "historical_monthly_observations": len(historical["noncrash"]["rows"]) - 1
