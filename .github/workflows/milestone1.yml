@@ -206,6 +206,9 @@ jobs:
         run: python -u scripts/v5_weekly_dashboard.py --readout audit-output/v5_weekly_research_readout.json --output audit-output/dashboard/weekly-v5.html
       - name: Verify Version 5 descriptive weekly release
         run: python -u scripts/v5_release_acceptance.py --directory audit-output --output audit-output/v5_release_acceptance.json
+      - name: Verify Version 5 descriptive artifact manifest
+        if: always()
+        run: python -u scripts/v5_release_evidence_manifest.py --directory audit-output --output audit-output/v5_release_evidence_manifest.json
       - name: Produce Version 3 weekly assessment with historical evidence coverage
         if: always()
         run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --historical audit-output/v2_pathway_coverage.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
@@ -288,8 +291,6 @@ jobs:
             echo ''
             echo 'Source: SEM_Historical_Crash_Research_v1; no predictive approval.'
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Verify Version 5 descriptive artifact manifest
-        run: python -u scripts/v5_release_evidence_manifest.py --directory audit-output --output audit-output/v5_release_evidence_manifest.json
       - name: Summarize Version 5 descriptive release readiness
         if: always()
         run: |
