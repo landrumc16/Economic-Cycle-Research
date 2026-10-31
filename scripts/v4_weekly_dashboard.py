@@ -43,7 +43,7 @@ def render(v3, readiness, signals, mechanisms, episodes):
                f'Original point-in-time replay: not certified. Predictive publication: blocked.</p></section>')
     base = render_v3(v3)
     insertion = coverage + domains + mechanisms_section + history
-    return base.replace("</footer>", "</footer>" + insertion, 1) if False else base.replace("<footer>", insertion + "<footer>", 1).replace(
+    return base.replace("<footer>", insertion + "<footer>", 1).replace(
         "<h1>Weekly Economic Intelligence</h1>", "<h1>Weekly Economic Intelligence — Version 4</h1>", 1)
 
 def main():
