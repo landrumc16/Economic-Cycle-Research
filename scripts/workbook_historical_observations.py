@@ -85,7 +85,11 @@ def parse_export(export):
             "records": records,
             "independence": "PARENT_CLUSTERS_NOT_MONTHS" if name == "pathways" else "OVERLAPPING_FORWARD_WINDOWS",
         }
-    result["integrity"] = "PASS_RESEARCH_ONLY" if all(\n        v.get("quality") == "STAGED_REVISED_NOT_PIT" for v in result["domains"].values()\n    ) else "BLOCKED_INCOMPLETE_OR_INVALID"\n    return result\n
+    result["integrity"] = "PASS_RESEARCH_ONLY" if all(
+        v.get("quality") == "STAGED_REVISED_NOT_PIT" for v in result["domains"].values()
+    ) else "BLOCKED_INCOMPLETE_OR_INVALID"
+    return result
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--input", required=True)
@@ -95,7 +99,8 @@ def main():
     result = parse_export(json.loads(Path(a.input).read_text()))
     dest = Path(a.output)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(json.dumps(result, indent=2) + "\n")
+    dest.write_text(json.dumps(result, indent=2) + "
+")
     if a.require_complete and result["integrity"] != "PASS_RESEARCH_ONLY":
         print("Historical workbook integrity failed; see " + str(dest), file=sys.stderr)
         raise SystemExit(1)
