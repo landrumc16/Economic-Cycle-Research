@@ -6,10 +6,12 @@ try:
     from scripts.v3_indicator_interpretation import interpret
     from scripts.v3_pathway_evidence import pathway_evidence
     from scripts.v3_historical_bridge import bridge
+    from scripts.v3_weekly_change_summary import summarize
 except ModuleNotFoundError:
     from v3_indicator_interpretation import interpret
     from v3_pathway_evidence import pathway_evidence
     from v3_historical_bridge import bridge
+    from v3_weekly_change_summary import summarize
 
 LABELS = {
     "UNRATE": ("Unemployment rate", "percentage points", "MONTHLY"),
@@ -62,6 +64,7 @@ def assess(snapshot, historical=None):
                    "This is a descriptive source and release-change assessment, not a validated economic-cycle classification.",
         "indicators": rows,
         "directional_evidence": interpret(rows),
+        "change_summary": summarize(rows),
         "pathway_evidence": pathway_evidence(rows),
         "historical_bridge": historical_bridge,
         "validated_cycle_stage": None, "crash_probability": None,
@@ -81,6 +84,12 @@ def render_markdown(report):
         "# Weekly Economic Intelligence — " + report["as_of"],
         "", "**Status:** Evidence-limited descriptive assessment; predictive publication blocked.",
         "", report["summary"], "",
+        "## What changed since the previous snapshot",
+        "",
+        "New dated observations: {new_observations}; revisions: {revisions}; carried forward: {carried_forward}; unavailable: {unavailable}; source status transitions: {source_transitions}.".format(**report["change_summary"]["counts"]),
+        "",
+        report["change_summary"]["baseline_note"],
+        "",
         "## Indicator evidence",
     ]
     for item in report["indicators"]:
