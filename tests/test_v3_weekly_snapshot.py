@@ -41,6 +41,8 @@ class WeeklySnapshotTests(unittest.TestCase):
         new = build_weekly_snapshot(self.manifest(), "2026-10-31", old,
                                     observations={"UNRATE": {"2026-09-01": 4.2}})
         self.assertIsNone(new["week_over_week"]["UNRATE"]["numeric_change"])
+        self.assertTrue(new["week_over_week"]["UNRATE"]["same_observation_revision_detected"])
+        self.assertAlmostEqual(new["week_over_week"]["UNRATE"]["revision_delta"], 0.1)
 
     def test_missing_series_not_promoted_by_stale_value(self):
         new = build_weekly_snapshot(self.manifest(), "2026-10-31",
