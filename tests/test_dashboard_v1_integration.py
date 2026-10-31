@@ -25,6 +25,22 @@ class DashboardIntegrationTests(unittest.TestCase):
         self.assertIn("Not assessable", page)
         self.assertNotIn("CYCLEANALOGUES", page)
 
+    def test_financial_context_shows_quality_and_missing_data(self):
+        current = {"snapshot_date": "2026-10-30", "rows": []}
+        history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
+        assessment = {"financial_context": {
+            "credit": {"value": 1.43, "observation_date": "2026-10-28",
+                       "quality": "STAGED_NOT_APPROVED"},
+            "yield_curve": {"value": None, "observation_date": None, "quality": "MISSING"},
+        }}
+        page = make_dashboard(current, history, assessment=assessment)
+        self.assertIn("Financial and housing conditions", page)
+        self.assertIn("Corporate credit spread", page)
+        self.assertIn("1.43", page)
+        self.assertIn("STAGED NOT APPROVED", page)
+        self.assertIn("Unavailable", page)
+        self.assertIn("No observation", page)
+
     def test_unavailable_analogues_are_explicit(self):
         current = {"snapshot_date": "2026-10-30", "rows": []}
         history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
