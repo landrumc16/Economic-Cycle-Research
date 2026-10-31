@@ -198,6 +198,8 @@ jobs:
         run: python -u scripts/v4_predictive_validation_gate.py --episodes audit-output/v4_historical_episode_registry.json --output audit-output/v4_predictive_validation_gate.json
       - name: Build Version 4 integrated weekly dashboard
         run: python -u scripts/v4_weekly_dashboard.py --output audit-output/dashboard/weekly-v4.html
+      - name: Verify Version 4 integrated descriptive release
+        run: python -u scripts/v4_release_acceptance.py --directory audit-output --output audit-output/v4_release_acceptance.json
       - name: Verify Version 3 descriptive weekly release
         run: python -u scripts/v3_release_acceptance.py --assessment audit-output/v3_weekly_assessment.json --dashboard audit-output/dashboard/weekly.html --output audit-output/v3_release_acceptance.json
       - name: Build usable research dashboard from existing workbook snapshots
