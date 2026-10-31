@@ -54,3 +54,27 @@ def label_windows(events, windows, as_of, horizon_days=180, embargo_days=30):
             "event_count": len(validated), "windows": results,
             "point_in_time_features_certified": False,
             "independent_holdout_certified": False, "predictive_publication": "BLOCKED"}
+
+def main():
+    import argparse
+    import json
+    from pathlib import Path
+    p = argparse.ArgumentParser()
+    p.add_argument("--events")
+    p.add_argument("--windows")
+    p.add_argument("--as-of", required=True)
+    p.add_argument("--output", default="audit-output/v5_objective_outcomes.json")
+    args = p.parse_args()
+    events = json.loads(Path(args.events).read_text()) if args.events else []
+    windows = json.loads(Path(args.windows).read_text()) if args.windows else []
+    if not isinstance(events, list) or not isinstance(windows, list):
+        raise ValueError("Event and window inputs must be arrays")
+    report = label_windows(events, windows, args.as_of)
+    report["coverage_status"] = "NO_VERIFIED_OUTCOME_INPUTS" if not events or not windows else "INPUTS_REQUIRE_INDEPENDENT_AUDIT"
+    destination = Path(args.output)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+
+
+if __name__ == "__main__":
+    main()
