@@ -31,3 +31,14 @@ Scope: Single offline research dashboard, **not** a predictive crash model.
 
 ## Verified prior CI
 Run 41221003722 passed at commit a0a1747665587b550fc7d579154ab22d20801b0f. A new run on the release-document HEAD must be verified before final acceptance.
+
+## Artifact inspection — 2026-10-31
+Verified GitHub Actions run **41222896939** on commit **51e157addd0aba17641e58dc5b81d4827b8a0524**: job successful, evidence ZIP artifact **13050448454** downloaded and inspected (21 files).
+
+- `audit-output/v2_m1_acceptance.json`: `M1_ACCEPTANCE_CANDIDATE`, `checks_passed=true`, `issues=[]`, predictive model `NOT_VALIDATED`, publication `BLOCKED`.
+- `dashboard/index.html`: integrated current/historical bridge, international transmission and mechanism evidence gaps present; labor comparability warning present; no unreplaced `V2BRIDGE` or `V2GLOBAL` tokens.
+- `dashboard/state.json`: publication `BLOCKED`.
+- **Important unresolved release condition:** `dashboard/v1_acceptance.json` reports `INCOMPLETE`, with `HISTORICAL_COMPARISON_NOT_POPULATED` and `CURRENT_MACRO_VALUES_MISSING`. A successful CI job is not equivalent to completed V1 acceptance or current-data acquisition.
+- Seven scheduled/manual API acquisition and historical-analysis steps were skipped on the push event.
+
+**Decision:** V2 integrated descriptive dashboard passes its scoped acceptance gate, but the combined product is **NOT FULLY ACCEPTED** until the inherited V1 acceptance gaps are resolved or formally scoped and disclosed. Do not misrepresent absent current observations as current economic readings.
