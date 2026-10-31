@@ -96,7 +96,7 @@ jobs:
         run: python -u scripts/historical_research_bridge.py --input audit-output/integrated_research_readout.json --output audit-output/integrated_research_readout.json
       - name: Read canonical historical observations (dated snapshot, non-PIT)
         if: always()
-        run: python -u scripts/workbook_historical_observations.py --input data/workbook_historical_research_snapshot_2026-10-30.json --output audit-output/historical_workbook_observations.json
+        run: python -u scripts/workbook_historical_observations.py --input data/workbook_historical_research_snapshot_2026-10-30.json --output audit-output/historical_workbook_observations.json --require-complete
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
