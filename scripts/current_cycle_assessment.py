@@ -26,6 +26,50 @@ def assess(integrated):
         "credit_housing": {"missing": ["verified current credit and housing stress measures"], "status": "INCOMPLETE"},
         "external_shock": {"missing": ["observable external shock event"], "status": "NOT_FORECASTABLE_FROM_MACRO"},
     }
+    financial = integrated.get("financial_housing", {}).get("domains", {})
+    def financial_fact(domain):
+        item = financial.get(domain, {})
+        return {
+            "value": item.get("value"),
+            "observation_date": item.get("observation_date"),
+            "quality": item.get("quality", "MISSING"),
+            "source": item.get("series_id"),
+        }
+    evidence = {
+        "inflation_supply_shock": {
+            "observations": {"inflation": inflation},
+            "missing": ["supply disruptions", "energy-price dynamics"],
+        },
+        "monetary_tightening": {
+            "observations": {"inflation": inflation, "yield_curve": financial_fact("yield_curve")},
+            "missing": ["policy-rate trajectory", "real interest rates"],
+        },
+        "valuation_speculation": {
+            "observations": {"equity_volatility": financial_fact("equity_volatility")},
+            "missing": ["equity valuation", "market concentration", "leverage"],
+        },
+        "credit_housing": {
+            "observations": {
+                "credit": financial_fact("credit"),
+                "housing_starts": financial_fact("housing_starts"),
+                "household_debt_service": financial_fact("household_debt_service"),
+            },
+            "missing": ["bank funding stress", "credit delinquency trends"],
+        },
+        "external_shock": {
+            "observations": {},
+            "missing": ["observable exogenous event"],
+        },
+    }
+    for name, lens in mechanisms.items():
+        lens["observed_evidence"] = evidence[name]["observations"]
+        lens["missing"] = evidence[name]["missing"]
+        lens["status"] = "CONTEXT_ONLY_NOT_CLASSIFIED" if any(
+            value is not None and value != {} for value in evidence[name]["observations"].values()
+        ) else "INSUFFICIENT_EVIDENCE"
+    financial_status = {name: financial_fact(name) for name in (
+        "credit", "yield_curve", "housing_starts", "household_debt_service", "equity_volatility"
+    )}
     return {
         "status": "DESCRIPTIVE_CURRENT_REVISED_NOT_PIT",
         "publication": "BLOCKED",
@@ -35,6 +79,7 @@ def assess(integrated):
         "investment_recommendation": None,
         "observed_domains": {k: {"value": observed(k), "latest_date": macro.get(k, {}).get("latest_date"), "interpretation": descriptions[k]} for k in descriptions},
         "mechanism_lenses": mechanisms,
+        "financial_context": financial_status,
         "assessment": "Growth, labor and inflation are described separately; no validated crash mechanism or economic-cycle stage inferred.",
         "limitations": ["Historical analogues are not validated predictors", "Current revised macro data are not certified historical vintages", "Financial snapshot has separate dates and eligibility", "Social and generational context is interpretive, not a proven predictive variable"],
         "financial_snapshot_date": integrated.get("financial_housing", {}).get("snapshot_date"),
