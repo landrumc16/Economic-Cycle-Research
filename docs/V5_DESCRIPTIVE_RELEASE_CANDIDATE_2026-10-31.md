@@ -13,6 +13,12 @@ Branch: main
 - Fail-closed descriptive acceptance script, integration tests and scheduled workflow integration.
 - V3/V4 existing descriptive dashboards retained as fallback.
 
+## Fast independent code verification
+- Workflow: `.github/workflows/v5-descriptive-smoke.yml` (pushes to main and manual dispatch).
+- Runs Python compilation and `python -m unittest discover -s tests -p 'test_v5_*.py' -v`.
+- A passing smoke test establishes code integrity, **not** source freshness or full weekly release acceptance.
+- Full scheduled evidence and acceptance remain in `.github/workflows/milestone1.yml`.
+
 ## Required before declaring the descriptive release complete
 1. GitHub Actions milestone1.yml must complete successfully on current main HEAD.
 2. Confirm the artifact contains v5_weekly_research_readout.json,
