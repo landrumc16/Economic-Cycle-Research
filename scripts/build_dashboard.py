@@ -224,12 +224,12 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
         domains = assessment.get("observed_domains", {})
         historical = v2.get("crash_parent_clusters", [])
         features = (
-            ("growth", "gdp_yoy_pct", "Real GDP growth"),
-            ("inflation", "inflation_pct", "Consumer inflation"),
-            ("labor", "unemployment_3m_pp", "Unemployment 3-month change"),
+            ("growth", "gdp_yoy_pct", "Real GDP growth", "DIFFERENT_FREQUENCY_OR_TRANSFORMATION"),
+            ("inflation", "inflation_pct", "Consumer inflation", "TRANSFORMATION_AND_VINTAGE_UNVERIFIED"),
+            ("labor", "unemployment_3m_pp", "Unemployment 3-month change", "CURRENT_UNEMPLOYMENT_LEVEL_NOT_3M_CHANGE"),
         )
         lines = []
-        for domain, historical_key, label in features:
+        for domain, historical_key, label, reason in features:
             current_value = domains.get(domain, {}).get("value")
             historical_values = [row.get(historical_key) for row in historical
                                  if isinstance(row.get(historical_key), (int, float))
@@ -240,7 +240,7 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
             lines.append("<tr><td>" + esc(label) + "</td><td>"
                          + esc("Unavailable" if current_value is None else current_value)
                          + "</td><td>" + esc(historical_range) + "</td><td>"
-                         + esc("NOT_COMPARABLE_WITHOUT_UNIT_AND_VINTAGE_AUDIT") + "</td></tr>")
+                         + esc("NOT_COMPARABLE_WITHOUT_UNIT_AND_VINTAGE_AUDIT: " + reason) + "</td></tr>")
         bridge_html = ('<section><h2>Current conditions vs historical crash contexts</h2>'
             '<p class="sub">Side-by-side descriptive coverage only. Historical ranges are across hindsight-selected '
             'crash-parent months; current observations are revised and may have different transformations or dates. '
