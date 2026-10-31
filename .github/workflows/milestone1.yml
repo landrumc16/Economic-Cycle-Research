@@ -116,9 +116,52 @@ jobs:
       - name: Record per-series macro refresh status
         if: always()
         run: python -u scripts/source_refresh_manifest.py --input audit-output/fred-api --as-of "$(date -u +%F)" --output audit-output/dashboard/source_refresh_manifest.json
+      - name: Retrieve prior weekly snapshot when available
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, zipfile, io
+          from datetime import date
+          from pathlib import Path
+          repo = os.environ["GITHUB_REPOSITORY"]
+          headers = {"Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                     "Accept": "application/vnd.github+json"}
+          def get(url):
+              return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=15)
+          url = "https://api.github.com/repos/" + repo + "/actions/workflows/milestone1.yml/runs?status=success&per_page=30"
+          runs = json.load(get(url)).get("workflow_runs", [])
+          cutoff = date.today()
+          for run in runs:
+              if run["id"] == int(os.environ["GITHUB_RUN_ID"]):
+                  continue
+              artifacts = json.load(get(run["artifacts_url"])).get("artifacts", [])
+              for artifact in artifacts:
+                  if artifact["name"] != "milestone1-audit-evidence" or artifact.get("expired"):
+                      continue
+                  try:
+                      blob = get(artifact["archive_download_url"]).read()
+                      with zipfile.ZipFile(io.BytesIO(blob)) as archive:
+                          matches = [n for n in archive.namelist() if n.endswith("v3_weekly_snapshot.json")]
+                          if not matches:
+                              continue
+                          previous = json.loads(archive.read(matches[0]))
+                      if date.fromisoformat(previous["as_of"]) >= cutoff:
+                          continue
+                      target = Path("audit-output/v3_previous_weekly_snapshot.json")
+                      target.parent.mkdir(parents=True, exist_ok=True)
+                      target.write_text(json.dumps(previous, indent=2) + "\\n")
+                      print("Recovered prior dated snapshot:", previous["as_of"], "run", run["id"])
+                      raise SystemExit(0)
+                  except (OSError, ValueError, KeyError, zipfile.BadZipFile) as exc:
+                      print("Skipping unusable prior artifact:", exc)
+          print("No earlier dated weekly snapshot available; first-run comparison stays unavailable.")
+          PY
       - name: Build Version 3 weekly source-evidence snapshot
         if: always()
-        run: python -u scripts/v3_weekly_snapshot.py --refresh audit-output/dashboard/source_refresh_manifest.json --as-of "$(date -u +%F)" --output audit-output/v3_weekly_snapshot.json
+        run: python -u scripts/v3_weekly_snapshot.py --refresh audit-output/dashboard/source_refresh_manifest.json --as-of "$(date -u +%F)" --previous audit-output/v3_previous_weekly_snapshot.json --output audit-output/v3_weekly_snapshot.json
       - name: Build Version 2 canonical historical comparison
         if: always()
         run: python -u scripts/v2_canonical_comparison.py --snapshot data/workbook_historical_research_snapshot_2026-10-30.json --output audit-output/v2_canonical_comparison.json
