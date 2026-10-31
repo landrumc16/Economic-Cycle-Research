@@ -1,4 +1,4 @@
-# Dashboard operations (implementation checkpoint)
+# Dashboard operations (V1 build verified)
 
 The canonical dashboard generator is `scripts/build_dashboard.py`. GitHub Actions workflow `.github/workflows/milestone1.yml` builds `audit-output/dashboard/index.html` and `state.json` and uploads them in `milestone1-audit-evidence`.
 
@@ -17,3 +17,7 @@ Do not claim a current economic cycle stage, crash probability, or investment re
 ## Next engineering work
 
 Implement a controlled source-refresh manifest with per-series timestamps and status; then add a **private**, access-controlled hosted view only after the owner selects a hosting destination and approves the data visibility. Do not create duplicate dashboard implementations or scheduled jobs.
+
+## V1 acceptance checkpoint — 2026-10-30
+
+GitHub Actions run [#128](https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/41158435549) passed for commit `3778e9b`, including unit tests and the integrated HTML/JSON artifact build. The generated dashboard now contains financial observations, descriptive macro domains, historical crash pathways, source readiness, and per-series refresh status. This is **build acceptance**, not visual browser acceptance or validation of a forecasting model. To inspect the actual rendering, download `milestone1-audit-evidence` from run #128 and open `dashboard/index.html`. Do not interpret a successful offline CI run as proof that live data refreshed. The V1 scope is complete at the pipeline level; remaining work is rendering inspection and deployment decision.
