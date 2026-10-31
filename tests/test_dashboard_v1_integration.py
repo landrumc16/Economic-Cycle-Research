@@ -91,6 +91,21 @@ class DashboardIntegrationTests(unittest.TestCase):
         self.assertIn("Unavailable", page)
         self.assertNotIn("V2TRAJECTORIES", page)
 
+    def test_canonical_lead_window_summary_rendered(self):
+        current = {"snapshot_date": "2026-10-30", "rows": []}
+        history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
+        summary = {"status": "DESCRIPTIVE_ONLY", "lead_window_summary": [{
+            "peak_date": "1987-08-26", "available_prior_months_canonical": 7,
+            "curve_inverted_any_24m": "NO", "credit_elevated_any_24m": "YES",
+            "financial_watch_any_12m": "YES", "oldest_warning_lead_months": 7,
+            "most_recent_warning_lead_months": 7,
+            "inflation_high_any_24m": "YES", "labor_worsening_any_24m": "NO"}]}
+        page = make_dashboard(current, history, lead_windows=summary)
+        self.assertIn("Canonical pre-crash warning windows", page)
+        self.assertIn("1987-08-26", page)
+        self.assertIn("only seven prior months", page)
+        self.assertNotIn("V2LEADWINDOWS", page)
+
     def test_unavailable_analogues_are_explicit(self):
         current = {"snapshot_date": "2026-10-30", "rows": []}
         history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
