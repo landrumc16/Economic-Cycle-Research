@@ -36,7 +36,7 @@ class V5ReleaseAcceptanceTests(unittest.TestCase):
         self.readout["macro_metric_count"] = 5
         self.assertEqual(self.run_gate()["status"], "FAIL")
 
-    def test_missing_dashboard_disclosure_fails(self):
+    def test_macro_coverage_total_mismatch_fails(self):\n        self.readout["macro_metric_total"] = 2\n        self.assertEqual(self.run_gate()["status"], "FAIL")\n\n    def test_missing_dashboard_disclosure_fails(self):
         self.html = "<html>Economic research</html>"
         self.assertEqual(self.run_gate()["status"], "FAIL")
 
