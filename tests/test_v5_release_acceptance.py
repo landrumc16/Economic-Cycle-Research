@@ -36,11 +36,19 @@ class V5ReleaseAcceptanceTests(unittest.TestCase):
         self.readout["macro_metric_count"] = 5
         self.assertEqual(self.run_gate()["status"], "FAIL")
 
-    def test_macro_coverage_total_mismatch_fails(self):\n        self.readout["macro_metric_total"] = 2\n        self.assertEqual(self.run_gate()["status"], "FAIL")\n\n    def test_missing_dashboard_disclosure_fails(self):
+    def test_macro_coverage_total_mismatch_fails(self):
+        self.readout["macro_metric_total"] = 2
+        self.assertEqual(self.run_gate()["status"], "FAIL")
+
+    def test_missing_dashboard_disclosure_fails(self):
         self.html = "<html>Economic research</html>"
         self.assertEqual(self.run_gate()["status"], "FAIL")
 
-    def test_mismatched_mechanism_details_fail(self):\n        self.mechanisms["mechanisms"]["monetary"] = {"required_features": ["yield_curve"]}\n        self.assertEqual(self.run_gate()["status"], "FAIL")\n\n    def test_missing_pit_contract_fails(self):
+    def test_mismatched_mechanism_details_fail(self):
+        self.mechanisms["mechanisms"]["monetary"] = {"required_features": ["yield_curve"]}
+        self.assertEqual(self.run_gate()["status"], "FAIL")
+
+    def test_missing_pit_contract_fails(self):
         self.replay = {}
         self.assertEqual(self.run_gate()["status"], "FAIL")
 
