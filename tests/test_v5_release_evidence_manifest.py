@@ -12,15 +12,15 @@ class V5ManifestTests(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         self.documents = {
-            "v5_weekly_research_readout.json": {"as_of": "2026-10-31",
+            "v5_weekly_research_readout.json": {"report_type": "V5_WEEKLY_RESEARCH_READOUT", "as_of": "2026-10-31",
                 "macro_metric_count": 0, "macro_metric_total": 4,
                 "predictive_publication": "BLOCKED"},
-            "v5_standardized_macro_metrics.json": {"as_of": "2026-10-31",
+            "v5_standardized_macro_metrics.json": {"report_type": "V5_STANDARDIZED_MACRO_METRICS", "as_of": "2026-10-31",
                 "predictive_publication": "BLOCKED"},
-            "v5_mechanism_evidence_gate.json": {"prediction_status": "BLOCKED"},
+            "v5_mechanism_evidence_gate.json": {"report_type": "V5_MECHANISM_EVIDENCE_GATE", "prediction_status": "BLOCKED"},
             "v5_objective_outcomes.json": {"predictive_publication": "BLOCKED"},
-            "v5_pit_replay.json": {"predictive_publication": "BLOCKED"},
-            "v5_release_acceptance.json": {"status": "PASS_DESCRIPTIVE_ONLY",
+            "v5_pit_replay.json": {"report_type": "V5_PIT_REPLAY", "predictive_publication": "BLOCKED"},
+            "v5_release_acceptance.json": {"report_type": "V5_RELEASE_ACCEPTANCE", "status": "PASS_DESCRIPTIVE_ONLY",
                 "predictive_publication": "BLOCKED"},
         }
         for name, document in self.documents.items():
@@ -35,6 +35,14 @@ class V5ManifestTests(unittest.TestCase):
         self.assertEqual(report["artifact_paths"], list(REQUIRED))
         self.assertFalse(report["source_freshness_certified"])
         self.assertFalse(report["independent_predictive_validation_certified"])
+
+    def test_wrong_report_type_fails(self):
+        self.documents["v5_pit_replay.json"]["report_type"] = "UNRELATED_REPORT"
+        (self.root / "v5_pit_replay.json").write_text(
+            json.dumps(self.documents["v5_pit_replay.json"]))
+        result = summarize(self.root)
+        self.assertEqual(result["status"], "INCOMPLETE")
+        self.assertIn("INVALID_REPORT_TYPE:v5_pit_replay.json", result["issues"])
 
     def test_missing_dashboard_fails(self):
         (self.root / "dashboard" / "weekly-v5.html").unlink()
