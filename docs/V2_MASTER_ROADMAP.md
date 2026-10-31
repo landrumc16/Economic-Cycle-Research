@@ -1,6 +1,6 @@
 # Economic Cycle Research — Version 2.0 master roadmap
 
-Status: ACTIVE / milestone 1 IN PROGRESS
+Status: ACTIVE / milestone 1 ACCEPTANCE PENDING CI; milestone 2 IN PROGRESS
 Authority: SEM_Historical_Crash_Research_v1 (canonical research), GitHub implementation and tests.
 Scope: Historical-pattern intelligence, including global transmission; no invented crash probability or investment recommendation.
 
@@ -21,13 +21,14 @@ Exit:
 - Confirm monthly observations are not mislabeled verified non-crash controls.
 Deliverable: v2_canonical_comparison.json + Version 2 dashboard panel + CI evidence.
 
-## Milestone 2 — Multi-pathway historical intelligence (PLANNED)
+## Milestone 2 — Multi-pathway historical intelligence (IN PROGRESS)
 Reuse CRASH EVENTS, CRASH PATHWAY TYPOLOGY, CRASH 24M LEAD TRAJECTORIES, CYCLE EPISODE SEQUENCES, WARNING NONCRASH BASELINES, WALK FORWARD RULE AUDIT and related existing workbook tabs.
 Exit:
 - Explicit mapping of canonical pathway labels to events; no numeric-feature invented labels.
 - Separate lead trajectories and baseline outcomes, with correct denominator and episode clustering.
 - Coverage matrix for GDP, inflation, labor, policy, curve, credit, housing, valuation and social context; missingness visible.
 - Confirmed negative-control definitions or explicit BLOCKED status if not verifiable.
+Implemented: initial 8-cluster feature-coverage matrix with explicit absent domains, regression tests and CI artifact; canonical mechanism labels and verified controls still pending.
 Deliverable: canonical pathway evidence dataset, comparison panels, regression tests.
 
 ## Milestone 3 — International and global transmission (PLANNED)
@@ -60,7 +61,7 @@ Exit:
 Deliverable: Version 2.0 research dashboard candidate and acceptance record.
 
 ## Current next action
-Verify the latest workflow after V2 dashboard wiring, repair any failing test or source artifact, then complete Milestone 1 acceptance in one pass. Proceed directly to Milestone 2; do not redo existing historical research.
+Verify CI after dependency-order fix (90eeec0), then accept Milestone 1 only with passing evidence. Continue Milestone 2 by mapping authoritative workbook mechanism labels and lead trajectories; do not infer labels or redo research.
 
 ## Progress protocol
 Track each milestone as PLANNED / IN PROGRESS / BLOCKED / ACCEPTED with commit, test run, artifact and remaining blocker. Update this file only on meaningful milestone changes.
