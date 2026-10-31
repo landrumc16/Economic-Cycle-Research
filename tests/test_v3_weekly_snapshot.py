@@ -26,6 +26,27 @@ class WeeklySnapshotTests(unittest.TestCase):
         self.assertTrue(result["week_over_week"]["CPIAUCSL"]["new_observation_date"])
         self.assertIsNone(result["week_over_week"]["CPIAUCSL"]["numeric_change"])
 
+    def test_new_release_delta_only_for_changed_observation_date(self):
+        old = build_weekly_snapshot(self.manifest(), "2026-10-24", observations={"UNRATE": {"2026-09-01": 4.1}})
+        new_manifest = self.manifest()
+        new_manifest["series"]["UNRATE"]["latest_observation"] = "2026-10-01"
+        new = build_weekly_snapshot(new_manifest, "2026-10-31", old,
+                                    observations={"UNRATE": {"2026-10-01": 4.3}})
+        self.assertEqual(new["series"]["UNRATE"]["observation_value"], 4.3)
+        self.assertAlmostEqual(new["week_over_week"]["UNRATE"]["numeric_change"], 0.2)
+        self.assertEqual(new["week_over_week"]["UNRATE"]["reason"], "NEW_RELEASED_OBSERVATION_REVISED_NOT_PIT")
+
+    def test_no_delta_for_same_observation_date(self):
+        old = build_weekly_snapshot(self.manifest(), "2026-10-24", observations={"UNRATE": {"2026-09-01": 4.1}})
+        new = build_weekly_snapshot(self.manifest(), "2026-10-31", old,
+                                    observations={"UNRATE": {"2026-09-01": 4.2}})
+        self.assertIsNone(new["week_over_week"]["UNRATE"]["numeric_change"])
+
+    def test_missing_series_not_promoted_by_stale_value(self):
+        new = build_weekly_snapshot(self.manifest(), "2026-10-31",
+                                    observations={"CPIAUCSL": {"2026-09-01": 100.0}})
+        self.assertIsNone(new["series"]["CPIAUCSL"]["observation_value"])
+
     def test_future_observation_rejected(self):
         manifest = self.manifest()
         manifest["series"]["UNRATE"]["latest_observation"] = "2026-11-01"
