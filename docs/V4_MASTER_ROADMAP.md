@@ -1,7 +1,7 @@
 # Economic Cycle Research — Version 4 Master Roadmap
 
 Date: 2026-10-31
-Status: PROPOSED IMPLEMENTATION BASELINE
+Status: APPROVED IMPLEMENTATION BASELINE — DEVELOPMENT STARTED
 Product: **Economic Cycle Intelligence & Historical Validation**
 Predecessor: `docs/V3_DESCRIPTIVE_RELEASE_CLOSEOUT_2026-10-31.md` (V3 descriptive release accepted).
 
@@ -62,5 +62,5 @@ Do not hold the improved descriptive V4 product hostage to an impossible histori
 - Automated tests and one live operational run pass.
 - Final dashboard and closeout are committed to GitHub.
 
-## First authorized implementation chunk (once roadmap approved)
+## First implementation chunk (authorized)
 Harden previous-week artifact retrieval and source freshness; build standardized economic domain signal contracts and tests; integrate into the existing V3 weekly report without breaking it. Then advance in large passes.
