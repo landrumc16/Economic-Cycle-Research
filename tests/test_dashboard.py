@@ -18,6 +18,8 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("Source readiness",page)
         self.assertIn("of 5 workbook-usable observations",page)
         self.assertIn("historical monthly observations",page)
+        self.assertNotIn("HISTORICAL_CONTEXT_TEXT",page)
+        self.assertNotIn("188_CONTEXT",page)
         self.assertIn("Not assessable — source eligibility incomplete",page)
         self.assertIn("Closest historical spread profiles",page)
         macro={"domains":{"growth":{"observation":2.1,"unit":"percent year over year","description":"POSITIVE_REAL_GROWTH"},"labor":{"observation":None,"unit":"percentage points over 3 months","description":"MISSING"},"inflation":{"observation":3.0,"unit":"percent year over year","description":"PRICES_RISING"}}}
