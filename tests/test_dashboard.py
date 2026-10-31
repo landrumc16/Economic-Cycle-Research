@@ -16,6 +16,7 @@ class DashboardTests(unittest.TestCase):
         self.assertIn("not a forecast",page)
         self.assertIn("Not eligible for model",page)
         self.assertIn("Source readiness",page)
+        self.assertIn("Latest observation: 2026-10-29",page)
         self.assertIn("of 5 workbook-usable observations",page)
         self.assertIn("historical monthly observations",page)
         self.assertNotIn("HISTORICAL_CONTEXT_TEXT",page)
