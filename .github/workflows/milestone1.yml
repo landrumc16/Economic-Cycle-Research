@@ -24,10 +24,6 @@ jobs:
         run: python -m compileall -q scripts tests
       - name: Verify parser and comparison tests
         run: python -m unittest discover -s tests -v
-      - name: Legacy bulk-source diagnostic (non-gating)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        continue-on-error: true
-        run: timeout 220s python -u scripts/milestone1.py --output audit-output
       - name: Attempt official BLS public API fallback
         continue-on-error: true
         if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
