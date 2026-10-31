@@ -50,11 +50,18 @@ def build_weekly_snapshot(refresh, as_of, previous=None, observations=None):
                       and isinstance(new_value, (int, float)) and not isinstance(new_value, bool)
                       and math.isfinite(old_value) and math.isfinite(new_value)
                       and prior.get("latest_observation") != current["latest_observation"])
+        same_date_revision = (prior is not None and prior.get("latest_observation") == current["latest_observation"]
+                              and isinstance(old_value, (int, float)) and not isinstance(old_value, bool)
+                              and isinstance(new_value, (int, float)) and not isinstance(new_value, bool)
+                              and math.isfinite(old_value) and math.isfinite(new_value)
+                              and old_value != new_value)
         changes[name] = {
             "status_changed": prior is not None and prior.get("status") != current["status"],
             "new_observation_date": prior is not None and prior.get("latest_observation") != current["latest_observation"],
             "previous_snapshot_available": prior is not None,
             "numeric_change": round(new_value - old_value, 6) if comparable else None,
+            "same_observation_revision_detected": same_date_revision,
+            "revision_delta": round(new_value - old_value, 6) if same_date_revision else None,
             "reason": "NEW_RELEASED_OBSERVATION_REVISED_NOT_PIT" if comparable else "NO_COMPARABLE_NEW_OBSERVATION",
         }
     return {
@@ -70,6 +77,7 @@ def build_weekly_snapshot(refresh, as_of, previous=None, observations=None):
         "limitations": [
             "Values are attached only when the normalized observation date exactly matches the source manifest; publisher release dates remain unavailable",
             "Numeric changes represent differences between newly available dated observations, not necessarily a seven-day economic movement",
+            "Same-observation value changes are reported as revisions, not new economic observations",
             "Source-reported revised observations are not original point-in-time vintages",
             "Missing or invalid sources remain unavailable, never zero-filled",
         ],
