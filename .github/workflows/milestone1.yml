@@ -125,6 +125,9 @@ jobs:
       - name: Join canonical crash lead-window summary
         if: always()
         run: python -u scripts/v2_lead_window_summary.py --profiles audit-output/v2_pathway_coverage.json --source data/v2_canonical_lead_window_summary_2026-10-31.json --output audit-output/v2_lead_window_summary.json
+      - name: Build Version 2 global transmission evidence inventory
+        if: always()
+        run: python -u scripts/v2_global_transmission.py --profiles audit-output/v2_pathway_coverage.json --output audit-output/v2_global_transmission.json
       - name: Build usable research dashboard from existing workbook snapshots
         if: always()
         run: |
