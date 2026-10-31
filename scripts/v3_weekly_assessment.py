@@ -5,9 +5,11 @@ from pathlib import Path
 try:
     from scripts.v3_indicator_interpretation import interpret
     from scripts.v3_pathway_evidence import pathway_evidence
+    from scripts.v3_historical_bridge import bridge
 except ModuleNotFoundError:
     from v3_indicator_interpretation import interpret
     from v3_pathway_evidence import pathway_evidence
+    from v3_historical_bridge import bridge
 
 LABELS = {
     "UNRATE": ("Unemployment rate", "percentage points", "MONTHLY"),
@@ -21,7 +23,7 @@ LABELS = {
     "ICSA": ("Initial unemployment insurance claims", "claims", "WEEKLY"),
 }
 
-def assess(snapshot):
+def assess(snapshot, historical=None):
     if snapshot.get("report_type") != "V3_WEEKLY_ECONOMIC_EVIDENCE":
         raise ValueError("Unsupported snapshot")
     series = snapshot.get("series", {})
@@ -50,6 +52,7 @@ def assess(snapshot):
             "new_observation_date": diff.get("new_observation_date", False),
         })
     available = sum(r["value"] is not None for r in rows)
+    historical_bridge = bridge({"indicators": rows}, historical) if historical is not None else None
     return {
         "schema_version": 1, "report_type": "V3_WEEKLY_DESCRIPTIVE_ASSESSMENT",
         "as_of": snapshot["as_of"], "status": "EVIDENCE_LIMITED",
@@ -58,6 +61,7 @@ def assess(snapshot):
         "indicators": rows,
         "directional_evidence": interpret(rows),
         "pathway_evidence": pathway_evidence(rows),
+        "historical_bridge": historical_bridge,
         "validated_cycle_stage": None, "crash_probability": None,
         "pathway_conclusions": [],
         "publication": "DESCRIPTIVE_ONLY",
@@ -91,6 +95,10 @@ def render_markdown(report):
     lines.extend(["", "## Crash pathway evidence inventories (not confirmed mechanisms)"])
     for pathway in report["pathway_evidence"]["pathways"]:
         lines.append("- **{}**: {} of {} mapped indicators have numeric observations; causal mechanism not verified.".format(pathway["pathway"], pathway["observed"], pathway["required"]))
+    if report.get("historical_bridge") is not None:
+        lines.extend(["", "## Historical evidence coverage (not a predictive analogue)"])
+        for item in report["historical_bridge"]["domains"]:
+            lines.append("- **{}**: {} of {} historical parent clusters with this domain; direct numeric comparison blocked.".format(item["domain"], item["historical_parent_clusters_with_domain"], report["historical_bridge"]["historical_parent_clusters"]))
     lines.extend(["", "## Interpretation limits", *("- " + x for x in report["limitations"]), "",
                   "**Economic-cycle stage:** Not validated.",
                   "**Crash probability:** Not available.", ""])
@@ -99,10 +107,12 @@ def render_markdown(report):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--snapshot", default="audit-output/v3_weekly_snapshot.json")
+    p.add_argument("--historical")
     p.add_argument("--json-output", default="audit-output/v3_weekly_assessment.json")
     p.add_argument("--markdown-output", default="audit-output/v3_weekly_assessment.md")
     a = p.parse_args()
-    report = assess(json.loads(Path(a.snapshot).read_text()))
+    historical = json.loads(Path(a.historical).read_text()) if a.historical else None
+    report = assess(json.loads(Path(a.snapshot).read_text()), historical)
     for path, body in ((a.json_output, json.dumps(report, indent=2, sort_keys=True) + "\n"),
                        (a.markdown_output, render_markdown(report))):
         target = Path(path)
