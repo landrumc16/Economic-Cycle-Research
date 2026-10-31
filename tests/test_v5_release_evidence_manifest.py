@@ -64,6 +64,12 @@ class V5ManifestTests(unittest.TestCase):
         (self.root / "dashboard" / "weekly-v5.html").write_text("<html>Descriptive only</html>")
         self.assertEqual(summarize(self.root)["status"], "INCOMPLETE")
 
+    def test_other_artifact_date_mismatch_fails(self):
+        self.documents["v5_objective_outcomes.json"]["as_of"] = "2026-10-30"
+        (self.root / "v5_objective_outcomes.json").write_text(
+            json.dumps(self.documents["v5_objective_outcomes.json"]))
+        self.assertEqual(summarize(self.root)["status"], "INCOMPLETE")
+
     def test_predictive_unblock_fails(self):
         self.documents["v5_pit_replay.json"]["predictive_publication"] = "APPROVED"
         (self.root / "v5_pit_replay.json").write_text(
