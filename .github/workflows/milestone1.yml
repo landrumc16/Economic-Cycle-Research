@@ -289,7 +289,6 @@ jobs:
             echo 'Source: SEM_Historical_Crash_Research_v1; no predictive approval.'
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Verify Version 5 descriptive artifact manifest
-        if: always()
         run: python -u scripts/v5_release_evidence_manifest.py --directory audit-output --output audit-output/v5_release_evidence_manifest.json
       - name: Summarize Version 5 descriptive release readiness
         if: always()
