@@ -51,3 +51,29 @@ def chronological_split(rows, train_end, test_start, embargo_days=30):
     return {"train_end": train_end, "test_start": test_start,
             "embargo_days": embargo_days, "parent_overlap": [],
             "status": "SPLIT_CONTRACT_PASSED_NOT_VALIDATED"}
+
+def main():
+    import argparse
+    import json
+    from pathlib import Path
+    p = argparse.ArgumentParser()
+    p.add_argument("--records")
+    p.add_argument("--origins")
+    p.add_argument("--as-of", required=True)
+    p.add_argument("--output", default="audit-output/v5_pit_replay.json")
+    a = p.parse_args()
+    records = json.loads(Path(a.records).read_text()) if a.records else []
+    origins = json.loads(Path(a.origins).read_text()) if a.origins else [a.as_of]
+    if not isinstance(records, list) or not isinstance(origins, list):
+        raise ValueError("Replay inputs must be arrays")
+    if any(date.fromisoformat(origin) > date.fromisoformat(a.as_of) for origin in origins):
+        raise ValueError("Future replay origin")
+    report = replay(records, origins)
+    report["coverage_status"] = "NO_PUBLISHER_ORIGINAL_RECORDS" if not records else "REPLAYED_UNAUDITED_RECORDS"
+    target = Path(a.output)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+
+
+if __name__ == "__main__":
+    main()
