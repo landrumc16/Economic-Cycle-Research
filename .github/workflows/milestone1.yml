@@ -174,6 +174,9 @@ jobs:
       - name: Build Version 2 global transmission evidence inventory
         if: always()
         run: python -u scripts/v2_global_transmission.py --profiles audit-output/v2_pathway_coverage.json --output audit-output/v2_global_transmission.json
+      - name: Audit Version 3 historical cohorts and negative-control gaps
+        if: always()
+        run: python -u scripts/v3_historical_cohort_audit.py --comparison audit-output/v2_canonical_comparison.json --output audit-output/v3_historical_cohort_audit.json
       - name: Produce Version 3 weekly assessment with historical evidence coverage
         if: always()
         run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --historical audit-output/v2_pathway_coverage.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
