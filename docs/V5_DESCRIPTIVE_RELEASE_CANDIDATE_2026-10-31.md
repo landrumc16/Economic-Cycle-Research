@@ -11,6 +11,7 @@ Branch: main
 - Six mechanism evidence-readiness pathways; missing PIT and outcome evidence stays explicit.
 - Integrated weekly JSON research readout and offline HTML dashboard.
 - Fail-closed descriptive acceptance script, integration tests and scheduled workflow integration.
+- Machine-readable `v5_release_evidence_manifest.json` now checks required output files, acceptance result, report dates and predictive gate. It explicitly does not certify live freshness.
 - V3/V4 existing descriptive dashboards retained as fallback.
 
 ## Fast independent code verification
@@ -25,7 +26,7 @@ Branch: main
    dashboard/weekly-v5.html, v5_release_acceptance.json,
    v5_objective_outcomes.json, v5_pit_replay.json and
    v5_mechanism_evidence_gate.json.
-3. Confirm v5_release_acceptance.json status PASS_DESCRIPTIVE_ONLY,
+3. Confirm v5_release_evidence_manifest.json status DESCRIPTIVE_ARTIFACTS_VERIFIED and v5_release_acceptance.json status PASS_DESCRIPTIVE_ONLY,
    no omitted steps, and inspect the rendered HTML for readability.
 4. Verify current observation dates and source freshness; do not confuse a
    passing build with current economic data.
