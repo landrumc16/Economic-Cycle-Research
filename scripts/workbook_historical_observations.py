@@ -99,8 +99,7 @@ def main():
     result = parse_export(json.loads(Path(a.input).read_text()))
     dest = Path(a.output)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(json.dumps(result, indent=2) + "
-")
+    dest.write_text(json.dumps(result, indent=2) + "\n")
     if a.require_complete and result["integrity"] != "PASS_RESEARCH_ONLY":
         print("Historical workbook integrity failed; see " + str(dest), file=sys.stderr)
         raise SystemExit(1)
