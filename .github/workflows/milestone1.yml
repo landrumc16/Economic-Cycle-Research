@@ -90,8 +90,7 @@ jobs:
         if: always()
         run: python -u scripts/cycle_research_readout.py --metrics audit-output/descriptive_macro_metrics.json --output audit-output/cycle_research_readout.json
       - name: Compare current macro conditions with five historical pathways (exploratory)
-        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-        continue-on-error: true
+        if: always()
         run: python -u scripts/historical_macro_analogues.py --fred audit-output/fred-api --metrics audit-output/descriptive_macro_metrics.json --output audit-output/historical_macro_analogues.json
       - name: Stage workbook financial and housing research snapshot
         if: always()
@@ -124,7 +123,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "schedule" ]; then
             EXTRA_FLAGS="--require-macro-values"
           fi
-          python -u scripts/build_dashboard.py --macro audit-output/cycle_research_readout.json --strict-macro $EXTRA_FLAGS --cycle-assessment audit-output/current_cycle_assessment.json --refresh-manifest audit-output/dashboard/source_refresh_manifest.json --output audit-output/dashboard/index.html --json-output audit-output/dashboard/state.json
+          python -u scripts/build_dashboard.py --macro audit-output/cycle_research_readout.json --strict-macro $EXTRA_FLAGS --cycle-assessment audit-output/current_cycle_assessment.json --historical-analogues audit-output/historical_macro_analogues.json --refresh-manifest audit-output/dashboard/source_refresh_manifest.json --output audit-output/dashboard/index.html --json-output audit-output/dashboard/state.json
       - name: Publish static dashboard to job summary
         if: always()
         run: |
