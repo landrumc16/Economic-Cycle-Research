@@ -18,17 +18,43 @@ def make_dashboard(current, history):
     for r in clusters:
         events.append("<tr>"+"".join(f"<td>{esc(x)}</td>" for x in (r[0],r[1],r[2],r[3],r[5],r[6],r[11]))+"</tr>")
     stress = sum(1 for r in months if r[4]=="YES")
+    by_id = {r["series_id"]: r for r in rows}
+    curve = by_id.get("T10Y2Y")
+    credit = by_id.get("BAA10Y")
+    # Both contemporaneous inputs must be eligible; missing/unverified is never a zero.
+    eligible_pair = all(r is not None and r.get("workbook_usable") is True and
+                        r.get("vintage_verified") is True for r in (curve, credit))
+    if eligible_pair:
+        active = float(curve["value"]) < 0 or float(credit["value"]) >= 2.5
+        assessment = ("Historical stress definition met" if active else
+                      "Historical stress definition not met")
+        explanation = "Both curve and credit spread passed workbook eligibility checks; this is not a crash forecast."
+    else:
+        assessment = "Not assessable — source eligibility incomplete"
+        explanation = "Yield curve and credit spread must both be verified and workbook-usable; an unverified observation cannot be treated as a negative signal."
+    assessment_html = f'<section class="notice"><strong>Current financial-stress screen: {esc(assessment)}</strong><p>{esc(explanation)}</p><small>Rule: 10Y–2Y spread &lt; 0 pp OR Baa–10Y spread ≥ 2.5 pp. Historical descriptive rule only.</small></section>'
+    # Historical comparisons are based on observed spread proximity, not inferred crash likelihood.
+    comparisons = []
+    if eligible_pair:
+        for row in clusters:
+            try:
+                distance = abs(float(row[5])-float(curve["value"])) + abs(float(row[6])-float(credit["value"]))
+                comparisons.append((distance,row))
+            except (ValueError, TypeError):
+                continue
+        comparisons.sort(key=lambda x:x[0])
+    comparison_html = ("<ol>" + "".join(f"<li>{esc(r[1])} — curve {esc(r[5])} pp; credit {esc(r[6])} pp</li>" for _,r in comparisons[:3]) + "</ol>") if comparisons else "<p>Unavailable until both current financial spread inputs are eligible.</p>"
     page = """<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Economic Cycle Research | Descriptive Dashboard</title>
 <style>body{margin:0;background:#0c1524;color:#e9f0f9;font:16px system-ui,sans-serif}main{max-width:1200px;margin:auto;padding:32px 20px}h1{font-size:32px}h2{font-size:26px;margin:12px 0}.sub{color:#b3c1d4}.notice{border-left:4px solid #e3b96a;padding:12px 18px;background:#263041;margin:22px 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}.card{border:1px solid #36465d;background:#18253a;border-radius:12px;padding:18px}.card small,.card p{color:#b3c1d4}.good{color:#a6dfba}.warn{color:#f1c481}.metrics{display:flex;gap:28px;flex-wrap:wrap;margin:25px 0}.metrics strong{font-size:26px;display:block}table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:12px;text-align:left;border-bottom:1px solid #35445b}th{color:#b3c1d4}.scroll{overflow-x:auto}a{color:#b9d6ff}footer{color:#aebbd0;margin-top:35px;font-size:13px}</style>
 <main><header><h1>Economic Cycle Research</h1><p class="sub">First working descriptive dashboard · Snapshot: SNAPSHOT · no live sync</p></header>
 <div class="notice"><strong>Research only — not a forecast.</strong> Current observations are dated workbook exports, not verified real-time data. No cycle-stage prediction, crash probability, investment recommendation, or point-in-time certification is authorized.</div>
 <h2>Current research observations</h2><div class="cards">CARDS</div>
-<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
+ASSESSMENT<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
 <p class="sub">Monthly observations and forward windows overlap; they are not independent trials. Stress is a descriptive flag, not a validated crash predictor.</p>
 <h2>Crash pathway comparison</h2><div class="scroll"><table><thead><tr><th>Cluster</th><th>Daily peak</th><th>Prior month</th><th>20% crossing</th><th>Curve (pp)</th><th>Credit (pp)</th><th>Financial stress?</th></tr></thead><tbody>EVENTS</tbody></table></div>
 <footer>Authority: SEM_Historical_Crash_Research_v1 · dated manual research snapshots. Publisher-original release verification, untouched holdouts and model approval remain incomplete.</footer></main></html>"""
-    for a,b in {"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events)}.items():
+    for a,b in {"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html}.items():
         page=page.replace(a,b)
     return page
 
