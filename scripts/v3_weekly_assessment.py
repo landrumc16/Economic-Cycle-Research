@@ -7,6 +7,12 @@ LABELS = {
     "UNRATE": ("Unemployment rate", "percentage points", "MONTHLY"),
     "CPIAUCSL": ("Consumer price index level", "index points", "MONTHLY"),
     "GDPC1": ("Real GDP level", "chained-dollar units", "QUARTERLY"),
+    "DGS10": ("10-year Treasury yield", "percentage points", "DAILY"),
+    "DGS2": ("2-year Treasury yield", "percentage points", "DAILY"),
+    "T10Y2Y": ("10-year minus 2-year Treasury spread", "percentage points", "DAILY"),
+    "BAMLH0A0HYM2": ("US high-yield option-adjusted spread", "percentage points", "DAILY"),
+    "STLFSI4": ("St. Louis Fed financial stress index", "index points", "WEEKLY"),
+    "ICSA": ("Initial unemployment insurance claims", "claims", "WEEKLY"),
 }
 
 def assess(snapshot):
@@ -50,7 +56,7 @@ def assess(snapshot):
         "predictive_publication": "BLOCKED",
         "limitations": [
             "Observation date is not publisher release date; publication lag is not yet verified",
-            "GDP levels, CPI index levels and unemployment rates have different units and frequencies; do not combine directly",
+            "GDP, CPI, unemployment, yields, spreads, stress and claims have different units and frequencies; do not combine directly",
             "New-release changes are not necessarily seven-day changes and may include revisions",
             "No validated crash pathway inference or economic-cycle classification",
         ],
