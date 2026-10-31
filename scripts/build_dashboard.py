@@ -124,6 +124,12 @@ def main():
         raise FileNotFoundError("Requested macro readout unavailable")
     macro=json.loads(Path(a.macro).read_text()) if a.macro and Path(a.macro).exists() else None
     refresh=json.loads(Path(a.refresh_manifest).read_text()) if a.refresh_manifest and Path(a.refresh_manifest).exists() else None
+    if a.require_macro_values:
+        domains = macro.get("domains", {}) if isinstance(macro, dict) else {}
+        missing = [key for key in ("growth", "labor", "inflation")
+                   if domains.get(key, {}).get("observation") is None]
+        if missing:
+            raise ValueError("Missing required macro observations: " + ", ".join(missing))
     target.write_text(make_dashboard(current,historical,macro,refresh),encoding="utf-8")
     if a.json_output:
         state = {
