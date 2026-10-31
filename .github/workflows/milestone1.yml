@@ -25,15 +25,16 @@ jobs:
       - name: Verify parser and comparison tests
         run: python -m unittest discover -s tests -v
       - name: Legacy bulk-source diagnostic (non-gating)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         continue-on-error: true
         run: timeout 220s python -u scripts/milestone1.py --output audit-output
       - name: Attempt official BLS public API fallback
-        if: always()
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
         run: timeout 240s python -u scripts/bls_api.py --output audit-output/bls-api
       - name: Attempt official FRED API fallback
-        if: always()
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
@@ -43,7 +44,7 @@ jobs:
             echo 'FRED_API_KEY not configured; FRED API fallback skipped (still blocked).'
           fi
       - name: Acquire BEA official GDP data
-        if: always()
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         env:
           BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
         run: |
@@ -53,10 +54,10 @@ jobs:
             echo 'BEA_API_KEY not configured; BEA acquisition skipped (still blocked).'
           fi
       - name: Reconcile BEA and FRED GDP
-        if: always()
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/gdp_api_crosscheck.py
       - name: Reconcile BLS API and FRED API observations
-        if: always()
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
         run: python -u scripts/api_crosscheck.py --bls audit-output/bls-api --fred audit-output/fred-api
       - name: Build retrospective event panel (non-PIT exploratory)
         if: always()
