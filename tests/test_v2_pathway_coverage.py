@@ -19,6 +19,25 @@ class PathwayCoverageTests(unittest.TestCase):
         self.assertTrue(all(p["pathway_mechanism"] is None for p in result["pathway_profiles"]))
         self.assertTrue(all(p["features"]["valuation"]["value"] is None for p in result["pathway_profiles"]))
 
+    def test_financial_trajectories_have_24_calendar_months(self):
+        result = assemble(self.comparison())
+        for profile in result["pathway_profiles"]:
+            lead = profile["prior_24_months_financial"]
+            self.assertEqual(len(lead), 24)
+            self.assertEqual(lead[-1]["month"], profile["prior_month"])
+            self.assertEqual(lead[-1]["months_before_prior_month"], 0)
+            self.assertEqual(lead[0]["months_before_prior_month"], 23)
+            self.assertEqual(profile["prior_24_months_available"],
+                             sum(x["status"] == "REVISED_NOT_PIT" for x in lead))
+
+    def test_missing_monthly_observations_do_not_become_negative_stress(self):
+        comparison = self.comparison()
+        comparison["monthly_stress_baseline"] = []
+        result = assemble(comparison)
+        lead = result["pathway_profiles"][0]["prior_24_months_financial"]
+        self.assertTrue(all(x["financial_stress"] is None for x in lead))
+        self.assertEqual(result["pathway_profiles"][0]["prior_24_months_available"], 0)
+
     def test_rejects_predictive_promotion(self):
         comparison = self.comparison()
         comparison["publication"] = "ALLOWED"
