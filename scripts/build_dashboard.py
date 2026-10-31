@@ -46,15 +46,16 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
     credit = by_id.get("BAA10Y")
     # Both contemporaneous inputs must be eligible; missing/unverified is never a zero.
     eligible_pair = all(r is not None and r.get("workbook_usable") is True and
-                        r.get("vintage_verified") is True for r in (curve, credit))
+                        r.get("vintage_verified") is True and r.get("publisher_verified") is True and
+                        r.get("human_approved") is True for r in (curve, credit))
     if eligible_pair:
         active = float(curve["value"]) < 0 or float(credit["value"]) >= 2.5
         stress_assessment = ("Historical stress definition met" if active else
                       "Historical stress definition not met")
-        explanation = "Both curve and credit spread passed workbook eligibility checks; this is not a crash forecast."
+        explanation = "Both curve and credit spread passed publisher, vintage, workbook and human-approval checks; this is not a crash forecast."
     else:
         stress_assessment = "Not assessable — source eligibility incomplete"
-        explanation = "Yield curve and credit spread must both be verified and workbook-usable; an unverified observation cannot be treated as a negative signal."
+        explanation = "Yield curve and credit spread both require publisher verification, vintage verification, workbook usability and human approval; staged observations cannot be treated as a negative signal."
     macro_html = ""
     if isinstance(macro, dict):
         domains = macro.get("domains", {})
