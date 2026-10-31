@@ -26,9 +26,14 @@ def verify(readout, dashboard, mechanisms, replay, outcomes):
         issues.append("PIT_COVERAGE_MISMATCH")
     if readout.get("outcome_coverage_status") != outcomes.get("coverage_status"):
         issues.append("OUTCOME_COVERAGE_MISMATCH")
-    if ("<html" not in dashboard or "Predictive publication: BLOCKED" not in dashboard\n            or str(readout.get("as_of", "")) not in dashboard):
+    if ("<html" not in dashboard or "Predictive publication: BLOCKED" not in dashboard
+            or str(readout.get("as_of", "")) not in dashboard):
         issues.append("DASHBOARD_INCOMPLETE")
-    if mechanisms.get("prediction_status") not in (None, "BLOCKED"):\n        issues.append("MECHANISM_PREDICTIVE_GATE_NOT_BLOCKED")\n    if replay.get("predictive_publication") not in (None, "BLOCKED"):\n        issues.append("REPLAY_PREDICTIVE_GATE_NOT_BLOCKED")\n    if not readout.get("validation_requirements"):
+    if mechanisms.get("prediction_status") not in (None, "BLOCKED"):
+        issues.append("MECHANISM_PREDICTIVE_GATE_NOT_BLOCKED")
+    if replay.get("predictive_publication") not in (None, "BLOCKED"):
+        issues.append("REPLAY_PREDICTIVE_GATE_NOT_BLOCKED")
+    if not readout.get("validation_requirements"):
         issues.append("VALIDATION_DISCLOSURE_MISSING")
     return {"schema_version": 1, "report_type": "V5_RELEASE_ACCEPTANCE",
             "status": "PASS_DESCRIPTIVE_ONLY" if not issues else "FAIL",
@@ -56,7 +61,8 @@ def main():
         result = verify(docs[0], (root / "dashboard/weekly-v5.html").read_text(), *docs[1:])
     target = Path(a.output)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
+    target.write_text(json.dumps(result, indent=2, sort_keys=True) + "
+")
     print(json.dumps({"status": result["status"], "issues": result["issues"]}))
     if result["status"] == "FAIL":
         raise SystemExit(1)
