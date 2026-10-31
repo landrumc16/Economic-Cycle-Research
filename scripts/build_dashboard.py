@@ -86,6 +86,26 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
         mechanisms = assessment.get("mechanism_lenses", {})
         lenses = "".join(f"<li>{esc(name.replace('_', ' ').title())}: {esc(details.get('status', 'UNKNOWN'))}</li>" for name, details in mechanisms.items())
         cycle_html = '<section><h2>Integrated economic-cycle assessment</h2><p class="sub">' + esc("; ".join(descriptions)) + '</p><p>Crash mechanisms are research lenses, not validated forecasts.</p><ul>' + lenses + '</ul></section>'
+    financial_context_html = ""
+    if isinstance(assessment, dict):
+        financial_context = assessment.get("financial_context", {})
+        names = {"credit": "Corporate credit spread", "yield_curve": "Treasury yield curve",
+                 "housing_starts": "Housing starts", "household_debt_service": "Household debt service",
+                 "equity_volatility": "Market volatility"}
+        financial_cards = []
+        for key, label in names.items():
+            item = financial_context.get(key, {})
+            value = item.get("value")
+            quality = item.get("quality", "MISSING")
+            shown = "Unavailable" if value is None else esc(value)
+            date_label = esc(item.get("observation_date") or "No observation")
+            financial_cards.append('<article class="card"><small>' + esc(label) + '</small><h2>' +
+                shown + '</h2><p>Observed: ' + date_label + '</p><small>Evidence: ' +
+                esc(quality.replace("_", " ")) + '</small></article>')
+        financial_context_html = ('<section><h2>Financial and housing conditions</h2>'
+            '<p class="sub">Dated workbook snapshot; unapproved observations are contextual only. '
+            'Different series have different release dates.</p><div class="cards">' +
+            "".join(financial_cards) + '</div></section>')
     analogue_html = ""
     if isinstance(analogues, dict):
         entries = analogues.get("analogues", [])
@@ -121,11 +141,11 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
 <main><header><h1>Economic Cycle Research</h1><p class="sub">First working descriptive dashboard · Snapshot: SNAPSHOT · no live sync</p></header>
 <div class="notice"><strong>Research only — not a forecast.</strong> Current observations are dated workbook exports, not verified real-time data. No cycle-stage prediction, crash probability, investment recommendation, or point-in-time certification is authorized.</div>
 FRESHNESS<h2>Current research observations</h2><div class="cards">CARDS</div>QUALITY
-ASSESSMENTMACROREFRESHCYCLEANALOGUES<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
+ASSESSMENTMACROREFRESHCYCLEFINANCIALCONTEXTANALOGUES<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
 <p class="sub">HISTORICAL_CONTEXT_TEXT Monthly observations and forward windows overlap; they are not independent trials. Stress is a descriptive flag, not a validated crash predictor.</p>
 <h2>Crash pathway comparison</h2><div class="scroll"><table><thead><tr><th>Cluster</th><th>Daily peak</th><th>Prior month</th><th>20% crossing</th><th>Curve (pp)</th><th>Credit (pp)</th><th>Financial stress?</th></tr></thead><tbody>EVENTS</tbody></table></div>
 <footer>Authority: SEM_Historical_Crash_Research_v1 · dated manual research snapshots. Publisher-original release verification, untouched holdouts and model approval remain incomplete.</footer></main></html>"""
-    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"ANALOGUES":analogue_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
+    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
         page=page.replace(a,b)
     return page
 
