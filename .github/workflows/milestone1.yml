@@ -288,6 +288,24 @@ jobs:
             echo ''
             echo 'Source: SEM_Historical_Crash_Research_v1; no predictive approval.'
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Summarize Version 5 descriptive release readiness
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          print("## Version 5 weekly economic research")
+          path = Path("audit-output/v5_release_acceptance.json")
+          if not path.exists():
+              print("- Descriptive release: INCOMPLETE (acceptance artifact missing)")
+          else:
+              result = json.loads(path.read_text())
+              print("- Descriptive release: " + result.get("status", "UNKNOWN"))
+              for issue in result.get("issues", []):
+                  print("- Issue: " + issue)
+          print("- Predictive publication: BLOCKED pending independent validation")
+          print("- Dashboard: dashboard/weekly-v5.html in milestone1-audit-evidence")
+          PY
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
