@@ -180,6 +180,9 @@ jobs:
       - name: Produce Version 3 weekly assessment with historical evidence coverage
         if: always()
         run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --historical audit-output/v2_pathway_coverage.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
+      - name: Build Version 3 weekly dashboard
+        if: always()
+        run: python -u scripts/v3_weekly_dashboard.py --assessment audit-output/v3_weekly_assessment.json --output audit-output/dashboard/weekly.html
       - name: Build usable research dashboard from existing workbook snapshots
         if: always()
         run: |
