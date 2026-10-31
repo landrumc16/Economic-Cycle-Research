@@ -25,9 +25,13 @@ def summarize(directory):
     macro = documents["v5_standardized_macro_metrics.json"]
     acceptance = documents["v5_release_acceptance.json"]
     date_matches = weekly.get("as_of") == macro.get("as_of") and bool(weekly.get("as_of"))
-    blocked = all(doc.get("predictive_publication", doc.get("prediction_status", "BLOCKED")) == "BLOCKED"
+    blocked = all(doc.get("predictive_publication", doc.get("prediction_status")) == "BLOCKED"
                   for doc in documents.values())
-    passed = acceptance.get("status") == "PASS_DESCRIPTIVE_ONLY" and date_matches and blocked
+    dashboard = (root / "dashboard/weekly-v5.html").read_text()
+    dashboard_valid = ("<html" in dashboard and "Predictive publication: BLOCKED" in dashboard
+                       and str(weekly.get("as_of", "")) in dashboard)
+    passed = (acceptance.get("status") == "PASS_DESCRIPTIVE_ONLY"
+              and date_matches and blocked and dashboard_valid)
     return {"schema_version": 1, "report_type": "V5_RELEASE_EVIDENCE_MANIFEST",
             "status": "DESCRIPTIVE_ARTIFACTS_VERIFIED" if passed else "INCOMPLETE",
             "as_of": weekly.get("as_of"), "missing": [], "artifact_paths": list(REQUIRED),
