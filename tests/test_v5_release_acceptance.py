@@ -52,6 +52,10 @@ class V5ReleaseAcceptanceTests(unittest.TestCase):
         self.replay = {}
         self.assertEqual(self.run_gate()["status"], "FAIL")
 
+    def test_historical_event_count_mismatch_fails(self):
+        self.readout["historical_event_count"] = 2
+        self.assertEqual(self.run_gate()["status"], "FAIL")
+
     def test_missing_outcome_coverage_fails(self):
         self.outcomes = {}
         self.assertEqual(self.run_gate()["status"], "FAIL")
