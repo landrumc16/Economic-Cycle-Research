@@ -1,3 +1,8 @@
+## Offline CI dependency correction — 2026-10-30
+- Run #100 failed only in FRED-dependent retrospective event panel and crash-event comparison; those were mistakenly still invoked in offline PR CI after source acquisition was disabled.
+- Commit `98900ed` gates both retrospective analyses to scheduled/manual acquisition runs. The data-dependent analyses are retained, not deleted or declared validated.
+- Next: verify latest offline CI and check tests, historical coverage, publisher evidence contract, and release register independently. Then move to authenticated original publisher release artifacts.
+
 ## Release-evidence staging checkpoint — 2026-10-30
 - Commits `1447c42`, `558c5cd`, `f2ce5c3`, `51595b5`: created empty original publisher release register, validator, no-lookahead tests, and CI step. No publisher observations or timestamps were fabricated.
 - Validator rejects invalid source identifiers, missing timezone, malformed hashes, and releases after decision times; metadata plausibility never certifies source authenticity or authorizes prediction.
