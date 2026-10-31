@@ -37,9 +37,9 @@ small{color:#576574}header small{color:#dbe6f2}</style></head><body>
 <header><h1>Weekly Economic Research</h1><small>Version 5 | As of """ + esc(report["as_of"]) + """</small></header>
 <section><h2>Standardized economic measures</h2><table><thead><tr><th>Measure</th><th>Value</th><th>Observation date</th></tr></thead><tbody>""" + rows + """</tbody></table>""" + coverage + """</section>
 <section><h2>Downturn mechanisms</h2><ul>""" + pathways + """</ul></section>
-<section><h2>Historical validation coverage</h2><p>Outcome coverage: """ + esc(report.get("outcome_coverage_status", "UNVERIFIED")) + """</p>
+<section><h2>Historical validation coverage</h2><p>Historical events with independently supplied outcome evidence: """ + esc(report.get("historical_event_count", 0)) + """</p><p>Outcome coverage: """ + esc(report.get("outcome_coverage_status", "UNVERIFIED")) + """</p>
 <p>Publisher-original replay observations: """ + esc(report.get("original_vintage_replay_coverage", 0)) + """</p>
-<p><strong>Predictive publication: BLOCKED</strong></p><small>Descriptive research only; no calibrated forecast or investment recommendation.</small></section></body></html>"""
+<p><strong>Predictive publication: BLOCKED</strong></p><p>Required before predictive research: """ + esc("; ".join(report.get("validation_requirements", []))) + """</p><small>Descriptive research only; no calibrated forecast or investment recommendation.</small></section></body></html>"""
 
 
 def main():
