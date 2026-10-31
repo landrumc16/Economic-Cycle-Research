@@ -30,6 +30,28 @@ def evaluate(comparison, page, state):
         issues.append("CONTROL_CAVEAT_MISSING")
     if "V2HISTORICAL" in page:
         issues.append("UNREPLACED_V2_TEMPLATE")
+    # Integrated V2 panels must be present, and their provenance must remain blocked.
+    if "Current conditions vs historical crash contexts" not in page:
+        issues.append("CURRENT_HISTORICAL_BRIDGE_MISSING")
+    if "CURRENT_UNEMPLOYMENT_LEVEL_NOT_3M_CHANGE" not in page:
+        issues.append("LABOR_COMPARABILITY_WARNING_MISSING")
+    if "Crash mechanism evidence gaps" not in page:
+        issues.append("MECHANISM_GAPS_MISSING")
+    if "International economic transmission" not in page:
+        issues.append("GLOBAL_TRANSMISSION_PANEL_MISSING")
+    global_state = state.get("v2_global_transmission")
+    if not isinstance(global_state, dict):
+        issues.append("GLOBAL_EVIDENCE_INVENTORY_MISSING")
+    else:
+        if (global_state.get("publication") != "BLOCKED"
+                or global_state.get("predictive_model") != "NOT_VALIDATED"):
+            issues.append("GLOBAL_PREDICTIVE_GATE_VIOLATION")
+        coverage = global_state.get("coverage", {})
+        if coverage.get("channels_defined") != len(global_state.get("channels", [])):
+            issues.append("GLOBAL_COVERAGE_INCONSISTENT")
+    assessment = state.get("current_cycle_assessment")
+    if not isinstance(assessment, dict) or assessment.get("publication") != "BLOCKED":
+        issues.append("CURRENT_ASSESSMENT_GATE_VIOLATION")
     attached = state.get("v2_historical_comparison")
     if not isinstance(attached, dict) or attached.get("provenance", {}).get("sha256_export") != provenance.get("sha256_export"):
         issues.append("DASHBOARD_STATE_SOURCE_MISMATCH")
