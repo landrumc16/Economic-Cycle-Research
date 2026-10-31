@@ -1,6 +1,6 @@
 # Economic Cycle Research — Version 2.0 master roadmap
 
-Status: ACTIVE / milestone 1 ACCEPTANCE PENDING CI; milestone 2 IN PROGRESS
+Status: DESCRIPTIVE RELEASE CANDIDATE / predictive research BLOCKED pending external evidence
 Authority: SEM_Historical_Crash_Research_v1 (canonical research), GitHub implementation and tests.
 Scope: Historical-pattern intelligence, including global transmission; no invented crash probability or investment recommendation.
 
@@ -12,7 +12,7 @@ Scope: Historical-pattern intelligence, including global transmission; no invent
 - Preserve four separate questions: economic-cycle stage, crash mechanism, drawdown vulnerability, and sector implications.
 - No release of probabilities, rankings or actionable predictions until publisher-original vintages, genuine controls, and untouched out-of-sample validation pass.
 
-## Milestone 1 — Canonical evidence foundation (IN PROGRESS)
+## Milestone 1 — Canonical evidence foundation (DESCRIPTIVE ACCEPTANCE CANDIDATE)
 Existing: V1 dashboard accepted as descriptive candidate; canonical snapshot comparison module, prior-month matching, dashboard table, regression tests and workflow integration committed.
 Exit:
 - Run full CI suite and inspect annotations; all required tests pass.
@@ -21,7 +21,7 @@ Exit:
 - Confirm monthly observations are not mislabeled verified non-crash controls.
 Deliverable: v2_canonical_comparison.json + Version 2 dashboard panel + CI evidence.
 
-## Milestone 2 — Multi-pathway historical intelligence (IN PROGRESS)
+## Milestone 2 — Multi-pathway historical intelligence (DESCRIPTIVE IMPLEMENTED; verified controls BLOCKED)
 Reuse CRASH EVENTS, CRASH PATHWAY TYPOLOGY, CRASH 24M LEAD TRAJECTORIES, CYCLE EPISODE SEQUENCES, WARNING NONCRASH BASELINES, WALK FORWARD RULE AUDIT and related existing workbook tabs.
 Exit:
 - Explicit mapping of canonical pathway labels to events; no numeric-feature invented labels.
@@ -31,28 +31,28 @@ Exit:
 Implemented: initial 8-cluster feature-coverage matrix with explicit absent domains, regression tests and CI artifact; canonical mechanism labels and verified controls still pending.
 Deliverable: canonical pathway evidence dataset, comparison panels, regression tests.
 
-## Milestone 3 — International and global transmission (PLANNED)
+## Milestone 3 — International and global transmission (INVENTORY IMPLEMENTED; observations BLOCKED)
 Exit:
 - Source registry and coverage map for international rates, currency, trade, capital flows and cross-market contagion.
 - Historical global channels linked to pathways only where evidence exists; no post-hoc causal claims.
 - Vintage, publication lag, geography, unit and currency transformations audited.
 Deliverable: global context layer with coverage and evidence quality.
 
-## Milestone 4 — Current-cycle interpretation (PLANNED)
+## Milestone 4 — Current-cycle interpretation (DESCRIPTIVE IMPLEMENTED)
 Exit:
 - Reuse growth, labor, inflation, housing, credit and policy research domains with timestamped freshness.
 - Display separate mechanism lenses and global context; explicitly distinguish observable conditions from inferred stage.
 - No missing-value-to-zero substitutions; no composite score without validation.
 Deliverable: current-to-historical comparison view with source gating.
 
-## Milestone 5 — Validation and falsification (PLANNED)
+## Milestone 5 — Validation and falsification (NOT VALIDATED / PREDICTIVE PUBLICATION BLOCKED)
 Exit:
 - Publisher-original releases/vintages and no-lookahead checks for every candidate predictive input.
 - True non-crash forward-outcome controls, base rates, clustered episode-level analysis, untouched era holdouts.
 - Report sensitivity, false positives, calibration and failure cases; fail closed if inadequate.
 Deliverable: independent validation report, or explicit NOT VALIDATED status.
 
-## Milestone 6 — Integrated dashboard and V2 acceptance (PLANNED)
+## Milestone 6 — Integrated dashboard and V2 acceptance (RELEASE CANDIDATE; FINAL AUDIT PENDING)
 Exit:
 - One dashboard, not a separate parallel product; reproducible offline artifact and release notes.
 - CI tests, data contracts, accessibility and regression smoke tests.
@@ -61,7 +61,7 @@ Exit:
 Deliverable: Version 2.0 research dashboard candidate and acceptance record.
 
 ## Current next action
-Verify CI after dependency-order fix (90eeec0), then accept Milestone 1 only with passing evidence. Continue Milestone 2 by mapping authoritative workbook mechanism labels and lead trajectories; do not infer labels or redo research.
+Close descriptive Version 2 as one reproducible dashboard release candidate. Latest verified GitHub Actions success: run 41221003722 at a0a1747665587b550fc7d579154ab22d20801b0f. Inspect generated artifact and acceptance JSON before final acceptance. No further feature expansion unless release audit finds a concrete defect. Historical vintage acquisition, global observations, verified non-crash controls and predictive validation remain a separate blocked evidence track; do not hold the descriptive release hostage to them.
 
 ## Progress protocol
 Track each milestone as PLANNED / IN PROGRESS / BLOCKED / ACCEPTED with commit, test run, artifact and remaining blocker. Update this file only on meaningful milestone changes.
