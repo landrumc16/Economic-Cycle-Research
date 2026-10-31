@@ -23,16 +23,19 @@ def interpret(metrics):
         "domains": {}
     }
     result["domains"]["growth"] = {
+        "latest_date": values.get("real_gdp_yoy_pct", {}).get("latest_date"),
         "observation": growth, "unit": "percent year over year",
         "description": ("MISSING" if growth is None else
                         "POSITIVE_REAL_GROWTH" if growth > 0 else
                         "NEGATIVE_REAL_GROWTH" if growth < 0 else "FLAT_REAL_GROWTH")}
     result["domains"]["labor"] = {
+        "latest_date": values.get("unemployment_3m_change_pp", {}).get("latest_date"),
         "observation": labor, "unit": "percentage points over 3 months",
         "description": ("MISSING" if labor is None else
                         "UNEMPLOYMENT_RISING" if labor > 0 else
                         "UNEMPLOYMENT_FALLING" if labor < 0 else "UNCHANGED")}
     result["domains"]["inflation"] = {
+        "latest_date": values.get("cpi_yoy_pct", {}).get("latest_date"),
         "observation": inflation, "unit": "percent year over year",
         "description": ("MISSING" if inflation is None else
                         "PRICES_RISING" if inflation > 0 else
