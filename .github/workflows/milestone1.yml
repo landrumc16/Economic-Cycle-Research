@@ -167,6 +167,8 @@ jobs:
         run: python -u scripts/v4_data_readiness.py --snapshot audit-output/v3_weekly_snapshot.json --output audit-output/v4_data_readiness.json
       - name: Audit Version 5 temporal provenance and release-aware comparisons
         run: python -u scripts/v5_temporal_provenance.py --snapshot audit-output/v3_weekly_snapshot.json --output audit-output/v5_temporal_provenance.json
+      - name: Assemble Version 5 dated FRED observation history
+        run: python -u scripts/v5_dated_history.py --fred audit-output/fred-api --as-of "$(date -u +%F)" --output audit-output/v5_dated_history.json
       - name: Build Version 5 standardized macro measures from available dated history
         run: python -u scripts/v5_standardized_macro.py --history audit-output/v5_dated_history.json --output audit-output/v5_standardized_macro_metrics.json
       - name: Build Version 4 explainable economic-cycle signal evidence
