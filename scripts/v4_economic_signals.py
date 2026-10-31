@@ -40,7 +40,7 @@ def build_signals(snapshot):
         else:
             direction, interpretation = "UNCHANGED", "Observed value unchanged across dated observations"
         risk_evidence = "NOT_ASSESSED"
-        if comparable and delta != 0 and risk_direction != "neutral":
+        if comparable and not change.get("same_observation_revision_detected") and delta != 0 and risk_direction != "neutral":
             adverse = (delta > 0) if risk_direction == "higher" else (delta < 0)
             risk_evidence = "ADVERSE_DIRECTIONAL_EVIDENCE" if adverse else "FAVORABLE_DIRECTIONAL_EVIDENCE"
         signals.append({
