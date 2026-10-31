@@ -16,7 +16,9 @@ def verify(readout, dashboard, mechanisms, replay, outcomes):
         issues.append("MISSING_REPORT_DATE")
     if readout.get("macro_metric_count") != len(readout.get("standardized_macro", [])):
         issues.append("MACRO_COUNT_MISMATCH")
-    if mechanisms.get("report_type") != "V5_MECHANISM_EVIDENCE_GATE":
+    if (readout.get("macro_metric_total", len(readout.get("standardized_macro", []))) !=
+            readout.get("macro_metric_count", 0) + len(readout.get("macro_coverage_gaps", []))):
+        issues.append("MACRO_COVERAGE_TOTAL_MISMATCH")\n    if mechanisms.get("report_type") != "V5_MECHANISM_EVIDENCE_GATE":
         issues.append("MISSING_MECHANISM_AUDIT")
     elif readout.get("mechanism_readiness") != mechanisms.get("mechanisms"):
         issues.append("MECHANISM_MISMATCH")
