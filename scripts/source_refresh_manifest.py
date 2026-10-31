@@ -5,7 +5,7 @@ import math
 from datetime import date
 from pathlib import Path
 
-SERIES = ("UNRATE", "CPIAUCSL", "GDPC1")
+SERIES = ("UNRATE", "CPIAUCSL", "GDPC1", "DGS10", "DGS2", "T10Y2Y", "BAMLH0A0HYM2", "STLFSI4", "ICSA")
 
 def inventory(folder, as_of):
     cutoff = date.fromisoformat(as_of)
