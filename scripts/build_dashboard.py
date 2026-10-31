@@ -101,6 +101,7 @@ def main():
     p.add_argument("--macro",default=None,help="Optional cycle_research_readout.json; missing observations stay unavailable")
     p.add_argument("--json-output",default=None,help="Optional machine-readable dashboard state")
     p.add_argument("--strict-macro",action="store_true",help="Fail if the requested macro readout is unavailable")
+    p.add_argument("--require-macro-values",action="store_true",help="Fail if growth, labor or inflation observation is missing")
     a=p.parse_args()
     current=json.loads(Path(a.current).read_text())
     historical=json.loads(Path(a.historical).read_text())
