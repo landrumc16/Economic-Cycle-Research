@@ -1,7 +1,7 @@
 # Economic Cycle Research — Version 5 Master Roadmap
 
 Date: 2026-10-31
-Status: IMPLEMENTATION AUTHORIZED — RESEARCH HARDENING
+Status: DESCRIPTIVE RELEASE CANDIDATE — AUTOMATED VERIFICATION PENDING
 Predecessor: [V4 descriptive closeout](V4_DESCRIPTIVE_RELEASE_CLOSEOUT_2026-10-31.md)
 
 ## Mission
@@ -56,3 +56,12 @@ Do not spend months waiting for inaccessible original vintages: ship useful **V5
 
 ## First implementation chunk
 Create an auditable V5 provenance and temporal-integrity report from the V4 weekly evidence, with tests that fail on future-dated observations, stale/missing source metadata and false claims of week-over-week changes. Then build dated historical transformation primitives and connect them to the existing workflow.
+
+## Completion-focused execution protocol (2026-10-31)
+- Execute large coherent implementation, testing, documentation, and release passes without requesting approval for routine technical choices.
+- Do not add features or expand M1–M6 predictive research as a prerequisite to the descriptive V5 release.
+- Resolve blockers in one pass, run automated tests, inspect generated artifacts, and record exact evidence before declaring completion.
+- Escalate only decisions that materially alter the approved research pillars, data integrity, or release scope.
+- Report to the project owner at substantive milestones or when a true blocker requires action; avoid per-commit updates.
+- Release boundary: weekly descriptive JSON/HTML, macro coverage disclosure, mechanism readiness, historical/PIT coverage, explicit BLOCKED predictive gate, and reproducible acceptance.
+- After passing verification and recorded closeout, begin a separately scoped Version 6 roadmap rather than prolonging Version 5.
