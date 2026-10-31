@@ -41,6 +41,31 @@ def evaluate(page, state):
         issues.append("HISTORICAL_COMPARISON_UNAVAILABLE")
     elif analogues.get("status") != "EXPLORATORY_MACRO_SIMILARITY_NOT_PREDICTIVE":
         issues.append("HISTORICAL_COMPARISON_NOT_POPULATED")
+    macro = state.get("macro_domains")
+    if not isinstance(macro, dict) or any(
+        not isinstance(macro.get(name, {}).get("observation"), (int, float))
+        or isinstance(macro.get(name, {}).get("observation"), bool)
+        for name in ("growth", "labor", "inflation")
+    ):
+        issues.append("CURRENT_MACRO_VALUES_MISSING")
+    financial = state.get("financial_observations")
+    if not isinstance(financial, list) or not financial:
+        issues.append("FINANCIAL_SNAPSHOT_MISSING")
+    if isinstance(current, dict):
+        if current.get("publication") != "BLOCKED" or current.get("crash_probability") is not None:
+            issues.append("CURRENT_ASSESSMENT_PREDICTIVE_GATE")
+        lenses = current.get("mechanism_lenses", {})
+        if not isinstance(lenses, dict) or len(lenses) < 5:
+            issues.append("MECHANISM_LENSES_INCOMPLETE")
+    if isinstance(analogues, dict) and analogues.get("status") == "EXPLORATORY_MACRO_SIMILARITY_NOT_PREDICTIVE":
+        entries = analogues.get("analogues")
+        if not isinstance(entries, list) or sum(
+            isinstance(e, dict) and e.get("status") == "EXPLORATORY_ANALOGUE"
+            for e in entries
+        ) < 5:
+            issues.append("HISTORICAL_EPISODES_INCOMPLETE")
+        if analogues.get("crash_probability") is not None:
+            issues.append("HISTORICAL_COMPARISON_PREDICTIVE_GATE")
     return {
         "status": "RESEARCH_DASHBOARD_CANDIDATE" if not issues else "INCOMPLETE",
         "predictive_model_status": "NOT_VALIDATED",
