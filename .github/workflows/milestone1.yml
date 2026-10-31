@@ -202,6 +202,8 @@ jobs:
         run: python -u scripts/v5_mechanism_evidence.py --standardized audit-output/v5_standardized_macro_metrics.json --output audit-output/v5_mechanism_evidence_gate.json
       - name: Assemble Version 5 weekly integrated research readout
         run: python -u scripts/v5_weekly_research_readout.py --standardized audit-output/v5_standardized_macro_metrics.json --mechanisms audit-output/v5_mechanism_evidence_gate.json --outcomes audit-output/v5_objective_outcomes.json --replay audit-output/v5_pit_replay.json --output audit-output/v5_weekly_research_readout.json
+      - name: Build Version 5 offline weekly dashboard
+        run: python -u scripts/v5_weekly_dashboard.py --readout audit-output/v5_weekly_research_readout.json --output audit-output/dashboard/weekly-v5.html
       - name: Produce Version 3 weekly assessment with historical evidence coverage
         if: always()
         run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --historical audit-output/v2_pathway_coverage.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
