@@ -1,7 +1,7 @@
 # Version 5 — Descriptive Release Candidate and Verification Checklist
 
 Date: 2026-10-31
-Status: **SMOKE VERIFIED — FULL WEEKLY RELEASE PENDING**
+Status: **SMOKE AND FULL WORKFLOW VERIFIED — ARTIFACT INSPECTION PENDING**
 Branch: main
 
 ## What is implemented
@@ -25,6 +25,11 @@ Branch: main
 - The job screenshot shows successful compilation, regression tests, isolated descriptive artifact-chain build and validation, and artifact preservation.
 - This is screenshot-based confirmation of the smoke run, not independent inspection of the artifact bytes or full weekly pipeline.
 - Subsequent commits on `main` still require their own verification; run #16 must not be described as validation of later commits.
+
+## Full workflow evidence
+- User-supplied GitHub Actions screenshots show **Milestone 1 — Economic Data Acquisition and QA #374**, commit `7e0a60f` on `main`, status **Success** (21 seconds), `audit` job passed, one artifact uploaded.
+- Some external-data acquisition steps were skipped; a passing workflow does not certify a live-source refresh.
+- Screenshot confirms workflow success, not the contents of `v5_release_evidence_manifest.json`, the dashboard, or source dates. Those artifacts still require inspection.
 
 ## Required before declaring the descriptive release complete
 1. GitHub Actions milestone1.yml must complete successfully on current main HEAD.
