@@ -11,7 +11,7 @@ import pathlib
 import urllib.parse
 import urllib.request
 
-SERIES = ("UNRATE", "CPIAUCSL", "GDPC1")
+SERIES = ("UNRATE", "CPIAUCSL", "GDPC1", "DGS10", "DGS2", "T10Y2Y", "BAMLH0A0HYM2", "STLFSI4", "ICSA")
 
 def fetch(series, start, end, api_key):
     query = urllib.parse.urlencode({
