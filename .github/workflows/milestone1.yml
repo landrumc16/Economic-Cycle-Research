@@ -162,6 +162,9 @@ jobs:
       - name: Build Version 3 weekly source-evidence snapshot
         if: always()
         run: python -u scripts/v3_weekly_snapshot.py --refresh audit-output/dashboard/source_refresh_manifest.json --as-of "$(date -u +%F)" --previous audit-output/v3_previous_weekly_snapshot.json --output audit-output/v3_weekly_snapshot.json
+      - name: Produce Version 3 weekly descriptive economic assessment
+        if: always()
+        run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
       - name: Build Version 2 canonical historical comparison
         if: always()
         run: python -u scripts/v2_canonical_comparison.py --snapshot data/workbook_historical_research_snapshot_2026-10-30.json --output audit-output/v2_canonical_comparison.json
