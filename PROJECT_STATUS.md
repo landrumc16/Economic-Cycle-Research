@@ -1,7 +1,7 @@
 # PROJECT STATUS — Economic Cycle Research
 **Last updated:** 2026-10-30
 **Active implementation branch:** `milestone-1-data-pipeline` (PR #1)
-**Roadmap:** [docs/ROADMAP.md](docs/ROADMAP.md)
+**Binding laws:** [docs/PROJECT_LAWS.md](docs/PROJECT_LAWS.md), mirrored from workbook PROJECT LAWS & RESTART (L01–L18)\n**Roadmap:** [docs/ROADMAP.md](docs/ROADMAP.md)
 **Canonical research:** [SEM_Historical_Crash_Research_v1](https://docs.google.com/spreadsheets/d/1ocdo4Y036ZB93egyY96INfuRcJkw0uHAO5BK416bVnE/edit)
 **Research authority and prior work:** [docs/EXISTING_RESEARCH_RECONCILIATION.md](docs/EXISTING_RESEARCH_RECONCILIATION.md)
 
