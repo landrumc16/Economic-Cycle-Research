@@ -104,12 +104,12 @@ jobs:
       - name: Validate original publisher release staging and no-lookahead timestamps
         if: always()
         run: python -u scripts/validate_release_evidence.py --input data/publisher_original_release_records.json --output audit-output/publisher_release_evidence.json
-      - name: Build usable research dashboard from existing workbook snapshots
-        if: always()
-        run: python -u scripts/build_dashboard.py --macro audit-output/cycle_research_readout.json --strict-macro --output audit-output/dashboard/index.html --json-output audit-output/dashboard/state.json
       - name: Record per-series macro refresh status
         if: always()
         run: python -u scripts/source_refresh_manifest.py --input audit-output/fred-api --as-of "$(date -u +%F)" --output audit-output/dashboard/source_refresh_manifest.json
+      - name: Build usable research dashboard from existing workbook snapshots
+        if: always()
+        run: python -u scripts/build_dashboard.py --macro audit-output/cycle_research_readout.json --strict-macro --refresh-manifest audit-output/dashboard/source_refresh_manifest.json --output audit-output/dashboard/index.html --json-output audit-output/dashboard/state.json
       - name: Publish static dashboard to job summary
         if: always()
         run: |
