@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+from scripts.v3_indicator_interpretation import interpret
 
 LABELS = {
     "UNRATE": ("Unemployment rate", "percentage points", "MONTHLY"),
@@ -50,6 +51,7 @@ def assess(snapshot):
         "summary": f"{available} of {len(rows)} tracked series have usable numeric observations. "
                    "This is a descriptive source and release-change assessment, not a validated economic-cycle classification.",
         "indicators": rows,
+        "directional_evidence": interpret(rows),
         "validated_cycle_stage": None, "crash_probability": None,
         "pathway_conclusions": [],
         "publication": "DESCRIPTIVE_ONLY",
@@ -77,6 +79,9 @@ def render_markdown(report):
                       f"age: {str(item['age_days']) + ' days' if item['age_days'] is not None else 'unknown'}."])
         if item["source_availability_changed"]:
             lines.append("Source availability changed since the previous snapshot.")
+    lines.extend(["", "## Directional evidence (not predictions)"])
+    for finding in report["directional_evidence"]["findings"]:
+        lines.append("- **{}**: {}".format(finding["series"], finding["interpretation"]))
     lines.extend(["", "## Interpretation limits", *("- " + x for x in report["limitations"]), "",
                   "**Economic-cycle stage:** Not validated.",
                   "**Crash probability:** Not available.", ""])
