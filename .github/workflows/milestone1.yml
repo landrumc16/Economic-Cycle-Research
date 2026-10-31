@@ -135,7 +135,7 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event_name }}" = "schedule" ]; then
             EXTRA_FLAGS="--require-macro-values"
           fi
-          python -u scripts/build_dashboard.py --macro audit-output/cycle_research_readout.json --strict-macro $EXTRA_FLAGS --cycle-assessment audit-output/current_cycle_assessment.json --historical-analogues audit-output/historical_macro_analogues.json --v2-comparison audit-output/v2_canonical_comparison.json --v2-trajectories audit-output/v2_pathway_coverage.json --v2-lead-windows audit-output/v2_lead_window_summary.json --refresh-manifest audit-output/dashboard/source_refresh_manifest.json --output audit-output/dashboard/index.html --json-output audit-output/dashboard/state.json
+          python -u scripts/build_dashboard.py --macro audit-output/cycle_research_readout.json --strict-macro $EXTRA_FLAGS --cycle-assessment audit-output/current_cycle_assessment.json --historical-analogues audit-output/historical_macro_analogues.json --v2-comparison audit-output/v2_canonical_comparison.json --v2-trajectories audit-output/v2_pathway_coverage.json --v2-lead-windows audit-output/v2_lead_window_summary.json --v2-global audit-output/v2_global_transmission.json --refresh-manifest audit-output/dashboard/source_refresh_manifest.json --output audit-output/dashboard/index.html --json-output audit-output/dashboard/state.json
       - name: Evaluate Version 1 research dashboard acceptance
         if: always()
         run: python -u scripts/v1_acceptance.py --html audit-output/dashboard/index.html --state audit-output/dashboard/state.json --output audit-output/dashboard/v1_acceptance.json
