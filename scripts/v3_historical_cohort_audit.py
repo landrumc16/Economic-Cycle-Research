@@ -53,3 +53,17 @@ def audit(comparison):
             "Retrospective exclusions use future crash knowledge and cannot be used as prospective features",
         ],
     }
+
+if __name__ == "__main__":
+    import argparse
+    import json
+    from pathlib import Path
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--comparison", default="audit-output/v2_canonical_comparison.json")
+    parser.add_argument("--output", default="audit-output/v3_historical_cohort_audit.json")
+    args = parser.parse_args()
+    report = audit(json.loads(Path(args.comparison).read_text()))
+    target = Path(args.output)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps({"status": report["status"], "candidate_months": report["candidate_months_outside_conservative_event_windows"]}))
