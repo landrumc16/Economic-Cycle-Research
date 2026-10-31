@@ -1,6 +1,7 @@
 """Version 2 pathway feature coverage; never infer a mechanism from a market peak."""
 import argparse
 import json
+from datetime import date
 from pathlib import Path
 
 FEATURES = {
@@ -19,6 +20,7 @@ def assemble(comparison):
     events = comparison.get("crash_parent_clusters", [])
     if len(events) != 8:
         raise ValueError("Unexpected crash parent-cluster universe")
+    monthly = {row["month"]: row for row in comparison.get("monthly_stress_baseline", [])}
     profiles = []
     for event in events:
         features = {
@@ -26,6 +28,19 @@ def assemble(comparison):
             for domain, key in FEATURES.items()
         }
         features.update({domain: {"value": None, "status": "NOT_IN_CANONICAL_EXPORT"} for domain in UNAVAILABLE})
+        peak_prior = date.fromisoformat(event["prior_month"] + "-01")
+        lead = []
+        for lag in range(23, -1, -1):
+            index = peak_prior.year * 12 + peak_prior.month - 1 - lag
+            month = f"{index // 12:04d}-{index % 12 + 1:02d}"
+            observation = monthly.get(month)
+            lead.append({
+                "month": month, "months_before_prior_month": lag,
+                "curve_pp": observation.get("curve_pp") if observation else None,
+                "credit_pp": observation.get("credit_pp") if observation else None,
+                "financial_stress": observation.get("financial_stress") if observation else None,
+                "status": "REVISED_NOT_PIT" if observation else "MISSING_MONTHLY_OBSERVATION",
+            })
         profiles.append({
             "parent_cluster": event["parent_cluster"],
             "peak_date": event["peak_date"],
@@ -34,6 +49,8 @@ def assemble(comparison):
             "pathway_status": "CANONICAL_MECHANISM_MAPPING_NOT_EXPORTED",
             "recession_overlap_hindsight": event["recession_overlap_hindsight"],
             "financial_stress": event["financial_stress"],
+            "prior_24_months_financial": lead,
+            "prior_24_months_available": sum(x["status"] == "REVISED_NOT_PIT" for x in lead),
             "features": features,
         })
     domains = list(FEATURES) + list(UNAVAILABLE)
@@ -58,6 +75,7 @@ def assemble(comparison):
             "Monthly stress observations are not verified non-crash controls",
             "Housing, valuation, social and global context are missing from this export; do not fill with assumptions",
             "Historical revised indicators cannot establish what was known at each peak",
+            "24-month financial trajectories use monthly stress baseline, not the canonical 24M lead trajectory tab; other domains unavailable",
         ],
     }
 
