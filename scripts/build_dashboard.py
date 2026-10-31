@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from datetime import date
 
-def make_dashboard(current, history, macro=None, refresh=None, assessment=None, analogues=None, v2=None, trajectories=None, lead_windows=None):
+def make_dashboard(current, history, macro=None, refresh=None, assessment=None, analogues=None, v2=None, trajectories=None, lead_windows=None, global_context=None):
     rows = current["rows"]
     snapshot_date = date.fromisoformat(current["snapshot_date"])
     latest_observation = max((date.fromisoformat(r["observation_date"]) for r in rows if r.get("observation_date")), default=None)
@@ -186,6 +186,20 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
                      '<th>Curve inversion</th><th>Credit elevated</th><th>Watch prior 12m</th>'
                      '<th>Oldest lead</th><th>Most recent lead</th><th>High inflation</th><th>Labor worsening</th>'
                      '</tr></thead><tbody>' + "".join(lines) + '</tbody></table></div></section>')
+    global_html = ""
+    if isinstance(global_context, dict):
+        channels = global_context.get("channels", [])
+        cells = []
+        for channel in channels:
+            name = esc(channel.get("channel", "Unknown").replace("_", " ").title())
+            status = esc(channel.get("status", "SOURCE_NOT_ACQUIRED"))
+            source = esc(channel.get("candidate_primary_source", "Unspecified"))
+            cells.append(f"<tr><td>{name}</td><td>{status}</td><td>{source}</td></tr>")
+        global_html = ('<section><h2>International economic transmission</h2>'
+            '<p class="sub">Eight international channels are evidence inventories, not observed contagion or validated causal pathways. '
+            'Missing historical and current values remain unavailable.</p>'
+            '<div class="scroll"><table><thead><tr><th>Channel</th><th>Evidence status</th><th>Candidate source</th></tr></thead><tbody>'
+            + "".join(cells) + '</tbody></table></div></section>')
     assessment_html = f'<section class="notice"><strong>Current financial-stress screen: {esc(stress_assessment)}</strong><p>{esc(explanation)}</p><small>Rule: 10Y–2Y spread &lt; 0 pp OR Baa–10Y spread ≥ 2.5 pp. Historical descriptive rule only.</small></section>'
     # Historical comparisons are based on observed spread proximity, not inferred crash likelihood.
     comparisons = []
@@ -204,11 +218,11 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
 <main><header><h1>Economic Cycle Research</h1><p class="sub">First working descriptive dashboard · Snapshot: SNAPSHOT · no live sync</p></header>
 <div class="notice"><strong>Research only — not a forecast.</strong> Current observations are dated workbook exports, not verified real-time data. No cycle-stage prediction, crash probability, investment recommendation, or point-in-time certification is authorized.</div>
 FRESHNESS<h2>Current research observations</h2><div class="cards">CARDS</div>QUALITY
-ASSESSMENTMACROREFRESHCYCLEFINANCIALCONTEXTANALOGUESV2HISTORICALV2TRAJECTORIESV2LEADWINDOWS<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
+ASSESSMENTMACROREFRESHCYCLEFINANCIALCONTEXTANALOGUESV2HISTORICALV2TRAJECTORIESV2LEADWINDOWSV2GLOBAL<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
 <p class="sub">HISTORICAL_CONTEXT_TEXT Monthly observations and forward windows overlap; they are not independent trials. Stress is a descriptive flag, not a validated crash predictor.</p>
 <h2>Crash pathway comparison</h2><div class="scroll"><table><thead><tr><th>Cluster</th><th>Daily peak</th><th>Prior month</th><th>20% crossing</th><th>Curve (pp)</th><th>Credit (pp)</th><th>Financial stress?</th></tr></thead><tbody>EVENTS</tbody></table></div>
 <footer>Authority: SEM_Historical_Crash_Research_v1 · dated manual research snapshots. Publisher-original release verification, untouched holdouts and model approval remain incomplete.</footer></main></html>"""
-    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"V2HISTORICAL":v2_html,"V2TRAJECTORIES":trajectory_html,"V2LEADWINDOWS":lead_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
+    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"V2HISTORICAL":v2_html,"V2TRAJECTORIES":trajectory_html,"V2LEADWINDOWS":lead_html,"V2GLOBAL":global_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
         page=page.replace(a,b)
     return page
 
@@ -224,6 +238,7 @@ def main():
     p.add_argument("--v2-comparison",default=None,help="Optional Version 2 canonical comparison")
     p.add_argument("--v2-trajectories",default=None,help="Optional Version 2 24-month pathway trajectories")
     p.add_argument("--v2-lead-windows",default=None,help="Optional canonical lead-window summary")
+    p.add_argument("--v2-global",default=None,help="Optional international evidence inventory")
     p.add_argument("--refresh-manifest",default=None,help="Optional source refresh manifest JSON")
     p.add_argument("--strict-macro",action="store_true",help="Fail if the requested macro readout is unavailable")
     p.add_argument("--require-macro-values",action="store_true",help="Fail if growth, labor or inflation observation is missing")
@@ -247,7 +262,8 @@ def main():
     v2=json.loads(Path(a.v2_comparison).read_text()) if a.v2_comparison and Path(a.v2_comparison).exists() else None
     trajectories=json.loads(Path(a.v2_trajectories).read_text()) if a.v2_trajectories and Path(a.v2_trajectories).exists() else None
     lead_windows=json.loads(Path(a.v2_lead_windows).read_text()) if a.v2_lead_windows and Path(a.v2_lead_windows).exists() else None
-    target.write_text(make_dashboard(current,historical,macro,refresh,assessment,analogues,v2,trajectories,lead_windows),encoding="utf-8")
+    global_context=json.loads(Path(a.v2_global).read_text()) if a.v2_global and Path(a.v2_global).exists() else None
+    target.write_text(make_dashboard(current,historical,macro,refresh,assessment,analogues,v2,trajectories,lead_windows,global_context),encoding="utf-8")
     if a.json_output:
         state = {
             "snapshot_date": current["snapshot_date"],
@@ -263,6 +279,7 @@ def main():
             "v2_historical_comparison": v2,
             "v2_pathway_trajectories": trajectories,
             "v2_canonical_lead_windows": lead_windows,
+            "v2_global_transmission": global_context,
             "financial_observations": current["rows"],
             "historical_parent_clusters": len(historical["pathways"]["rows"]) - 1,
             "historical_monthly_observations": len(historical["noncrash"]["rows"]) - 1
