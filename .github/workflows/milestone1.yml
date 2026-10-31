@@ -107,6 +107,9 @@ jobs:
       - name: Build usable research dashboard from existing workbook snapshots
         if: always()
         run: python -u scripts/build_dashboard.py --macro audit-output/cycle_research_readout.json --strict-macro --output audit-output/dashboard/index.html --json-output audit-output/dashboard/state.json
+      - name: Record per-series macro refresh status
+        if: always()
+        run: python -u scripts/source_refresh_manifest.py --input audit-output/fred-api --as-of "$(date -u +%F)" --output audit-output/dashboard/source_refresh_manifest.json
       - name: Publish static dashboard to job summary
         if: always()
         run: |
