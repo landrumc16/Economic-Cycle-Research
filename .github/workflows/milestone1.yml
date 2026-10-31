@@ -200,7 +200,9 @@ jobs:
         run: python -u scripts/v5_pit_replay.py --as-of "$(date -u +%F)" --output audit-output/v5_pit_replay.json
       - name: Audit Version 5 mechanism-specific research readiness
         run: python -u scripts/v5_mechanism_evidence.py --standardized audit-output/v5_standardized_macro_metrics.json --output audit-output/v5_mechanism_evidence_gate.json
-      - name: Assemble Version 5 weekly integrated research readout\n        run: python -u scripts/v5_weekly_research_readout.py --standardized audit-output/v5_standardized_macro_metrics.json --mechanisms audit-output/v5_mechanism_evidence_gate.json --outcomes audit-output/v5_objective_outcomes.json --replay audit-output/v5_pit_replay.json --output audit-output/v5_weekly_research_readout.json\n      - name: Produce Version 3 weekly assessment with historical evidence coverage
+      - name: Assemble Version 5 weekly integrated research readout
+        run: python -u scripts/v5_weekly_research_readout.py --standardized audit-output/v5_standardized_macro_metrics.json --mechanisms audit-output/v5_mechanism_evidence_gate.json --outcomes audit-output/v5_objective_outcomes.json --replay audit-output/v5_pit_replay.json --output audit-output/v5_weekly_research_readout.json
+      - name: Produce Version 3 weekly assessment with historical evidence coverage
         if: always()
         run: python -u scripts/v3_weekly_assessment.py --snapshot audit-output/v3_weekly_snapshot.json --historical audit-output/v2_pathway_coverage.json --json-output audit-output/v3_weekly_assessment.json --markdown-output audit-output/v3_weekly_assessment.md
       - name: Build Version 3 weekly dashboard
