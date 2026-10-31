@@ -38,7 +38,11 @@ def fetch(series, start, end, key=None):
 def run(out, start=1947, end=2026, key=None):
     out.mkdir(parents=True, exist_ok=True)
     report = {"source": "BLS public API v2", "series": {}, "errors": [], "promotion": "BLOCKED"}
+    quota_exhausted = False
     for series in SERIES:
+        if quota_exhausted:
+            report["errors"].append({"series": series, "error": "BLS daily quota exhausted earlier; no further API requests attempted"})
+            break
         observations = {}
         raw_hashes = []
         # Unregistered BLS API has restrictive daily request quotas; avoid exhausting it.
@@ -66,7 +70,11 @@ def run(out, start=1947, end=2026, key=None):
                             observations[date] = float(raw_value)
                 (out / f"{series}_{a}_{b}.json").write_bytes(raw)
             except Exception as exc:
-                report["errors"].append({"series": series, "years": [a,b], "error": f"{type(exc).__name__}: {exc}"})
+                message = f"{type(exc).__name__}: {exc}"
+                report["errors"].append({"series": series, "years": [a,b], "error": message})
+                if "daily threshold" in message.lower() or "daily limit" in message.lower() or "quota" in message.lower():
+                    quota_exhausted = True
+                    break
             time.sleep(0.3)
         report["series"][series] = {"observations": len(observations),
             "first": min(observations) if observations else None,
