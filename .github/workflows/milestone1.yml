@@ -203,6 +203,28 @@ jobs:
       - name: Evaluate final Version 2 descriptive release acceptance
         if: always()
         run: python -u scripts/v2_release_acceptance.py --v2 audit-output/v2_m1_acceptance.json --v1 audit-output/dashboard/v1_acceptance.json --state audit-output/dashboard/state.json --html audit-output/dashboard/index.html --output audit-output/v2_release_acceptance.json
+      - name: Summarize Version 3 weekly release readiness
+        if: always()
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          print("## Version 3 weekly economic intelligence")
+          for name in ("v3_release_acceptance", "v3_weekly_snapshot", "v3_weekly_assessment"):
+              p = Path("audit-output") / (name + ".json")
+              if not p.exists():
+                  print("- " + name + ": MISSING")
+                  continue
+              obj = json.loads(p.read_text())
+              print("- " + name + ": " + str(obj.get("status", "GENERATED")))
+              if name == "v3_weekly_snapshot":
+                  coverage = obj.get("source_coverage", {})
+                  print("  - Sources staged: " + str(coverage.get("available", 0)) + " / " + str(coverage.get("defined", 0)))
+              if name == "v3_release_acceptance":
+                  print("  - Predictive release: " + str(obj.get("predictive_release", "BLOCKED")))
+          print("")
+          print("Open dashboard/weekly.html from milestone1-audit-evidence. Passing CI does not certify live-source freshness.")
+          PY
       - name: Publish static dashboard to job summary
         if: always()
         run: |
