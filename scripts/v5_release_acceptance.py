@@ -18,7 +18,7 @@ def verify(readout, dashboard, mechanisms, replay, outcomes):
         issues.append("MACRO_COUNT_MISMATCH")
     if mechanisms.get("report_type") != "V5_MECHANISM_EVIDENCE_GATE":
         issues.append("MISSING_MECHANISM_AUDIT")
-    elif set(readout.get("mechanism_readiness", {})) != set(mechanisms.get("mechanisms", {})):
+    elif readout.get("mechanism_readiness") != mechanisms.get("mechanisms"):
         issues.append("MECHANISM_MISMATCH")
     if replay.get("report_type") != "V5_PIT_REPLAY":
         issues.append("MISSING_PIT_AUDIT")
@@ -26,9 +26,9 @@ def verify(readout, dashboard, mechanisms, replay, outcomes):
         issues.append("PIT_COVERAGE_MISMATCH")
     if readout.get("outcome_coverage_status") != outcomes.get("coverage_status"):
         issues.append("OUTCOME_COVERAGE_MISMATCH")
-    if "<html" not in dashboard or "Predictive publication: BLOCKED" not in dashboard:
+    if ("<html" not in dashboard or "Predictive publication: BLOCKED" not in dashboard\n            or str(readout.get("as_of", "")) not in dashboard):
         issues.append("DASHBOARD_INCOMPLETE")
-    if not readout.get("validation_requirements"):
+    if mechanisms.get("prediction_status") not in (None, "BLOCKED"):\n        issues.append("MECHANISM_PREDICTIVE_GATE_NOT_BLOCKED")\n    if replay.get("predictive_publication") not in (None, "BLOCKED"):\n        issues.append("REPLAY_PREDICTIVE_GATE_NOT_BLOCKED")\n    if not readout.get("validation_requirements"):
         issues.append("VALIDATION_DISCLOSURE_MISSING")
     return {"schema_version": 1, "report_type": "V5_RELEASE_ACCEPTANCE",
             "status": "PASS_DESCRIPTIVE_ONLY" if not issues else "FAIL",
