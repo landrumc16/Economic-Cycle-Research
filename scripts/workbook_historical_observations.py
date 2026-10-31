@@ -1,6 +1,7 @@
 """Parse canonical workbook row exports without inventing missing historical evidence."""
 import argparse
 import json
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -89,11 +90,15 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--input", required=True)
     p.add_argument("--output", default="audit-output/historical_workbook_observations.json")
+    p.add_argument("--require-complete", action="store_true", help="Fail workflow if canonical historical coverage or integrity is incomplete")
     a = p.parse_args()
     result = parse_export(json.loads(Path(a.input).read_text()))
     dest = Path(a.output)
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(result, indent=2) + "\n")
+    if a.require_complete and result["integrity"] != "PASS_RESEARCH_ONLY":
+        print("Historical workbook integrity failed; see " + str(dest), file=sys.stderr)
+        raise SystemExit(1)
 
 if __name__ == "__main__":
     main()
