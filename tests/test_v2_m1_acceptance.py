@@ -18,8 +18,16 @@ class MilestoneAcceptanceTests(unittest.TestCase):
             "crash_parent_clusters": [{} for _ in range(8)],
             "monthly_stress_baseline": [{} for _ in range(444)],
         }
-        page = "Version 2 historical conditions; not verified non-crash controls"
-        state = {"v2_historical_comparison": comparison, "publication": "BLOCKED", "crash_probability": None}
+        page = ("Version 2 historical conditions; not verified non-crash controls; "
+                "Current conditions vs historical crash contexts; "
+                "CURRENT_UNEMPLOYMENT_LEVEL_NOT_3M_CHANGE; "
+                "Crash mechanism evidence gaps; International economic transmission")
+        state = {"v2_historical_comparison": comparison, "publication": "BLOCKED",
+                 "crash_probability": None,
+                 "current_cycle_assessment": {"publication": "BLOCKED"},
+                 "v2_global_transmission": {"publication": "BLOCKED",
+                    "predictive_model": "NOT_VALIDATED", "channels": [{} for _ in range(8)],
+                    "coverage": {"channels_defined": 8}}}
         return comparison, page, state
 
     def test_accepts_valid_descriptive_snapshot(self):
