@@ -31,10 +31,10 @@ Do not restart historical crash research or spend another cycle on Milestone 1 i
 - No approved predictive cycle stage, crash probability, composite score or sector recommendations.
 - Dashboard publication remains blocked.
 
-## NEXT AUTHORIZED IMPLEMENTATION CHUNK
-**Historical completeness and time-integrity gate**:
+## Latest implementation checkpoint — 2026-10-30\n- Added coverage/time-integrity gate in `scripts/workbook_historical_observations.py` and focused tests. Commits `45d8c1f` and `1ce7679`.\n- Previous GitHub Actions run #83 was pending when checked; these newer commits are **not yet workflow-verified**.\n- Full historical snapshot remains dated research staging, not publisher-original point-in-time evidence.\n\n## NEXT AUTHORIZED IMPLEMENTATION CHUNK
+**Verify historical integrity and advance original-release evidence**:
 1. Check current branch HEAD and latest Actions result for the historical snapshot workflow.
-2. Enhance the historical observation reader with explicit expected 8/444 coverage, duplicate/invalid parent IDs, duplicate/nonmonotonic months, required-value checks and fail-closed quality reporting. Keep raw data unchanged and retain all provenance.
+2. Inspect the generated historical integrity report and repair only genuine schema/coverage defects; preserve missing data rather than filling it.
 3. Add focused tests, wire the gate into the workflow, and verify resulting Actions run.
 4. Then begin publisher-original release/vintage evidence manifest for UNRATE, CPIAUCSL and GDPC1 (without asserting certification).
 5. Update this status file with actual commits, workflow results, remaining blockers and next authorized chunk.
