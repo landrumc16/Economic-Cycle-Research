@@ -16,6 +16,9 @@ def assemble(standardized, mechanisms, outcomes, replay):
             "as_of": standardized["as_of"], "release_status": "DESCRIPTIVE_RESEARCH",
             "standardized_macro": available,
             "macro_metric_count": len(available),
+            "macro_metric_total": len(rows),
+            "macro_coverage_gaps": [{"series": r.get("series"), "status": r.get("status")}
+                                    for r in rows if r.get("status") != "DESCRIPTIVE_TRANSFORM_AVAILABLE"],
             "mechanism_readiness": mechanisms["mechanisms"],
             "historical_event_count": outcomes.get("event_count", 0),
             "outcome_coverage_status": outcomes.get("coverage_status", "UNVERIFIED"),
