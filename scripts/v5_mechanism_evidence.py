@@ -12,7 +12,7 @@ MECHANISMS = {
     "external_shock": ("global_trade", "global_financial_stress"),
 }
 
-def assess(metrics, labels=None):
+SERIES_MAP = {"CPIAUCSL": "inflation", "GDPC1": "real_gdp", "UNRATE": "unemployment",\n              "ICSA": "initial_claims"}\n\ndef adapt_standardized_metrics(document):\n    if document.get("report_type") != "V5_STANDARDIZED_MACRO_METRICS":\n        raise ValueError("Expected V5 standardized macro metrics")\n    mapped = {}\n    for item in document.get("metrics", []):\n        key = SERIES_MAP.get(item.get("series"))\n        if key and item.get("status") == "DESCRIPTIVE_TRANSFORM_AVAILABLE":\n            mapped[key] = {"value": item.get("value"),\n                           "publisher_original_pit_certified": item.get("publisher_original_pit_certified") is True,\n                           "observation_date": item.get("observation_date"),\n                           "metric": item.get("metric")}\n    return mapped\n\ndef assess(metrics, labels=None):
     labels = labels or []
     outcomes = [x for x in labels if x.get("label") in ("POSITIVE_RESEARCH_LABEL", "NEGATIVE_RESEARCH_LABEL")]
     results = {}
@@ -36,14 +36,14 @@ def assess(metrics, labels=None):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--metrics")
-    p.add_argument("--labels")
+    p.add_argument("--labels")\n    p.add_argument("--standardized")
     p.add_argument("--output", default="audit-output/v5_mechanism_evidence_gate.json")
     a = p.parse_args()
     metrics = json.loads(Path(a.metrics).read_text()) if a.metrics else {}
-    labels = json.loads(Path(a.labels).read_text()) if a.labels else []
+    labels = json.loads(Path(a.labels).read_text()) if a.labels else []\n    if a.standardized:\n        metrics.update(adapt_standardized_metrics(json.loads(Path(a.standardized).read_text())))
     if not isinstance(metrics, dict) or not isinstance(labels, list):
         raise ValueError("Expected metrics object and labels array")
-    result = assess(metrics, labels)
+    result = assess(metrics, labels)\n    result["standardized_macro_connected"] = bool(a.standardized)
     path = Path(a.output)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
