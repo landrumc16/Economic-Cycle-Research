@@ -219,6 +219,35 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
             'Missing historical and current values remain unavailable.</p>'
             '<div class="scroll"><table><thead><tr><th>Channel</th><th>Evidence status</th><th>Candidate source</th></tr></thead><tbody>'
             + "".join(cells) + '</tbody></table></div></section>')
+    bridge_html = ""
+    if isinstance(v2, dict) and isinstance(assessment, dict):
+        domains = assessment.get("observed_domains", {})
+        historical = v2.get("crash_parent_clusters", [])
+        features = (
+            ("growth", "gdp_yoy_pct", "Real GDP growth"),
+            ("inflation", "inflation_pct", "Consumer inflation"),
+            ("labor", "unemployment_3m_pp", "Unemployment 3-month change"),
+        )
+        lines = []
+        for domain, historical_key, label in features:
+            current_value = domains.get(domain, {}).get("value")
+            historical_values = [row.get(historical_key) for row in historical
+                                 if isinstance(row.get(historical_key), (int, float))
+                                 and not isinstance(row.get(historical_key), bool)]
+            historical_range = (str(round(min(historical_values), 2)) + " to "
+                                + str(round(max(historical_values), 2))) if historical_values else "Unavailable"
+            # Growth and inflation are not necessarily identically transformed across source series.
+            lines.append("<tr><td>" + esc(label) + "</td><td>"
+                         + esc("Unavailable" if current_value is None else current_value)
+                         + "</td><td>" + esc(historical_range) + "</td><td>"
+                         + esc("NOT_COMPARABLE_WITHOUT_UNIT_AND_VINTAGE_AUDIT") + "</td></tr>")
+        bridge_html = ('<section><h2>Current conditions vs historical crash contexts</h2>'
+            '<p class="sub">Side-by-side descriptive coverage only. Historical ranges are across hindsight-selected '
+            'crash-parent months; current observations are revised and may have different transformations or dates. '
+            'No proximity rank, pathway assignment, crash probability, or stage inference is authorized.</p>'
+            '<div class="scroll"><table><thead><tr><th>Domain</th><th>Current value</th>'
+            '<th>Historical crash-context range</th><th>Comparability</th></tr></thead><tbody>'
+            + "".join(lines) + '</tbody></table></div></section>')
     assessment_html = f'<section class="notice"><strong>Current financial-stress screen: {esc(stress_assessment)}</strong><p>{esc(explanation)}</p><small>Rule: 10Y–2Y spread &lt; 0 pp OR Baa–10Y spread ≥ 2.5 pp. Historical descriptive rule only.</small></section>'
     # Historical comparisons are based on observed spread proximity, not inferred crash likelihood.
     comparisons = []
@@ -237,11 +266,11 @@ def make_dashboard(current, history, macro=None, refresh=None, assessment=None, 
 <main><header><h1>Economic Cycle Research</h1><p class="sub">First working descriptive dashboard · Snapshot: SNAPSHOT · no live sync</p></header>
 <div class="notice"><strong>Research only — not a forecast.</strong> Current observations are dated workbook exports, not verified real-time data. No cycle-stage prediction, crash probability, investment recommendation, or point-in-time certification is authorized.</div>
 FRESHNESS<h2>Current research observations</h2><div class="cards">CARDS</div>QUALITY
-ASSESSMENTMACROREFRESHCYCLEV2LENSESFINANCIALCONTEXTANALOGUESV2HISTORICALV2TRAJECTORIESV2LEADWINDOWSV2GLOBAL<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
+ASSESSMENTMACROREFRESHCYCLEV2LENSESV2BRIDGEFINANCIALCONTEXTANALOGUESV2HISTORICALV2TRAJECTORIESV2LEADWINDOWSV2GLOBAL<h2>Closest historical spread profiles (descriptive only)</h2>COMPARISONS<h2>Historical research coverage</h2><div class="metrics"><div><strong>CLUSTERS</strong>Nasdaq parent crash clusters</div><div><strong>MONTHS</strong>Historical monthly observations</div><div><strong>STRESS</strong>Months flagged for contemporaneous financial stress</div></div>
 <p class="sub">HISTORICAL_CONTEXT_TEXT Monthly observations and forward windows overlap; they are not independent trials. Stress is a descriptive flag, not a validated crash predictor.</p>
 <h2>Crash pathway comparison</h2><div class="scroll"><table><thead><tr><th>Cluster</th><th>Daily peak</th><th>Prior month</th><th>20% crossing</th><th>Curve (pp)</th><th>Credit (pp)</th><th>Financial stress?</th></tr></thead><tbody>EVENTS</tbody></table></div>
 <footer>Authority: SEM_Historical_Crash_Research_v1 · dated manual research snapshots. Publisher-original release verification, untouched holdouts and model approval remain incomplete.</footer></main></html>"""
-    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"V2HISTORICAL":v2_html,"V2TRAJECTORIES":trajectory_html,"V2LEADWINDOWS":lead_html,"V2GLOBAL":global_html,"V2LENSES":lens_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
+    for a,b in {"FRESHNESS":freshness_html,"SNAPSHOT":esc(current["snapshot_date"]),"CARDS":"".join(cards),"CLUSTERS":str(len(clusters)),"MONTHS":str(len(months)),"STRESS":str(stress),"EVENTS":"".join(events),"ASSESSMENT":assessment_html,"COMPARISONS":comparison_html,"MACRO":macro_html,"REFRESH":refresh_html,"CYCLE":cycle_html,"FINANCIALCONTEXT":financial_context_html,"ANALOGUES":analogue_html,"V2HISTORICAL":v2_html,"V2TRAJECTORIES":trajectory_html,"V2LEADWINDOWS":lead_html,"V2GLOBAL":global_html,"V2LENSES":lens_html,"V2BRIDGE":bridge_html,"QUALITY":quality_html,"HISTORICAL_CONTEXT_TEXT":esc(stress_context)}.items():
         page=page.replace(a,b)
     return page
 
