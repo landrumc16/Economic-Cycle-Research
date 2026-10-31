@@ -1,3 +1,9 @@
+## Latest source acquisition diagnosis — 2026-10-30
+- Workflow #90 failed specifically because the BLS API reported that the registered key's **daily request threshold was reached**. This is a quota limit, not evidence of bad macro observations. BLS/FRED reconciliation also failed because independent BLS evidence was unavailable.
+- Added BLS quota circuit breaker in commit `614a9dc` to stop further calls immediately after the first quota rejection; the pipeline still fails closed and records the error.
+- Workflow #93 was pending at check time; quota-fix commit has not been CI-verified. Do not repeatedly rerun acquisition while quota is exhausted.
+- Next: verify quota reset / eligible source access, avoid redundant historical full-history requests, inspect latest CI, then build publisher-original release records with timestamps and hashes. Do not promote staging data.
+
 ## Checkpoint — publisher vintage contract automation (2026-10-30)
 - Run #90 failed in BLS API fallback and BLS/FRED reconciliation; historical integrity step did not fail. Source pipeline remains unresolved; do not bypass.
 - Historical Python syntax repaired in `9bc8ea1`; publisher evidence manifest in `cf787e8`.
