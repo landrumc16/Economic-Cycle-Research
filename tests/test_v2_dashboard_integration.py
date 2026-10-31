@@ -28,5 +28,22 @@ class V2DashboardIntegrationTests(unittest.TestCase):
         self.assertNotIn("V2LENSES", page)
 
 
+    def test_historical_current_bridge_does_not_claim_comparability(self):
+        current = {"snapshot_date": "2026-10-30", "rows": []}
+        history = {"pathways": {"rows": [["header"]]}, "noncrash": {"rows": [["header"]]}}
+        assessment = {"observed_domains": {
+            "growth": {"value": 2.1},
+            "inflation": {"value": None},
+            "labor": {"value": 0.2}}}
+        v2 = {"status": "DESCRIPTIVE_ONLY", "crash_parent_clusters": [
+            {"gdp_yoy_pct": -1.2, "inflation_pct": 4.1, "unemployment_3m_pp": 0.4},
+            {"gdp_yoy_pct": 3.5, "inflation_pct": 2.1, "unemployment_3m_pp": 0.1}]}
+        page = make_dashboard(current, history, assessment=assessment, v2=v2)
+        self.assertIn("Current conditions vs historical crash contexts", page)
+        self.assertIn("-1.2 to 3.5", page)
+        self.assertIn("NOT_COMPARABLE_WITHOUT_UNIT_AND_VINTAGE_AUDIT", page)
+        self.assertIn("Unavailable", page)
+        self.assertNotIn("V2BRIDGE", page)
+
 if __name__ == "__main__":
     unittest.main()
