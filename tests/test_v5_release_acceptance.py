@@ -17,7 +17,7 @@ class V5ReleaseAcceptanceTests(unittest.TestCase):
         self.replay = {"report_type": "V5_PIT_REPLAY",
                        "publisher_original_coverage": 0}
         self.outcomes = {"coverage_status": "NO_VERIFIED_OUTCOME_INPUTS"}
-        self.html = "<html>Predictive publication: BLOCKED</html>"
+        self.html = "<html>2026-10-31 Predictive publication: BLOCKED</html>"
 
     def run_gate(self):
         return verify(self.readout, self.html, self.mechanisms,
@@ -40,7 +40,7 @@ class V5ReleaseAcceptanceTests(unittest.TestCase):
         self.html = "<html>Economic research</html>"
         self.assertEqual(self.run_gate()["status"], "FAIL")
 
-    def test_missing_pit_contract_fails(self):
+    def test_mismatched_mechanism_details_fail(self):\n        self.mechanisms["mechanisms"]["monetary"] = {"required_features": ["yield_curve"]}\n        self.assertEqual(self.run_gate()["status"], "FAIL")\n\n    def test_missing_pit_contract_fails(self):
         self.replay = {}
         self.assertEqual(self.run_gate()["status"], "FAIL")
 
