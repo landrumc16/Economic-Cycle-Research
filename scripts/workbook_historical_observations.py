@@ -1,6 +1,7 @@
 """Parse canonical workbook row exports without inventing missing historical evidence."""
 import argparse
 import json
+from datetime import date
 from pathlib import Path
 
 HEADERS = {
@@ -11,6 +12,48 @@ HEADERS = {
                  "Stress last 3m?", "Stress last 6m?", "Stress last 12m?", "Stress last 24m?",
                  "Months since last stress (0=current)", "Stress count prior 3m", "Stress count prior 6m"],
 }
+
+def validate_coverage(name, records):
+    expected_count = 8 if name == "pathways" else 444
+    problems = []
+    if len(records) != expected_count:
+        problems.append("EXPECTED_%s_ROWS_GOT_%s" % (expected_count, len(records)))
+    key = "Parent cluster" if name == "pathways" else "Month"
+    keys = [str(row[key]).strip() for row in records]
+    if not all(keys) or len(set(keys)) != len(keys):
+        problems.append("EMPTY_OR_DUPLICATE_KEYS")
+    if any(any(str(v).strip() == "" for v in row.values()) for row in records):
+        problems.append("MISSING_REQUIRED_VALUES")
+    if name == "pathways":
+        if set(keys) != set(str(i) for i in range(1, 9)):
+            problems.append("INVALID_PARENT_CLUSTER_UNIVERSE")
+        for row in records:
+            try:
+                peak = date.fromisoformat(str(row["Daily peak"]))
+                prior = date.fromisoformat(str(row["Prior month"]) + "-01")
+                crossing = date.fromisoformat(str(row["First 20% crossing"]))
+                if not (prior < peak <= crossing):
+                    problems.append("INVALID_EVENT_CHRONOLOGY")
+                    break
+            except (ValueError, TypeError):
+                problems.append("INVALID_EVENT_DATE")
+                break
+    else:
+        parsed = []
+        for row in records:
+            try:
+                month = date.fromisoformat(str(row["Month"]) + "-01")
+                cutoff = date.fromisoformat(str(row["Nasdaq cutoff"]))
+                if (cutoff.year, cutoff.month) != (month.year, month.month):
+                    problems.append("CUTOFF_MONTH_MISMATCH")
+                parsed.append(month.year * 12 + month.month)
+            except (ValueError, TypeError):
+                problems.append("INVALID_MONTH_OR_CUTOFF_DATE")
+                break
+        if len(parsed) == len(records) and any(b - a != 1 for a, b in zip(parsed, parsed[1:])):
+            problems.append("NONCONSECUTIVE_OR_UNSORTED_MONTHS")
+    return sorted(set(problems))
+
 
 def parse_export(export):
     if not isinstance(export, dict):
@@ -31,16 +74,17 @@ def parse_export(export):
             result["domains"][name] = {"quality": "ROW_SHAPE_INVALID", "records": []}
             continue
         records = [dict(zip(expected, row)) for row in rows[1:]]
+        issues = validate_coverage(name, records)
         result["domains"][name] = {
-            "quality": "STAGED_REVISED_NOT_PIT",
+            "quality": "STAGED_REVISED_NOT_PIT" if not issues else "COVERAGE_OR_TIME_INTEGRITY_FAILED",
+            "issues": issues,
             "source_tab": block.get("source_tab"),
             "source_range": block.get("source_range"),
             "record_count": len(records),
             "records": records,
             "independence": "PARENT_CLUSTERS_NOT_MONTHS" if name == "pathways" else "OVERLAPPING_FORWARD_WINDOWS",
         }
-    return result
-
+    result["integrity"] = "PASS_RESEARCH_ONLY" if all(\n        v.get("quality") == "STAGED_REVISED_NOT_PIT" for v in result["domains"].values()\n    ) else "BLOCKED_INCOMPLETE_OR_INVALID"\n    return result\n
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--input", required=True)
