@@ -50,6 +50,8 @@ def assess(snapshot, historical=None):
             "headline": headline, "pit_certified": entry.get("publisher_original_pit_certified") is True,
             "source_availability_changed": diff.get("status_changed", False),
             "new_observation_date": diff.get("new_observation_date", False),
+            "same_observation_revision_detected": diff.get("same_observation_revision_detected", False),
+            "revision_delta": diff.get("revision_delta"),
         })
     available = sum(r["value"] is not None for r in rows)
     historical_bridge = bridge({"indicators": rows}, historical) if historical is not None else None
@@ -89,6 +91,8 @@ def render_markdown(report):
                       f"age: {str(item['age_days']) + ' days' if item['age_days'] is not None else 'unknown'}."])
         if item["source_availability_changed"]:
             lines.append("Source availability changed since the previous snapshot.")
+        if item["same_observation_revision_detected"]:
+            lines.append("Previously dated observation revised by {:+g} source units; this is NOT a new economic observation.".format(item["revision_delta"]))
     lines.extend(["", "## Directional evidence (not predictions)"])
     for finding in report["directional_evidence"]["findings"]:
         lines.append("- **{}**: {}".format(finding["series"], finding["interpretation"]))
