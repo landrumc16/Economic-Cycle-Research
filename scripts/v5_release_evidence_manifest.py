@@ -24,7 +24,8 @@ def summarize(directory):
     weekly = documents["v5_weekly_research_readout.json"]
     macro = documents["v5_standardized_macro_metrics.json"]
     acceptance = documents["v5_release_acceptance.json"]
-    date_matches = weekly.get("as_of") == macro.get("as_of") and bool(weekly.get("as_of"))
+    date_matches = bool(weekly.get("as_of")) and all(
+        doc.get("as_of") in (None, weekly.get("as_of")) for doc in documents.values())
     blocked = all(doc.get("predictive_publication", doc.get("prediction_status")) == "BLOCKED"
                   for doc in documents.values())
     dashboard = (root / "dashboard/weekly-v5.html").read_text()
