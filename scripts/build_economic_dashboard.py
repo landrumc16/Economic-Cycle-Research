@@ -25,7 +25,7 @@ def delta(current, previous, field):
     return round(a - b, 4) if isinstance(a, (int, float)) and isinstance(b, (int, float)) else None
 
 
-def compare(current, previous=None):
+def compare(current, previous=None, historical=None):
     if current["status"] != "RESEARCH_SNAPSHOT_NOT_FORECAST":
         raise ValueError("Unapproved assessment status")
     if previous and previous["status"] != "RESEARCH_SNAPSHOT_NOT_FORECAST":
@@ -60,6 +60,7 @@ def compare(current, previous=None):
             "metrics": metrics,
             "interpretation": interpret(current),
             "cycle_conditions": cycle_conditions(current),
+            "historical_comparison": historical,
             "limitations": current["limitations"]}
 
 
@@ -140,6 +141,13 @@ def render(report):
                      f'<p>{esc(metric["units"])}</p><small>{esc(note)}</small></section>')
     limitations = "".join(f"<li>{esc(note)}</li>" for note in report["limitations"])
     condition_tags = ", ".join(report["cycle_conditions"]["tags"]) or "None / unavailable"
+    historical = report.get("historical_comparison")
+    history_text = ("Historical comparison unavailable" if not historical else
+                    "Historical comparison unavailable: " + historical["status"]
+                    if historical["status"] != "RETROSPECTIVE_DESCRIPTIVE_ONLY" else
+                    f"{historical['match_count']} matching months among "
+                    f"{historical['historical_months_examined']} prior months. "
+                    "These are not independent episodes or predictions.")
     comparison = ("No previous assessment supplied" if report["previous_assessment_date"] is None
                   else f'Previous assessment: {esc(report["previous_assessment_date"])}. '
                        f'New observation month: {esc(report["new_observation_month_since_previous"])}.')
@@ -164,6 +172,7 @@ footer{{border-top:1px solid #ccd7e4;padding-top:18px;color:#516277}}
 <main><div class="grid">{''.join(cards)}</div>
 <section><h2>Observed conditions</h2><p class="note">{esc(report["interpretation"])}</p></section>
 <section><h2>Cycle-condition tags</h2><p>{esc(condition_tags)}</p><small>Descriptive observations, not a calibrated economic phase.</small></section>
+<section><h2>Historical context</h2><p>{esc(history_text)}</p></section>
 <section><h2>Change since previous assessment</h2><p>{comparison}</p></section>
 <section><h2>Method and limitations</h2><ul>{limitations}</ul></section></main>
 <footer>Research-only · Current-vintage monthly observations · No investment advice or validated forecasts</footer>
@@ -174,11 +183,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("assessment")
     parser.add_argument("--previous")
+    parser.add_argument("--historical")
     parser.add_argument("--output-dir", default="audit-output")
     args = parser.parse_args()
     current = json.loads(Path(args.assessment).read_text())
     previous = json.loads(Path(args.previous).read_text()) if args.previous else None
-    report = compare(current, previous)
+    historical = json.loads(Path(args.historical).read_text()) if args.historical else None
+    report = compare(current, previous, historical)
     target = Path(args.output_dir)
     target.mkdir(parents=True, exist_ok=True)
     (target / "economic_dashboard.json").write_text(json.dumps(report, indent=2) + "\n")
