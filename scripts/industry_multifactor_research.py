@@ -121,12 +121,13 @@ def analyze(prices, indicators, horizon=12, drawdown_threshold=0.20,
         }
     # Three-way descriptive stratification: acceleration, fundamentals and credit.
     triples = {}
-    if "housing_income_divergence" in aligned:
+    fundamental_name = next((name for name in ("housing_income_divergence", "equity_earnings_yield_gap") if name in aligned), None)
+    if fundamental_name:
         for credit_name in ("consumer_credit_growth", "business_credit_growth"):
             if credit_name not in aligned:
                 continue
             complete = [r for r in records
-                        if r["indicators"]["housing_income_divergence"] is not None
+                        if r["indicators"][fundamental_name] is not None
                         and r["indicators"][credit_name] is not None]
             if not complete:
                 triples[credit_name] = {"status": "NO_OVERLAP", "eligible_months": 0}
@@ -134,7 +135,7 @@ def analyze(prices, indicators, horizon=12, drawdown_threshold=0.20,
             def median_of(key):
                 values = sorted(r["indicators"][key] for r in complete)
                 return values[len(values) // 2]
-            fundamental_cut = median_of("housing_income_divergence")
+            fundamental_cut = median_of(fundamental_name)
             credit_cut = median_of(credit_name)
             cells = {}
             for acceleration in (False, True):
@@ -142,7 +143,7 @@ def analyze(prices, indicators, horizon=12, drawdown_threshold=0.20,
                     for credit in (False, True):
                         subset = [r for r in complete
                                   if r["acceleration"] == acceleration
-                                  and (r["indicators"]["housing_income_divergence"] > fundamental_cut) == fundamental
+                                  and (r["indicators"][fundamental_name] > fundamental_cut) == fundamental
                                   and (r["indicators"][credit_name] > credit_cut) == credit]
                         n = len(subset)
                         declines = sum(r["subsequent_drawdown"] for r in subset)
@@ -153,6 +154,7 @@ def analyze(prices, indicators, horizon=12, drawdown_threshold=0.20,
                 "status": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
                 "eligible_months": len(complete),
                 "missing_months": len(records) - len(complete),
+                "fundamental_name": fundamental_name,
                 "fundamental_median": fundamental_cut,
                 "credit_median": credit_cut,
                 "cells": cells,
