@@ -15,6 +15,7 @@ on:
       - 'tests/test_industry_deviation_episode_analysis.py'
       - 'scripts/industry_multifactor_research.py'
       - 'scripts/derive_credit_growth.py'
+      - 'tests/test_derive_credit_growth.py'
       - 'tests/test_industry_multifactor_research.py'
       - 'tests/test_industry_deviation_comparison.py'
       - 'data/industry_deviation_episode_registry_v1.json'
@@ -33,6 +34,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_industry_deviation_*.py' -v && python -m unittest discover -s tests -p 'test_fetch_industry_observations.py' -v
       - name: Multifactor research tests
         run: python -m unittest discover -s tests -p 'test_industry_multifactor_research.py' -v
+      - name: Credit growth transformation tests
+        run: python -m unittest discover -s tests -p 'test_derive_credit_growth.py' -v
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
