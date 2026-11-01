@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "status": "CANDIDATE_UNLABELED_EPISODES",
+  "created": "2026-10-31",
+  "rules": {
+    "no_outcome_inferred_from_selection": true,
+    "point_in_time_data_required_for_validation": true,
+    "external_shocks_retained_in_master": true,
+    "correction_thresholds_percent": [
+      10,
+      20,
+      30
+    ]
+  },
+  "episodes": [
+    {
+      "id": "railway_1840s",
+      "track": "emerging",
+      "industry": "railways",
+      "start_month": "1840-01",
+      "end_month": "1850-12",
+      "evidence_status": "qualitative_only",
+      "baseline_series": null,
+      "valuation_series": null,
+      "fundamentals_series": null,
+      "capital_flows_series": null,
+      "leverage_series": null,
+      "drawdown_outcome": "UNVERIFIED",
+      "independent_mechanism_review": false
+    },
+    {
+      "id": "tulip_1630s",
+      "track": "established",
+      "industry": "tulip_contracts",
+      "start_month": "1634-01",
+      "end_month": "1637-12",
+      "evidence_status": "qualitative_only",
+      "baseline_series": null,
+      "valuation_series": null,
+      "fundamentals_series": null,
+      "capital_flows_series": null,
+      "leverage_series": null,
+      "drawdown_outcome": "UNVERIFIED",
+      "independent_mechanism_review": false
+    },
+    {
+      "id": "internet_1995_2002",
+      "track": "emerging",
+      "industry": "internet_technology",
+      "start_month": "1995-01",
+      "end_month": "2002-12",
+      "evidence_status": "quantitative_candidate",
+      "baseline_series": null,
+      "valuation_series": null,
+      "fundamentals_series": null,
+      "capital_flows_series": null,
+      "leverage_series": null,
+      "drawdown_outcome": "UNVERIFIED",
+      "independent_mechanism_review": false
+    },
+    {
+      "id": "housing_2000_2012",
+      "track": "established",
+      "industry": "us_residential_housing",
+      "start_month": "2000-01",
+      "end_month": "2012-12",
+      "evidence_status": "quantitative_candidate",
+      "baseline_series": null,
+      "valuation_series": null,
+      "fundamentals_series": null,
+      "capital_flows_series": null,
+      "leverage_series": null,
+      "drawdown_outcome": "UNVERIFIED",
+      "independent_mechanism_review": false
+    },
+    {
+      "id": "ai_2022_present",
+      "track": "emerging",
+      "industry": "artificial_intelligence",
+      "start_month": "2022-01",
+      "end_month": null,
+      "evidence_status": "ongoing_unlabeled",
+      "baseline_series": null,
+      "valuation_series": null,
+      "fundamentals_series": null,
+      "capital_flows_series": null,
+      "leverage_series": null,
+      "drawdown_outcome": "UNVERIFIED",
+      "independent_mechanism_review": false
+    },
+    {
+      "id": "housing_2020_present",
+      "track": "established",
+      "industry": "us_residential_housing",
+      "start_month": "2020-01",
+      "end_month": null,
+      "evidence_status": "comparison_candidate",
+      "baseline_series": null,
+      "valuation_series": null,
+      "fundamentals_series": null,
+      "capital_flows_series": null,
+      "leverage_series": null,
+      "drawdown_outcome": "UNVERIFIED",
+      "independent_mechanism_review": false
+    },
+    {
+      "id": "technology_2013_2019",
+      "track": "established",
+      "industry": "us_technology_equities",
+      "start_month": "2013-01",
+      "end_month": "2019-12",
+      "evidence_status": "comparison_candidate",
+      "baseline_series": null,
+      "valuation_series": null,
+      "fundamentals_series": null,
+      "capital_flows_series": null,
+      "leverage_series": null,
+      "drawdown_outcome": "UNVERIFIED",
+      "independent_mechanism_review": false
+    }
+  ],
+  "candidate_sources": [
+    {
+      "id": "NASDAQCOM",
+      "url": "https://fred.stlouisfed.org/series/NASDAQCOM",
+      "use": "broad technology proxy only, not pure internet industry"
+    },
+    {
+      "id": "CSUSHPINSA",
+      "url": "https://fred.stlouisfed.org/series/CSUSHPINSA",
+      "use": "national home prices; distinguish housing prices from homebuilder equity"
+    }
+  ]
+}
