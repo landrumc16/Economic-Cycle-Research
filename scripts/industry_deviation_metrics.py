@@ -39,7 +39,8 @@ def calculate(rows, lookback=12, history=60, minimum_history=36):
             if variance > 0:
                 entry["z_score"] = round((change - mean) / math.sqrt(variance), 6)
             entry["historical_percentile"] = round(
-                100 * sum(v <= change for v in prior) / len(prior), 3)
+                100 * (sum(v < change for v in prior) +
+                       0.5 * sum(v == change for v in prior)) / len(prior), 3)
             entry["status"] = "DESCRIPTIVE_ONLY"
         result.append(entry)
     return result
