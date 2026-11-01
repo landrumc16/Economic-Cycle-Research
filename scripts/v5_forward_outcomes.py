@@ -8,7 +8,10 @@ import argparse
 import json
 from pathlib import Path
 
-from scripts.v5_cycle_evaluation import reference_recession
+try:
+    from scripts.v5_cycle_evaluation import reference_recession
+except ModuleNotFoundError:
+    from v5_cycle_evaluation import reference_recession
 
 HORIZONS = (3, 6, 12)
 REFERENCE_END = "2020-12"
