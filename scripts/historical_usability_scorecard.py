@@ -16,8 +16,8 @@ def scorecard(snapshot, leads, horizon_months=12):
         raise ValueError("horizon_months must be positive")
     monthly = snapshot["noncrash"]["rows"][1:]
     pathways = snapshot["pathways"]["rows"][1:]
-    lead_rows = leads["rows"][1:]
-    events = [str(r[1])[:7] for r in pathways if len(r) > 1]
+    lead_rows = leads["rows"]
+    events = [str(r[3])[:7] for r in pathways if len(r) > 3 and str(r[3]).startswith(("19", "20"))]
     months = [str(r[0]) for r in monthly]
     if len(months) != len(set(months)):
         raise ValueError("Duplicate months")
@@ -49,14 +49,14 @@ def scorecard(snapshot, leads, horizon_months=12):
     return {
         "report_type": "HISTORICAL_USABILITY_RETROSPECTIVE_SCORECARD",
         "method": "Simple inverted yield curve OR credit spread >=2.5 pp, using revised workbook values",
-        "outcome": "Listed market peak in following months; NOT crash onset, recession onset, or independent event label",
+        "outcome": "Listed first 20% market-drawdown crossing in following months; selected retrospective events, not complete independently verified outcomes",
         "horizon_months": horizon_months,
         "monthly_observations": len(evaluations),
         "mature_observations": len(mature_rows),
         "flagged_months": len(flagged),
         "flagged_followed_by_listed_peak": flagged_with_listed_peak,
         "unflagged_followed_by_listed_peak": unflagged_with_listed_peak,
-        "listed_peak_count": len(events),
+        "listed_peak_count": len(events),\n        "event_target": "FIRST_20_PERCENT_DRAWDOWN_CROSSING",
         "lead_window_rows": len(lead_rows),
         "point_in_time_certified": False,
         "negative_outcome_coverage_certified": False,
@@ -64,10 +64,10 @@ def scorecard(snapshot, leads, horizon_months=12):
         "monthly_assessments": evaluations,
         "limitations": [
             "Retrospective, revised observations; no verified contemporaneous release dates",
-            "Event list contains selected historical market peaks, not complete independent outcomes",
+            "Event list contains selected historical drawdown crossings, not complete independent outcomes",
             "No-listed-event months cannot be interpreted as verified negatives or used to claim false-alarm rate",
             "Monthly observations are correlated; this is not an event-independent holdout",
-            "Signals at peak month are excluded from forward outcomes",
+            "Signals in crossing month are excluded from forward outcomes",
         ],
     }
 
