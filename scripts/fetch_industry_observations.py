@@ -11,6 +11,7 @@ import urllib.request
 import urllib.error
 import time
 import socket
+import os
 from datetime import date
 from pathlib import Path
 
@@ -57,21 +58,35 @@ def main():
     date.fromisoformat(args.end)
     if args.start > args.end:
         raise ValueError("Start after end")
-    query = urllib.parse.urlencode({"id": args.series, "cosd": args.start, "coed": args.end})
-    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?" + query
+    api_key = os.environ.get("FRED_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("FRED_API_KEY is required; configure the GitHub Actions repository secret")
+    query = urllib.parse.urlencode({
+        "series_id": args.series, "observation_start": args.start,
+        "observation_end": args.end, "file_type": "json", "api_key": api_key
+    })
+    url = "https://api.stlouisfed.org/fred/series/observations?" + query
+    source_url = "https://api.stlouisfed.org/fred/series/observations?series_id=" + args.series
     request = urllib.request.Request(url, headers={"User-Agent": "Economic-Cycle-Research/1.0"})
-    payload = None
     for attempt in range(3):
         try:
-            with urllib.request.urlopen(request, timeout=60) as response:
-                payload = response.read().decode("utf-8-sig")
+            with urllib.request.urlopen(request, timeout=30) as response:
+                data = json.load(response)
             break
         except (TimeoutError, socket.timeout, urllib.error.URLError) as exc:
             if attempt == 2:
                 raise RuntimeError(
-                    f"FRED download failed for {args.series} after 3 attempts: {exc}"
+                    f"FRED API download failed for {args.series} after 3 attempts: {type(exc).__name__}"
                 ) from exc
             time.sleep(2 ** attempt * 5)
+    if not isinstance(data.get("observations"), list):
+        raise ValueError("Unexpected FRED API observations response")
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["observation_date", args.series])
+    for item in data["observations"]:
+        writer.writerow([item["date"], item["value"]])
+    payload = output.getvalue()
     observations = normalize_csv(payload, args.series)
     # The current month is incomplete at a mid-month cutoff. Exclude it uniformly.
     end_date = date.fromisoformat(args.end)
@@ -90,7 +105,7 @@ def main():
         writer = csv.DictWriter(f, fieldnames=["date", "value"])
         writer.writeheader()
         writer.writerows({"date": row["date"], "value": row["value"]} for row in observations)
-    meta = {"series": args.series, "source_url": url, "source_frequency": ALLOWED[args.series],
+    meta = {"series": args.series, "source_url": source_url, "source_frequency": ALLOWED[args.series],
             "monthly_method": "last_available_observation_in_calendar_month",
             "first_month": observations[0]["date"], "last_month": observations[-1]["date"],
             "observations": len(observations), "point_in_time_certified": False,
