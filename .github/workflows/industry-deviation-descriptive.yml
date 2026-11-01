@@ -15,6 +15,7 @@ on:
       - 'tests/test_industry_deviation_episode_analysis.py'
       - 'scripts/industry_multifactor_research.py'
       - 'scripts/derive_credit_growth.py'
+      - 'scripts/industry_credit_research_summary.py'
       - 'tests/test_derive_credit_growth.py'
       - 'tests/test_industry_multifactor_research.py'
       - 'tests/test_industry_deviation_comparison.py'
@@ -80,6 +81,8 @@ jobs:
           done
       - name: Generate consolidated historical report
         run: python scripts/industry_deviation_summary.py
+      - name: Generate integrated credit and acceleration evidence
+        run: python scripts/industry_credit_research_summary.py
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - uses: actions/upload-artifact@v4
