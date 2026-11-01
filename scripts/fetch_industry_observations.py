@@ -11,7 +11,8 @@ import urllib.request
 from datetime import date
 from pathlib import Path
 
-ALLOWED = {"NASDAQCOM": "daily", "CSUSHPINSA": "monthly"}
+ALLOWED = {"NASDAQCOM": "daily", "CSUSHPINSA": "monthly",
+           "TOTALSL": "monthly", "BUSLOANS": "monthly"}
 
 
 def normalize_csv(payload, series):
