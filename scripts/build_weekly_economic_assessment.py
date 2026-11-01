@@ -26,7 +26,8 @@ def read(path):
 def snapshot(root, as_of):
     date.fromisoformat(as_of)
     directory = root / "data/industry_observations"
-    series = ("NASDAQCOM", "CSUSHPINSA", "TOTALSL", "BUSLOANS", "PI")
+    series = ("NASDAQCOM", "CSUSHPINSA", "TOTALSL", "BUSLOANS", "PI",
+              "UNRATE", "CPIAUCSL", "INDPRO")
     sources = {}
     for name in series:
         rows = [r for r in read(directory / (name + "_monthly.csv"))
@@ -74,6 +75,13 @@ def snapshot(root, as_of):
         y, m = map(int, month[:7].split("-"))
         ay, am = map(int, as_of[:7].split("-"))
         return (ay - y) * 12 + am
+    def change(name, months):
+        by_month = {r["date"][:7]: float(r["value"]) for r in trimmed[name]}
+        year, month = map(int, common_date[:7].split("-"))
+        index = year * 12 + month - months
+        prior = f"{(index - 1) // 12:04d}-{(index - 1) % 12 + 1:02d}"
+        current, earlier = by_month.get(common_date[:7]), by_month.get(prior)
+        return round(current - earlier, 4) if current is not None and earlier is not None else None
     return {
         "status": "RESEARCH_SNAPSHOT_NOT_FORECAST",
         "assessment_date": as_of,
@@ -85,6 +93,10 @@ def snapshot(root, as_of):
         "consumer_credit_growth_12m_log_pct": growth("TOTALSL"),
         "business_credit_growth_12m_log_pct": growth("BUSLOANS"),
         "housing_price_income_growth_gap_12m_log_pp": divergence,
+        "unemployment_rate_pct": float(trimmed["UNRATE"][-1]["value"]),
+        "unemployment_change_3m_pp": change("UNRATE", 3),
+        "cpi_inflation_12m_log_pct": growth("CPIAUCSL"),
+        "industrial_production_growth_12m_log_pct": growth("INDPRO"),
         "sources": {name: {"latest_available_month": sources[name][-1]["date"],
                            "latest_used_month": trimmed[name][-1]["date"],
                            "source_url": json.loads((directory / (name + "_metadata.json")).read_text())["source_url"]}
@@ -111,7 +123,11 @@ def markdown(result):
              "", "## Observed indicators", ""]
     for label, key in (("Consumer credit 12m log growth (%)", "consumer_credit_growth_12m_log_pct"),
                        ("Business credit 12m log growth (%)", "business_credit_growth_12m_log_pct"),
-                       ("Housing price minus income 12m log growth (pp)", "housing_price_income_growth_gap_12m_log_pp")):
+                       ("Housing price minus income 12m log growth (pp)", "housing_price_income_growth_gap_12m_log_pp"),
+                       ("Unemployment rate (%)", "unemployment_rate_pct"),
+                       ("Unemployment change 3m (pp)", "unemployment_change_3m_pp"),
+                       ("CPI inflation 12m log growth (%)", "cpi_inflation_12m_log_pct"),
+                       ("Industrial production 12m log growth (%)", "industrial_production_growth_12m_log_pct")):
         lines.append(f"- {label}: {show(result[key])}")
     for name in ("equity_acceleration", "housing_acceleration"):
         signal = result[name]
