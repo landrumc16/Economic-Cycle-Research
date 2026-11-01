@@ -43,6 +43,9 @@ def analyze(prices, indicators, horizon=12, drawdown_threshold=0.20,
         dates = [r["date"] for r in rows]
         if len(dates) != len(set(dates)):
             raise ValueError("Duplicate indicator dates: " + name)
+        values = [float(r["value"]) for r in rows]
+        if any(not math.isfinite(value) for value in values):
+            raise ValueError("Nonfinite indicator: " + name)
         aligned[name] = {r["date"]: float(r["value"]) for r in rows}
     records = []
     for i, row in enumerate(ordered):
