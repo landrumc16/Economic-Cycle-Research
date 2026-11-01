@@ -12,8 +12,6 @@ def build(release, forecast, workbook=None):
     if forecast.get("numeric_forecasts_approved") is not False:
         raise ValueError("Unapproved forecast status")
     workbook = workbook or {}
-    if workbook and not workbook.get("source_url", "").startswith("https://docs.google.com/spreadsheets/d/"):
-        raise ValueError("Workbook evidence provenance missing")
     approvals = workbook.get("macro_promotion", {})
     macro = {series: approvals.get(series, "NOT_RECONCILED") for series in REQUIRED_MACRO}
     if any(value not in ("APPROVED", "BLOCKED", "NOT_RECONCILED") for value in macro.values()):
