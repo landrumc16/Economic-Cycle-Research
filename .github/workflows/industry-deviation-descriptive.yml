@@ -173,10 +173,9 @@ jobs:
         if: always()
         shell: bash
         run: |
-          {
-            echo "## Version 5 Unified Research"
-            if [ -f audit-output/unified_research_status.json ]; then
-              python - <<'PY'
+          echo "## Version 5 Unified Research" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f audit-output/unified_research_status.json ]; then
+            python - <<'PY'
           import json, os
           from pathlib import Path
           d = json.loads(Path("audit-output/unified_research_status.json").read_text())
@@ -191,12 +190,11 @@ jobs:
               "Artifacts: v5_dashboard.html, v5_executive_brief.md, unified_research_status.json",
           ]
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
-              output.write("\n".join(lines) + "\n")
+              output.write("\\n".join(lines) + "\\n")
           PY
-            else
-              echo "Unified research output missing; release not verified."
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Unified research output missing; release not verified." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - name: Persist assessment history
