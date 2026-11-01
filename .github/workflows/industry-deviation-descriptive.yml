@@ -21,6 +21,7 @@ on:
       - 'scripts/validate_multifactor_release.py'
       - 'scripts/build_weekly_economic_assessment.py'
       - 'scripts/build_economic_dashboard.py'
+      - 'scripts/validate_weekly_release.py'
       - 'scripts/build_historical_cycle_timeline.py'
       - 'scripts/build_historical_condition_comparison.py'
       - 'tests/test_build_historical_cycle_timeline.py'
@@ -154,6 +155,8 @@ jobs:
           else
             python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json --historical audit-output/historical_condition_comparison.json
           fi
+      - name: Weekly integrated release acceptance gate
+        run: python scripts/validate_weekly_release.py
       - name: Persist assessment history
         uses: actions/cache/save@v4
         with:
