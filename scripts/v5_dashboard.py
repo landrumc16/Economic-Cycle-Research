@@ -14,7 +14,7 @@ def assemble(estimates, evaluation, baseline, gate, episodes):
         raise ValueError("V5 artifact status mismatch")
     if gate["numeric_forecasts_approved"]:
         raise ValueError("Numeric forecasts require a separately approved release")
-    if any(gate["horizons"][h]["numeric_forecast_approved"] for h in ("3", "6", "12")):
+    if any(gate["horizons"][h].get("numeric_forecast_approved", False) for h in ("3", "6", "12")):
         raise ValueError("Individual horizon forecasts are not approved")
     counts = evaluation["counts"]
     total = sum(counts.values())
