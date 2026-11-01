@@ -17,6 +17,8 @@ on:
       - 'scripts/derive_credit_growth.py'
       - 'scripts/industry_credit_research_summary.py'
       - 'scripts/derive_housing_income_divergence.py'
+      - 'scripts/derive_equity_valuation_gap.py'
+      - 'tests/test_derive_equity_valuation_gap.py'
       - 'tests/test_derive_housing_income_divergence.py'
       - 'tests/test_derive_credit_growth.py'
       - 'tests/test_industry_multifactor_research.py'
@@ -41,6 +43,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_derive_credit_growth.py' -v
       - name: Housing fundamentals transformation tests
         run: python -m unittest discover -s tests -p 'test_derive_housing_income_divergence.py' -v
+      - name: Equity valuation transformation tests
+        run: python -m unittest discover -s tests -p 'test_derive_equity_valuation_gap.py' -v
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
