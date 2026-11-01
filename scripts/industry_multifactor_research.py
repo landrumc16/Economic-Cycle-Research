@@ -85,16 +85,48 @@ def analyze(prices, indicators, horizon=12, drawdown_threshold=0.20,
         groups[name] = {"threshold": threshold, "above": summarize(positive),
                         "other": summarize(negative),
                         "missing_months": len(records) - len(eligible)}
+    # Compare acceleration and each additional indicator on the SAME complete-case months.
+    # This avoids treating differences in source coverage as indicator performance.
+    joint = {}
+    for name in sorted(indicators):
+        eligible = [record for record in records if record["indicators"][name] is not None]
+        if not eligible:
+            joint[name] = {"status": "NO_OVERLAP", "eligible_months": 0}
+            continue
+        values = sorted(record["indicators"][name] for record in eligible)
+        median = values[len(values) // 2]
+        cells = {}
+        for acceleration in (False, True):
+            for elevated in (False, True):
+                subset = [record for record in eligible
+                          if record["acceleration"] == acceleration and
+                          (record["indicators"][name] > median) == elevated]
+                count = len(subset)
+                declines = sum(record["subsequent_drawdown"] for record in subset)
+                cells[f"acceleration_{int(acceleration)}_indicator_{int(elevated)}"] = {
+                    "months": count,
+                    "declines": declines,
+                    "no_decline": count - declines,
+                    "fraction": round(declines / count, 6) if count else None,
+                }
+        joint[name] = {
+            "status": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
+            "eligible_months": len(eligible),
+            "missing_months": len(records) - len(eligible),
+            "retrospective_indicator_median": median,
+            "cells": cells,
+        }
     return {"status": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
             "horizon_months": horizon, "drawdown_threshold": drawdown_threshold,
             "eligible_price_months": len(records),
-            "groups": groups, "observations": records,
+            "groups": groups, "joint_comparisons": joint, "observations": records,
             "limitations": [
                 "Indicator medians use the full sample and must not be used as live thresholds",
                 "Inputs must have separately documented source, units and observation availability",
                 "Monthly dates are aligned by label, not certified release timestamps",
                 "Overlapping future windows are dependent",
                 "Missing indicator observations are excluded, never imputed",
+                "Joint comparisons use same-month complete cases, not a fitted model",
                 "No multivariate causal or predictive claim is supported",
             ]}
 
