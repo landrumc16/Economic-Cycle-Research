@@ -87,12 +87,22 @@ def main():
             with urllib.request.urlopen(request, timeout=30) as response:
                 data = json.load(response)
             break
+        except urllib.error.HTTPError as exc:
+            # Authentication and request errors cannot be fixed by retrying.
+            if 400 <= exc.code < 500:
+                raise RuntimeError(
+                    f"FRED API rejected {args.series} with HTTP {exc.code}; check the API key and request"
+                ) from None
+            if attempt == 2:
+                raise RuntimeError(
+                    f"FRED API failed for {args.series} after 3 attempts: HTTP {exc.code}"
+                ) from None
         except (TimeoutError, socket.timeout, urllib.error.URLError) as exc:
             if attempt == 2:
                 raise RuntimeError(
                     f"FRED API download failed for {args.series} after 3 attempts: {type(exc).__name__}"
-                ) from exc
-            time.sleep(2 ** attempt * 5)
+                ) from None
+        time.sleep(2 ** attempt * 5)
     payload = api_observations_to_csv(data, args.series)
     observations = normalize_csv(payload, args.series)
     # The current month is incomplete at a mid-month cutoff. Exclude it uniformly.
