@@ -43,6 +43,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_v5_cycle_evaluation.py' -v
       - name: V5 forward-outcome regression tests
         run: python -m unittest discover -s tests -p 'test_v5_forward_outcomes.py' -v
+      - name: V5 executive brief regression tests
+        run: python -m unittest discover -s tests -p 'test_v5_executive_brief.py' -v
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
@@ -117,6 +119,8 @@ jobs:
         run: python scripts/v5_cycle_evaluation.py audit-output/v5_cycle_estimates.json
       - name: Evaluate V5 historical forward outcomes
         run: python scripts/v5_forward_outcomes.py audit-output/v5_cycle_estimates.json
+      - name: Generate V5 monthly research brief
+        run: python scripts/v5_executive_brief.py audit-output/v5_cycle_estimates.json audit-output/v5_forward_outcomes.json
       - name: Publish monthly integrated economic assessment
         run: python scripts/build_weekly_economic_assessment.py --as-of "$(date -u +%F)"
       - name: Compare current conditions with historical months
