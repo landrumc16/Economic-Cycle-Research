@@ -17,7 +17,10 @@ def compare(timeline, assessment, max_examples=12):
         raise ValueError("Invalid example count")
     if assessment["stale"]:
         return {"status": "STALE_CURRENT_DATA", "matches": [], "match_count": 0}
-    from scripts.build_economic_dashboard import cycle_conditions
+    try:
+        from .build_economic_dashboard import cycle_conditions
+    except ImportError:
+        from build_economic_dashboard import cycle_conditions
     current = cycle_conditions(assessment)
     if current["status"] != "DESCRIPTIVE_TAGS_ONLY":
         return {"status": "INSUFFICIENT_CURRENT_DATA", "matches": [], "match_count": 0}
