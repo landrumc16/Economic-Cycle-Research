@@ -14,6 +14,8 @@ def convert(rows, source_url, reviewed=False):
     if not source_url.startswith("https://docs.google.com/spreadsheets/d/"):
         raise ValueError("Source must be a Google Sheets URL")
     by_series = {}
+    if rows and rows[0] and str(rows[0][0]).strip().lower() == 'series':
+        rows = rows[1:]
     for row in rows:
         if not row or row[0] not in SERIES:
             continue
