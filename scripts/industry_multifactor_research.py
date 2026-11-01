@@ -40,6 +40,9 @@ def analyze(prices, indicators, horizon=12, drawdown_threshold=0.20,
     for name, rows in indicators.items():
         if not name or name == "acceleration":
             raise ValueError("Invalid indicator name")
+        dates = [r["date"] for r in rows]
+        if len(dates) != len(set(dates)):
+            raise ValueError("Duplicate indicator dates: " + name)
         aligned[name] = {r["date"]: float(r["value"]) for r in rows}
     records = []
     for i, row in enumerate(ordered):
