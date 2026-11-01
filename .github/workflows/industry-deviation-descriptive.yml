@@ -68,6 +68,9 @@ jobs:
           python scripts/fetch_industry_observations.py TOTALSL --start 1980-01-01 --end "$(date -u +%F)"
           python scripts/fetch_industry_observations.py BUSLOANS --start 1980-01-01 --end "$(date -u +%F)"
           python scripts/fetch_industry_observations.py PI --start 1980-01-01 --end "$(date -u +%F)"
+          python scripts/fetch_industry_observations.py UNRATE --start 1980-01-01 --end "$(date -u +%F)"
+          python scripts/fetch_industry_observations.py CPIAUCSL --start 1980-01-01 --end "$(date -u +%F)"
+          python scripts/fetch_industry_observations.py INDPRO --start 1980-01-01 --end "$(date -u +%F)"
       - name: Derive historical credit growth
         run: |
           for series in TOTALSL BUSLOANS; do
