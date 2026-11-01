@@ -52,6 +52,21 @@ class MultifactorTests(unittest.TestCase):
                 {"date": "2005-01-01", "value": "1"},
                 {"date": "2005-01-01", "value": "2"}]})
 
+    def test_three_factor_cells_partition_complete_cases(self):
+        prices = make_prices(120)
+        income = [{"date": row["date"], "value": str(i % 13)}
+                  for i, row in enumerate(prices) if i % 4 != 0]
+        credit = [{"date": row["date"], "value": str(i % 17)}
+                  for i, row in enumerate(prices) if i % 5 != 0]
+        result = analyze(prices, {"housing_income_divergence": income,
+                                  "consumer_credit_growth": credit})
+        triple = result["three_factor_comparisons"]["consumer_credit_growth"]
+        self.assertEqual(len(triple["cells"]), 8)
+        self.assertEqual(sum(c["months"] for c in triple["cells"].values()),
+                         triple["eligible_months"])
+        self.assertEqual(triple["eligible_months"] + triple["missing_months"],
+                         result["eligible_price_months"])
+
     def test_invalid_horizon_rejected(self):
         with self.assertRaises(ValueError):
             analyze(make_prices(), {}, horizon=0)
