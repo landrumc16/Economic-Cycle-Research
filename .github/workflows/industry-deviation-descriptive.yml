@@ -170,6 +170,30 @@ jobs:
         with:
           path: audit-output/weekly_assessment_history.json
           key: economic-weekly-history-${{ github.run_id }}
+      - name: Publish release result in GitHub Actions summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Economic Cycle Research — Version 4"
+            echo
+            if [ -f audit-output/weekly_release_acceptance.json ]; then
+              echo "**Weekly release gate:** PASS"
+              echo
+              echo '~~~json'
+              cat audit-output/weekly_release_acceptance.json
+              echo '~~~'
+            else
+              echo "**Weekly release gate:** NOT PASSED — inspect preceding steps."
+            fi
+            if [ -f audit-output/historical_condition_comparison.md ]; then
+              echo
+              echo "### Historical comparison"
+              head -n 16 audit-output/historical_condition_comparison.md
+            fi
+            echo
+            echo "Retrospective research only. Current-vintage data are not point-in-time."
+          } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
