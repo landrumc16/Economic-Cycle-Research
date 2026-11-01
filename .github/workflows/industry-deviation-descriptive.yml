@@ -21,6 +21,7 @@ on:
       - 'scripts/validate_multifactor_release.py'
       - 'scripts/build_weekly_economic_assessment.py'
       - 'scripts/build_economic_dashboard.py'
+      - 'scripts/weekly_assessment_history.py'
       - 'tests/test_build_economic_dashboard.py'
       - 'tests/test_build_weekly_economic_assessment.py'
       - 'tests/test_validate_multifactor_release.py'
@@ -125,8 +126,27 @@ jobs:
         run: python scripts/validate_multifactor_release.py
       - name: Publish weekly integrated economic assessment
         run: python scripts/build_weekly_economic_assessment.py --as-of "$(date -u +%F)"
+      - name: Restore previous assessment archive
+        uses: actions/cache/restore@v4
+        with:
+          path: audit-output/weekly_assessment_history.json
+          key: economic-weekly-history-${{ github.run_id }}
+          restore-keys: |
+            economic-weekly-history-
+      - name: Prepare prior assessment and update history
+        run: python scripts/weekly_assessment_history.py audit-output/weekly_economic_assessment.json
       - name: Generate weekly dashboard
-        run: python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json
+        run: |
+          if [ -f audit-output/previous_weekly_assessment.json ]; then
+            python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json --previous audit-output/previous_weekly_assessment.json
+          else
+            python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json
+          fi
+      - name: Persist assessment history
+        uses: actions/cache/save@v4
+        with:
+          path: audit-output/weekly_assessment_history.json
+          key: economic-weekly-history-${{ github.run_id }}
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - uses: actions/upload-artifact@v4
