@@ -27,7 +27,7 @@ def inventory(snapshot, lead_windows):
         "first_month": min(months),
         "last_month": max(months),
         "crash_parent_clusters": len(clusters),
-        "lead_window_rows": len(lead_rows) - 1,
+        "lead_window_rows": len(lead_rows),
         "point_in_time_certified": False,
         "predictive_publication": "BLOCKED",
         "coverage_gaps": [
