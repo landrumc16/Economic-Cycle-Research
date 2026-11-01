@@ -42,6 +42,27 @@ class WeeklyReleaseTests(unittest.TestCase):
             path.write_text(json.dumps(value))
             with self.assertRaises(ValueError):
                 validate(root)
+    def test_stale_research_release_is_not_current_approval(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            folder = self.fixture(root)
+            current_path = folder / "weekly_economic_assessment.json"
+            current = json.loads(current_path.read_text())
+            current["stale"] = True
+            current["months_since_common_observation"] = 3
+            current_path.write_text(json.dumps(current))
+            comparison_path = folder / "historical_condition_comparison.json"
+            comparison = {"status": "STALE_CURRENT_DATA", "matches": [], "match_count": 0}
+            comparison_path.write_text(json.dumps(comparison))
+            dashboard_path = folder / "economic_dashboard.json"
+            dashboard = json.loads(dashboard_path.read_text())
+            dashboard["stale"] = True
+            dashboard["historical_comparison"] = comparison
+            dashboard_path.write_text(json.dumps(dashboard))
+            result = validate(root)
+            self.assertEqual(result["status"], "STALE_RESEARCH_ONLY")
+            self.assertFalse(result["current_assessment_approved"])
+
     def test_mismatched_historical_report_fails(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
