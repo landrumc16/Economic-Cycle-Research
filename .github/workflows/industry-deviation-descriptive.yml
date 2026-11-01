@@ -53,6 +53,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_v5_forecast_release_gate.py' -v
       - name: V5 dashboard regression tests
         run: python -m unittest discover -s tests -p 'test_v5_dashboard.py' -v
+      - name: Unified research status regression tests
+        run: python -m unittest discover -s tests -p 'test_v5_unified_research_status.py' -v
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
@@ -159,6 +161,8 @@ jobs:
           fi
       - name: Monthly integrated release acceptance gate
         run: python scripts/validate_weekly_release.py
+      - name: Build fail-closed unified research status
+        run: python scripts/v5_unified_research_status.py audit-output/weekly_release_acceptance.json audit-output/v5_forecast_release_gate.json
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - name: Persist assessment history
