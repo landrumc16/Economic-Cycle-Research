@@ -11,6 +11,8 @@ on:
       - 'scripts/industry_deviation_comparison.py'
       - 'scripts/validate_industry_deviation_release.py'
       - 'scripts/industry_deviation_summary.py'
+      - 'scripts/industry_deviation_episode_analysis.py'
+      - 'tests/test_industry_deviation_episode_analysis.py'
       - 'tests/test_industry_deviation_comparison.py'
       - 'data/industry_deviation_episode_registry_v1.json'
       - '.github/workflows/industry-deviation-descriptive.yml'
@@ -43,6 +45,13 @@ jobs:
           for series in NASDAQCOM CSUSHPINSA; do
             for horizon in 6 24; do
               python scripts/industry_deviation_comparison.py data/industry_observations/${series}_monthly.csv --horizon "$horizon" --output "audit-output/${series}_comparison_${horizon}m.json"
+            done
+          done
+      - name: Analyze alert episodes and lead times
+        run: |
+          for series in NASDAQCOM CSUSHPINSA; do
+            for horizon in 6 12 24; do
+              python scripts/industry_deviation_episode_analysis.py "data/industry_observations/${series}_monthly.csv" --horizon "$horizon" --output "audit-output/${series}_episodes_${horizon}m.json"
             done
           done
       - name: Generate consolidated historical report
