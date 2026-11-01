@@ -79,10 +79,23 @@ def interpret(current):
         ("housing-price growth above income growth",
          (current.get("housing_price_income_growth_gap_12m_log_pp") or 0) > 0)
     ) if condition]
-    if not elevated:
-        return "None of the tracked descriptive expansion conditions is elevated."
-    return ("Observed expansion-related conditions: " + ", ".join(elevated) +
-            ". These conditions are not a calibrated cycle stage, recession forecast, or crash probability.")
+    unemployment_change = current.get("unemployment_change_3m_pp")
+    output_growth = current.get("industrial_production_growth_12m_log_pct")
+    inflation = current.get("cpi_inflation_12m_log_pct")
+    if unemployment_change is None or output_growth is None or inflation is None:
+        return "Insufficient labor, production, or inflation coverage for an integrated interpretation."
+    pressure = []
+    if unemployment_change > 0:
+        pressure.append("unemployment rising over three months")
+    if output_growth < 0:
+        pressure.append("industrial production below its year-earlier level")
+    if inflation > 0:
+        pressure.append("consumer prices higher than a year earlier")
+    expansion_text = ", ".join(elevated) if elevated else "none of the tracked expansion conditions"
+    pressure_text = ", ".join(pressure) if pressure else "none of the tracked directional pressures"
+    return ("Observed expansion-related conditions: " + expansion_text +
+            ". Other macroeconomic conditions: " + pressure_text +
+            ". This is a descriptive combination, not a calibrated cycle stage, recession forecast, or crash probability.")
 
 
 def render(report):
