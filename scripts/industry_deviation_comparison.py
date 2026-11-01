@@ -44,6 +44,8 @@ def compare(rows, horizon=12, threshold=0.20, percentile_cutoff=90):
     for value in summary.values():
         value["observed_fraction"] = (round(value["drawdown"] / value["eligible"], 6)
                                       if value["eligible"] else None)
+    for value in summary.values():
+        value["no_drawdown"] = value["eligible"] - value["drawdown"]
     high = summary["high_deviation"]
     other = summary["other"]
     contrast = None
@@ -55,6 +57,7 @@ def compare(rows, horizon=12, threshold=0.20, percentile_cutoff=90):
             "percentile_cutoff": percentile_cutoff,
             "note": "Monthly path drawdown; overlapping horizons; no causal or predictive interpretation.",
             "observed_fraction_difference_high_minus_other": contrast,
+            "comparison_available": contrast is not None,
             "groups": summary, "observations": observations}
 
 
