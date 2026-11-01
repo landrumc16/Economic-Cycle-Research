@@ -57,6 +57,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_v5_unified_research_status.py' -v
       - name: Workbook evidence converter regression tests
         run: python -m unittest discover -s tests -p 'test_v5_workbook_evidence.py' -v
+      - name: Real workbook snapshot integration regression
+        run: python -m unittest discover -s tests -p 'test_v5_workbook_snapshot_integration.py' -v
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
