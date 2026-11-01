@@ -26,10 +26,18 @@ class V5DashboardTests(unittest.TestCase):
         self.assertIn("12 months", render(report))
         self.assertIn("BLOCKED", render(report))
         self.assertIn("2026-08", render(report))
+        self.assertIn("Classification coverage", render(report))
+        self.assertGreater(report["classification_coverage"], 0)
 
     def test_refuses_approved_probabilities(self):
         inputs = list(fixtures())
         inputs[3]["numeric_forecasts_approved"] = True
+        with self.assertRaises(ValueError):
+            assemble(*inputs)
+
+    def test_refuses_individual_horizon_approval(self):
+        inputs = list(fixtures())
+        inputs[3]["horizons"]["6"]["numeric_forecast_approved"] = True
         with self.assertRaises(ValueError):
             assemble(*inputs)
 
