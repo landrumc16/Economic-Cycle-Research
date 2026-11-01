@@ -30,8 +30,8 @@ def snapshot(root, as_of):
               "UNRATE", "CPIAUCSL", "INDPRO")
     sources = {}
     for name in series:
-        rows = [r for r in read(directory / (name + "_monthly.csv"))
-                if r["date"] <= as_of]
+        rows = sorted((r for r in read(directory / (name + "_monthly.csv"))
+                       if r["date"] <= as_of), key=lambda r: r["date"])
         if not rows:
             raise ValueError("No observations on/before assessment date: " + name)
         meta = json.loads((directory / (name + "_metadata.json")).read_text())
