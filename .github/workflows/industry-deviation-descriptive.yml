@@ -21,6 +21,7 @@ on:
       - 'scripts/validate_multifactor_release.py'
       - 'scripts/build_weekly_economic_assessment.py'
       - 'scripts/build_economic_dashboard.py'
+      - 'scripts/build_historical_cycle_timeline.py'
       - 'scripts/weekly_assessment_history.py'
       - 'tests/test_weekly_assessment_history.py'
       - 'tests/test_build_economic_dashboard.py'
@@ -127,6 +128,8 @@ jobs:
         run: python scripts/industry_credit_research_summary.py
       - name: Multifactor descriptive release gate
         run: python scripts/validate_multifactor_release.py
+      - name: Build historical economic condition timeline
+        run: python scripts/build_historical_cycle_timeline.py
       - name: Publish weekly integrated economic assessment
         run: python scripts/build_weekly_economic_assessment.py --as-of "$(date -u +%F)"
       - name: Restore previous assessment archive
