@@ -21,6 +21,14 @@ class FetchIndustryObservationsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             normalize_csv("observation_date,CSUSHPINSA\n2000-01-01,.\n", "CSUSHPINSA")
 
+    def test_fred_date_header_accepted(self):
+        payload = "DATE,NASDAQCOM\\n2000-01-03,100\\n2000-01-31,110\\n"
+        self.assertEqual(normalize_csv(payload, "NASDAQCOM")[0]["value"], 110.0)
+
+    def test_missing_date_header_rejected(self):
+        with self.assertRaises(ValueError):
+            normalize_csv("wrong,NASDAQCOM\\n2000-01-03,100\\n", "NASDAQCOM")
+
 
 if __name__ == "__main__":
     unittest.main()
