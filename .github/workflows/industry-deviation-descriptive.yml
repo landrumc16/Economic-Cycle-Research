@@ -1,8 +1,8 @@
-name: Industry Deviation Descriptive Data
+name: Monthly Economic Cycle Assessment
 on:
   workflow_dispatch:
   schedule:
-    - cron: '20 13 * * 1'
+    - cron: '20 13 20 * *'
   push:
     paths:
       - 'scripts/fetch_industry_observations.py'
@@ -63,15 +63,15 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_derive_equity_valuation_gap.py' -v
       - name: Multifactor release gate regression tests
         run: python -m unittest discover -s tests -p 'test_validate_multifactor_release.py' -v
-      - name: Weekly assessment regression tests
+      - name: Monthly assessment regression tests
         run: python -m unittest discover -s tests -p 'test_build_weekly_economic_assessment.py' -v
       - name: Dashboard regression tests
         run: python -m unittest discover -s tests -p 'test_build_economic_dashboard.py' -v
-      - name: Weekly history regression tests
+      - name: Assessment history regression tests
         run: python -m unittest discover -s tests -p 'test_weekly_assessment_history.py' -v
       - name: Historical timeline regression tests
         run: python -m unittest discover -s tests -p 'test_build_historical_cycle_timeline.py' -v
-      - name: Weekly release gate regression tests
+      - name: Monthly release gate regression tests
         run: python -m unittest discover -s tests -p 'test_validate_weekly_release.py' -v
       - name: Historical comparison regression tests
         run: python -m unittest discover -s tests -p 'test_build_historical_condition_comparison.py' -v
@@ -143,7 +143,7 @@ jobs:
         run: python scripts/validate_multifactor_release.py
       - name: Build historical economic condition timeline
         run: python scripts/build_historical_cycle_timeline.py
-      - name: Publish weekly integrated economic assessment
+      - name: Publish monthly integrated economic assessment
         run: python scripts/build_weekly_economic_assessment.py --as-of "$(date -u +%F)"
       - name: Compare current conditions with historical months
         run: python scripts/build_historical_condition_comparison.py audit-output/historical_cycle_timeline.json audit-output/weekly_economic_assessment.json
@@ -156,14 +156,14 @@ jobs:
             economic-weekly-history-
       - name: Prepare prior assessment and update history
         run: python scripts/weekly_assessment_history.py audit-output/weekly_economic_assessment.json
-      - name: Generate weekly dashboard
+      - name: Generate monthly dashboard
         run: |
           if [ -f audit-output/previous_weekly_assessment.json ]; then
             python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json --previous audit-output/previous_weekly_assessment.json --historical audit-output/historical_condition_comparison.json
           else
             python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json --historical audit-output/historical_condition_comparison.json
           fi
-      - name: Weekly integrated release acceptance gate
+      - name: Monthly integrated release acceptance gate
         run: python scripts/validate_weekly_release.py
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
@@ -177,10 +177,10 @@ jobs:
         shell: bash
         run: |
           {
-            echo "## Economic Cycle Research — Version 4"
+            echo "## Economic Cycle Research — Version 4 Monthly Review"
             echo
             if [ -f audit-output/weekly_release_acceptance.json ]; then
-              echo "**Weekly release gate:** PASS"
+              echo "**Monthly release gate:** PASS"
               echo
               echo '~~~json'
               cat audit-output/weekly_release_acceptance.json
