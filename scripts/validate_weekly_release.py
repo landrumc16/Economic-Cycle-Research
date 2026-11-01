@@ -26,7 +26,11 @@ def validate(root):
                                     "STALE_CURRENT_DATA", "INSUFFICIENT_CURRENT_DATA"):
         raise ValueError("Invalid historical comparison status")
     if comparison["status"] != "RETROSPECTIVE_DESCRIPTIVE_ONLY":
-        raise ValueError("Historical comparison unavailable for complete release")
+        raise ValueError("Historical comparison unavailable for complete release: "
+                         + comparison["status"] + "; common observation month "
+                         + str(current["common_observation_month"]) + ", lag "
+                         + str(current.get("months_since_common_observation"))
+                         + " months. Preserve the freshness gate; do not label stale data current.")
     if dashboard.get("historical_comparison") != comparison:
         raise ValueError("Dashboard historical comparison does not match generated report")
     if dashboard.get("stale") != current["stale"]:
