@@ -13,7 +13,8 @@ from pathlib import Path
 
 ALLOWED = {"NASDAQCOM": "daily", "CSUSHPINSA": "monthly",
            "TOTALSL": "monthly", "BUSLOANS": "monthly",
-           "PI": "monthly"}
+           "PI": "monthly", "UNRATE": "monthly",
+           "CPIAUCSL": "monthly", "INDPRO": "monthly"}
 
 
 def normalize_csv(payload, series):
@@ -30,7 +31,7 @@ def normalize_csv(payload, series):
             continue
         d = date.fromisoformat(row.get("observation_date") or row.get("DATE"))
         value = float(raw)
-        if not (0 < value < float("inf")):
+        if not (0 <= value < float("inf")):
             raise ValueError("Nonpositive or nonfinite observation")
         key = d.strftime("%Y-%m")
         if key not in by_month or d > by_month[key][0]:
