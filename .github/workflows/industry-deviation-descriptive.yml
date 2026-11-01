@@ -150,9 +150,9 @@ jobs:
       - name: Generate weekly dashboard
         run: |
           if [ -f audit-output/previous_weekly_assessment.json ]; then
-            python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json --previous audit-output/previous_weekly_assessment.json
+            python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json --previous audit-output/previous_weekly_assessment.json --historical audit-output/historical_condition_comparison.json
           else
-            python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json
+            python scripts/build_economic_dashboard.py audit-output/weekly_economic_assessment.json --historical audit-output/historical_condition_comparison.json
           fi
       - name: Persist assessment history
         uses: actions/cache/save@v4
