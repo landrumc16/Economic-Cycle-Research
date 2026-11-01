@@ -67,7 +67,8 @@ def scorecard(snapshot, leads, horizon_months=12):
         "negative_outcome_coverage_certified": False,
         "predictive_publication": "BLOCKED",
         "monthly_assessments": evaluations,
-        "evaluation_caveat": "Selected drawdown crossings only; apparent non-events are not verified negative outcomes",\n        "limitations": [
+        "evaluation_caveat": "Selected drawdown crossings only; apparent non-events are not verified negative outcomes",
+        "limitations": [
             "Retrospective, revised observations; no verified contemporaneous release dates",
             "Event list contains selected historical drawdown crossings, not complete independent outcomes",
             "No-listed-event months cannot be interpreted as verified negatives or used to claim false-alarm rate",
