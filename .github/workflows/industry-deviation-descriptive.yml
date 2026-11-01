@@ -78,6 +78,8 @@ jobs:
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: |
           python scripts/fetch_industry_observations.py NASDAQCOM --start 1980-01-01 --end "$(date -u +%F)"
           python scripts/fetch_industry_observations.py CSUSHPINSA --start 1987-01-01 --end "$(date -u +%F)"
