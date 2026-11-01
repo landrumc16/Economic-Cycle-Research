@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "status": "PROVISIONAL_RESEARCH_LABELS_NOT_INDEPENDENTLY_ADJUDICATED",
+  "source": "data/workbook_historical_research_snapshot_2026-10-30.json",
+  "market_index_note": "Source workbook uses Nasdaq cutoff; independently recompute consistent index-specific drawdown crossing dates before validation",
+  "categories": [
+    "endogenous",
+    "external_shock",
+    "mixed_uncertain"
+  ],
+  "events": [
+    {
+      "parent_cluster": "1",
+      "listed_crossing_month": "1987-10",
+      "provisional_cohort": "endogenous",
+      "mechanism": "market_structure_liquidity",
+      "rationale": "Portfolio insurance and feedback selling; no recession required",
+      "source_url": "https://www.federalreservehistory.org/essays/stock-market-crash-of-1987",
+      "independent_adjudication": false
+    },
+    {
+      "parent_cluster": "2",
+      "listed_crossing_month": "1990-08",
+      "provisional_cohort": "mixed_uncertain",
+      "mechanism": "recession_oil_geopolitics",
+      "rationale": "Recession overlaps Gulf crisis; do not assert one initiating cause",
+      "source_url": "https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions",
+      "independent_adjudication": false
+    },
+    {
+      "parent_cluster": "3",
+      "listed_crossing_month": "1998-08",
+      "provisional_cohort": "mixed_uncertain",
+      "mechanism": "external_default_and_leverage",
+      "rationale": "Russian default and LTCM spillover; separate initiating shock from leverage amplification",
+      "source_url": "https://www.federalreserve.gov/newsevents/speech/kohn20060518a.htm",
+      "independent_adjudication": false
+    },
+    {
+      "parent_cluster": "4",
+      "listed_crossing_month": "2000-04",
+      "provisional_cohort": "endogenous",
+      "mechanism": "speculative_valuation",
+      "rationale": "Candidate dot-com valuation/speculation unwind; mechanism requires case-level evidence",
+      "source_url": null,
+      "independent_adjudication": false
+    },
+    {
+      "parent_cluster": "5",
+      "listed_crossing_month": "2008-02",
+      "provisional_cohort": "endogenous",
+      "mechanism": "credit_leverage",
+      "rationale": "Candidate credit/housing fragility; mechanism requires case-level evidence",
+      "source_url": null,
+      "independent_adjudication": false
+    },
+    {
+      "parent_cluster": "6",
+      "listed_crossing_month": "2018-12",
+      "provisional_cohort": "mixed_uncertain",
+      "mechanism": "monetary_tightening_liquidity",
+      "rationale": "Candidate tightening/liquidity; causal adjudication pending",
+      "source_url": null,
+      "independent_adjudication": false
+    },
+    {
+      "parent_cluster": "7",
+      "listed_crossing_month": "2020-03",
+      "provisional_cohort": "external_shock",
+      "mechanism": "pandemic",
+      "rationale": "Pandemic-triggered shock; exclude from core threshold fitting, retain sensitivity",
+      "source_url": "https://www.federalreservehistory.org/essays/federal-reserve-history",
+      "independent_adjudication": false
+    },
+    {
+      "parent_cluster": "8",
+      "listed_crossing_month": "2022-03",
+      "provisional_cohort": "mixed_uncertain",
+      "mechanism": "inflation_tightening_geopolitics",
+      "rationale": "Inflation and anticipated tightening alongside war shock; causal adjudication pending",
+      "source_url": null,
+      "independent_adjudication": false
+    }
+  ],
+  "policy": {
+    "core": "Only provisionally endogenous events; do not interpret as certified",
+    "external": "Excluded from core, included in shock sensitivity",
+    "mixed": "Excluded from core pending adjudication, included in sensitivity",
+    "no_event": "Not established from absence in selected-event registry"
+  },
+  "predictive_publication": "BLOCKED"
+}
