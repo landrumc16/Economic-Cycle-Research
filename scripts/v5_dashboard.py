@@ -14,8 +14,16 @@ def assemble(estimates, evaluation, baseline, gate, episodes):
         raise ValueError("V5 artifact status mismatch")
     if gate["numeric_forecasts_approved"]:
         raise ValueError("Numeric forecasts require a separately approved release")
+    if any(gate["horizons"][h]["numeric_forecast_approved"] for h in ("3", "6", "12")):
+        raise ValueError("Individual horizon forecasts are not approved")
+    counts = evaluation["counts"]
+    total = sum(counts.values())
+    classified = total - counts["uncertain"]
     return {
         "status": "V5_RESEARCH_DASHBOARD_ONLY",
+        "classification_coverage": round(classified / total, 4) if total else None,
+        "recession_recall_excluding_uncertain": (round(counts["true_positive"] / (counts["true_positive"] + counts["false_negative"]), 4)
+                                                if counts["true_positive"] + counts["false_negative"] else None),
         "observation_month": estimates["as_of_month"],
         "preliminary_phase": estimates["latest"]["phase"],
         "current_conditions_approved": False,
@@ -42,6 +50,8 @@ def render(report):
                     ("Yes" if data["retrospective_benchmark_pass"] else "No") +
                     "</td></tr>")
     counts = report["recession_month_counts"]
+    coverage = report["classification_coverage"]
+    coverage_text = "Unavailable" if coverage is None else f"{coverage:.1%}"
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Economic Cycle Research | Version 5 Historical Diagnostics</title>
@@ -58,6 +68,7 @@ p,small{{color:#526279}}h1{{font-size:1.8rem}}
 <section><h2>Preliminary phase: {esc(report["preliminary_phase"].replace("_"," ").title())}</h2>
 <p>{esc(report["disclaimer"])}</p></section>
 <section><h2>Historical recession-month diagnostic</h2>
+<p>Classification coverage: {coverage_text} of evaluated months; uncertain months excluded from precision and recall.</p>
 <p>Correct recession flags: {counts["true_positive"]}; missed recession months: {counts["false_negative"]};
 false alarms: {counts["false_positive"]}; uncertain months: {counts["uncertain"]}.</p>
 <p>Recession episodes examined: {report["episode_count"]}; episodes with a warning in the preceding
