@@ -2,8 +2,14 @@
 
 Status: research protocol; no point-of-no-return claim.
 
+## Revised interpretation: delayed contraction hypothesis
+A period without immediate recession is NOT automatically a resolved imbalance. Classify each apparent soft landing as (a) deferred contraction with persistent vulnerability, (b) genuinely resolved vulnerability, or (c) later recession driven primarily by a new mechanism. Classification requires evidence, not just temporal proximity.
+
+Track 12-, 24-, 36-, 60- and 84-month follow-up, intervening policy changes, credit and valuation normalization, accumulated leverage, and shifts in initiating mechanisms. Use survival/time-to-event analysis with right-censoring for external shocks and incomplete observations. Report both equity drawdowns and recessions separately. Do not label every later recession as proof of deferral; evaluate whether the original imbalance persisted and plausibly contributed.
+
+
 ## Candidate comparisons
-- **1994–1996 tightening and soft landing:** documented recession non-event, NOT yet a certified equity drawdown non-event. Source: https://www.stlouisfed.org/publications/review/2025/apr/risk-management-monetary-policy-1994-95-fomc-tightening-episode
+- **1994–1996 tightening and soft landing:** no immediate recession; test whether vulnerabilities were resolved, deferred, or superseded by a new mechanism; NOT a certified equity drawdown non-event. Source: https://www.stlouisfed.org/publications/review/2025/apr/risk-management-monetary-policy-1994-95-fomc-tightening-episode
 - **1983–1984 tightening:** documented soft-landing candidate; equity outcome pending independent price reconstruction. Source: https://www.stlouisfed.org/on-the-economy/2022/apr/fed-tightening-episodes-since-1980s-part-one
 - **1998 Russia/LTCM:** stress-recovery candidate for U.S. economy, NOT a clean no-crash equity comparison; selected Nasdaq drawdown crossing appears in August 1998. Source: https://www.federalreserve.gov/newsevents/speech/powell20190823a.htm
 - **2019 pre-pandemic slowdown:** right-censored by 2020 exogenous pandemic, not a verified no-crash observation. Source: https://www.federalreserve.gov/newsevents/speech/jefferson20240222a.htm
