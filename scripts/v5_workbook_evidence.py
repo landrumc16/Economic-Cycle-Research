@@ -62,6 +62,11 @@ def main():
     args = parser.parse_args()
     snapshot = json.loads(Path(args.snapshot).read_text())
     result = convert(snapshot["rows"], snapshot["source_url"], args.reviewed)
+    result["snapshot_retrieval_date"] = snapshot.get("retrieval_date")
+    result["snapshot_review_status"] = snapshot.get("review_status", "UNKNOWN")
+    if result["snapshot_review_status"] != "REVIEWED":
+        result["evidence_reviewed"] = False
+        result["macro_promotion"] = {series: "BLOCKED" for series in SERIES}
     path = Path(args.output)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(result, indent=2) + "\n")
