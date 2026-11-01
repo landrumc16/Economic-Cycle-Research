@@ -16,6 +16,8 @@ on:
       - 'scripts/industry_multifactor_research.py'
       - 'scripts/derive_credit_growth.py'
       - 'scripts/industry_credit_research_summary.py'
+      - 'scripts/derive_housing_income_divergence.py'
+      - 'tests/test_derive_housing_income_divergence.py'
       - 'tests/test_derive_credit_growth.py'
       - 'tests/test_industry_multifactor_research.py'
       - 'tests/test_industry_deviation_comparison.py'
@@ -37,6 +39,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_industry_multifactor_research.py' -v
       - name: Credit growth transformation tests
         run: python -m unittest discover -s tests -p 'test_derive_credit_growth.py' -v
+      - name: Housing fundamentals transformation tests
+        run: python -m unittest discover -s tests -p 'test_derive_housing_income_divergence.py' -v
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
@@ -45,11 +49,14 @@ jobs:
           python scripts/fetch_industry_observations.py CSUSHPINSA --start 1987-01-01 --end 2026-10-31
           python scripts/fetch_industry_observations.py TOTALSL --start 1980-01-01 --end 2026-10-31
           python scripts/fetch_industry_observations.py BUSLOANS --start 1980-01-01 --end 2026-10-31
+          python scripts/fetch_industry_observations.py PI --start 1980-01-01 --end 2026-10-31
       - name: Derive historical credit growth
         run: |
           for series in TOTALSL BUSLOANS; do
             python scripts/derive_credit_growth.py "data/industry_observations/${series}_monthly.csv" --output "data/industry_observations/${series}_growth12m.csv"
           done
+      - name: Derive housing price-income growth divergence
+        run: python scripts/derive_housing_income_divergence.py data/industry_observations/CSUSHPINSA_monthly.csv data/industry_observations/PI_monthly.csv --output data/industry_observations/housing_income_divergence.csv
       - name: Calculate backward-looking descriptive deviations
         run: |
           python scripts/industry_deviation_metrics.py data/industry_observations/NASDAQCOM_monthly.csv --output audit-output/NASDAQCOM_deviation.json
@@ -85,6 +92,9 @@ jobs:
             for horizon in 6 12 24; do
               python scripts/industry_multifactor_research.py "data/industry_observations/${series}_monthly.csv" --horizon "$horizon" --indicator "consumer_credit_growth=data/industry_observations/TOTALSL_growth12m.csv" --indicator "business_credit_growth=data/industry_observations/BUSLOANS_growth12m.csv" --output "audit-output/${series}_credit_joint_${horizon}m.json"
             done
+          done
+          for horizon in 6 12 24; do
+            python scripts/industry_multifactor_research.py data/industry_observations/CSUSHPINSA_monthly.csv --horizon "$horizon" --threshold 0.10 --indicator "housing_income_divergence=data/industry_observations/housing_income_divergence.csv" --indicator "consumer_credit_growth=data/industry_observations/TOTALSL_growth12m.csv" --indicator "business_credit_growth=data/industry_observations/BUSLOANS_growth12m.csv" --output "audit-output/CSUSHPINSA_fundamentals_credit_${horizon}m.json"
           done
       - name: Generate consolidated historical report
         run: python scripts/industry_deviation_summary.py
