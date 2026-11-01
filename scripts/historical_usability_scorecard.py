@@ -31,7 +31,7 @@ def scorecard(snapshot, leads, horizon_months=12):
         else:
             signal = "ELEVATED" if curve < 0 or credit >= 2.5 else "NOT_ELEVATED"
         idx = event_indices[month]
-        # Exclude current month; outcome is an event peak within the forward horizon.
+        # Exclude current month; outcome is a listed drawdown crossing within the forward horizon.
         future = [e for e in events if e in event_indices and idx < event_indices[e] <= idx + horizon_months]
         outcome = "EVENT_WITHIN_HORIZON" if future else "NO_LISTED_EVENT_WITHIN_HORIZON"
         # Last horizon months have incomplete future coverage: never score them as negatives.
@@ -56,7 +56,8 @@ def scorecard(snapshot, leads, horizon_months=12):
         "flagged_months": len(flagged),
         "flagged_followed_by_listed_peak": flagged_with_listed_peak,
         "unflagged_followed_by_listed_peak": unflagged_with_listed_peak,
-        "listed_peak_count": len(events),\n        "event_target": "FIRST_20_PERCENT_DRAWDOWN_CROSSING",
+        "listed_peak_count": len(events),
+        "event_target": "FIRST_20_PERCENT_DRAWDOWN_CROSSING",
         "lead_window_rows": len(lead_rows),
         "point_in_time_certified": False,
         "negative_outcome_coverage_certified": False,
