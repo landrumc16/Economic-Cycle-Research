@@ -18,6 +18,8 @@ class WeeklyReleaseTests(unittest.TestCase):
                   "months":1,"timeline":[{"month":"2020-01"}]}
         comparison={"status":"RETROSPECTIVE_DESCRIPTIVE_ONLY",
                     "observation_month":"2026-09-01"}
+        dashboard["historical_comparison"]=comparison
+        dashboard["stale"]=False
         for name,value in (("weekly_economic_assessment.json",current),
                            ("economic_dashboard.json",dashboard),
                            ("historical_cycle_timeline.json",timeline),
