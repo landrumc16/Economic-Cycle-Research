@@ -29,6 +29,23 @@ class MultifactorTests(unittest.TestCase):
         self.assertEqual([(r["date"], r["acceleration"]) for r in first],
                          [(r["date"], r["acceleration"]) for r in second])
 
+    def test_joint_cells_partition_complete_case_months(self):
+        prices = make_prices(120)
+        indicator = [{"date": row["date"], "value": str(i)}
+                     for i, row in enumerate(prices) if i % 3 != 0]
+        result = analyze(prices, {"credit": indicator})
+        joint = result["joint_comparisons"]["credit"]
+        cells = joint["cells"].values()
+        self.assertEqual(sum(cell["months"] for cell in cells), joint["eligible_months"])
+        self.assertEqual(sum(cell["declines"] + cell["no_decline"] for cell in cells),
+                         joint["eligible_months"])
+        self.assertEqual(joint["eligible_months"] + joint["missing_months"],
+                         result["eligible_price_months"])
+
+    def test_joint_no_overlap_explicit(self):
+        result = analyze(make_prices(), {"credit": [{"date": "1900-01-01", "value": "5"}]})
+        self.assertEqual(result["joint_comparisons"]["credit"]["status"], "NO_OVERLAP")
+
     def test_invalid_horizon_rejected(self):
         with self.assertRaises(ValueError):
             analyze(make_prices(), {}, horizon=0)
