@@ -169,6 +169,34 @@ jobs:
         run: python scripts/v5_workbook_evidence.py data/workbook_evidence/promotion_gate_2026-11-01.json
       - name: Build fail-closed unified research status
         run: python scripts/v5_unified_research_status.py audit-output/weekly_release_acceptance.json audit-output/v5_forecast_release_gate.json --workbook-evidence audit-output/v5_workbook_evidence.json
+      - name: Publish unified V5 release summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Version 5 Unified Research"
+            if [ -f audit-output/unified_research_status.json ]; then
+              python - <<'PY'
+          import json, os
+          from pathlib import Path
+          d = json.loads(Path("audit-output/unified_research_status.json").read_text())
+          lines = [
+              "",
+              f"**Monthly gate:** {d['github_monthly_release_status']}",
+              f"**Workbook reconciliation:** {d['workbook_reconciliation']}",
+              f"**Snapshot date:** {d.get('workbook_snapshot_retrieval_date') or 'Unavailable'}",
+              f"**Macro promotion:** {', '.join(f'{k}={v}' for k,v in d['macro_promotion'].items())}",
+              "**Numeric forecasts:** BLOCKED",
+              "",
+              "Artifacts: v5_dashboard.html, v5_executive_brief.md, unified_research_status.json",
+          ]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
+              output.write("\n".join(lines) + "\n")
+          PY
+            else
+              echo "Unified research output missing; release not verified."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - name: Persist assessment history
