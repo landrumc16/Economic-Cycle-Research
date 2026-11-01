@@ -47,8 +47,10 @@ jobs:
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: industry-deviation-descriptive-evidence
+          if-no-files-found: warn
           path: |
             audit-output/
             data/industry_observations/
