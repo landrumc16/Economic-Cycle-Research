@@ -22,6 +22,7 @@ on:
       - 'scripts/build_weekly_economic_assessment.py'
       - 'scripts/build_economic_dashboard.py'
       - 'scripts/validate_weekly_release.py'
+      - 'tests/test_validate_weekly_release.py'
       - 'scripts/build_historical_cycle_timeline.py'
       - 'scripts/build_historical_condition_comparison.py'
       - 'tests/test_build_historical_cycle_timeline.py'
@@ -69,6 +70,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_weekly_assessment_history.py' -v
       - name: Historical timeline regression tests
         run: python -m unittest discover -s tests -p 'test_build_historical_cycle_timeline.py' -v
+      - name: Weekly release gate regression tests
+        run: python -m unittest discover -s tests -p 'test_validate_weekly_release.py' -v
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
