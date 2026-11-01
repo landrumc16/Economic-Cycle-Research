@@ -6,6 +6,9 @@ on:
     paths:
       - 'scripts/historical_usability_*.py'
       - 'scripts/historical_mechanism_comparison.py'
+      - 'scripts/endogenous_cohort_comparison.py'
+      - 'data/endogenous_event_classification_v1.json'
+      - 'data/political_intervention_case_registry_v1.json'
       - 'tests/test_historical_usability_*.py'
       - 'data/workbook_historical_research_snapshot_2026-10-30.json'
       - 'data/v2_canonical_lead_window_summary_2026-10-31.json'
@@ -28,6 +31,7 @@ jobs:
           python scripts/historical_usability_inventory.py
           python scripts/historical_usability_scorecard.py
           python scripts/historical_mechanism_comparison.py
+          python scripts/endogenous_cohort_comparison.py
       - name: Check scorecard boundaries
         run: |
           python - <<'PY'
@@ -40,6 +44,11 @@ jobs:
           assert score["negative_outcome_coverage_certified"] is False
           assert score["predictive_publication"] == "BLOCKED"
           assert score["monthly_observations"] == inventory["monthly_rows"]
+          cohort = json.loads(Path("audit-output/endogenous_cohort_comparison.json").read_text())
+          assert cohort["point_in_time_certified"] is False
+          assert len(cohort["results"]) == 3
+          registry = json.loads(Path("data/political_intervention_case_registry_v1.json").read_text())
+          assert all(case["deferral_claim"] != "PROVEN" for case in registry["cases"])
           assert score["mature_observations"] > 0
           print({key: score[key] for key in ("monthly_observations", "mature_observations", "flagged_months", "flagged_followed_by_listed_peak", "unflagged_followed_by_listed_peak")})
           PY
@@ -52,4 +61,5 @@ jobs:
             audit-output/historical_usability_inventory.json
             audit-output/historical_usability_scorecard.json
             audit-output/historical_mechanism_comparison.json
+            audit-output/endogenous_cohort_comparison.json
           if-no-files-found: warn
