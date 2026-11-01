@@ -46,6 +46,12 @@ class MultifactorTests(unittest.TestCase):
         result = analyze(make_prices(), {"credit": [{"date": "1900-01-01", "value": "5"}]})
         self.assertEqual(result["joint_comparisons"]["credit"]["status"], "NO_OVERLAP")
 
+    def test_duplicate_indicator_dates_rejected(self):
+        with self.assertRaises(ValueError):
+            analyze(make_prices(), {"credit": [
+                {"date": "2005-01-01", "value": "1"},
+                {"date": "2005-01-01", "value": "2"}]})
+
     def test_invalid_horizon_rejected(self):
         with self.assertRaises(ValueError):
             analyze(make_prices(), {}, horizon=0)
