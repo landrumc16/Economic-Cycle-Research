@@ -1,4 +1,4 @@
-"""Weekly-ready economic research snapshot from latest complete monthly observations.
+"""Monthly economic research snapshot from latest complete monthly observations.
 
 Not a real-time nowcast or validated crash probability. Explicit coverage and lag.
 """
