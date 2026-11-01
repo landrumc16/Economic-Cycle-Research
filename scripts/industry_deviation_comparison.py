@@ -44,10 +44,17 @@ def compare(rows, horizon=12, threshold=0.20, percentile_cutoff=90):
     for value in summary.values():
         value["observed_fraction"] = (round(value["drawdown"] / value["eligible"], 6)
                                       if value["eligible"] else None)
+    high = summary["high_deviation"]
+    other = summary["other"]
+    contrast = None
+    if high["eligible"] and other["eligible"]:
+        contrast = round(high["drawdown"] / high["eligible"] -
+                         other["drawdown"] / other["eligible"], 6)
     return {"status": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
             "horizon_months": horizon, "drawdown_threshold": threshold,
             "percentile_cutoff": percentile_cutoff,
             "note": "Monthly path drawdown; overlapping horizons; no causal or predictive interpretation.",
+            "observed_fraction_difference_high_minus_other": contrast,
             "groups": summary, "observations": observations}
 
 
