@@ -1,0 +1,41 @@
+name: Industry Deviation Descriptive Data
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'scripts/fetch_industry_observations.py'
+      - 'scripts/industry_deviation_metrics.py'
+      - 'scripts/industry_deviation_registry_audit.py'
+      - 'tests/test_fetch_industry_observations.py'
+      - 'tests/test_industry_deviation_metrics.py'
+      - 'data/industry_deviation_episode_registry_v1.json'
+      - '.github/workflows/industry-deviation-descriptive.yml'
+jobs:
+  descriptive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests
+        run: python -m unittest discover -s tests -p 'test_*industry*metrics.py' -v && python -m unittest discover -s tests -p 'test_fetch_industry_observations.py' -v
+      - name: Registry audit
+        run: python scripts/industry_deviation_registry_audit.py
+      - name: Fetch retrospective observations
+        run: |
+          python scripts/fetch_industry_observations.py NASDAQCOM --start 1980-01-01 --end 2026-10-31
+          python scripts/fetch_industry_observations.py CSUSHPINSA --start 1987-01-01 --end 2026-10-31
+      - name: Calculate backward-looking descriptive deviations
+        run: |
+          python scripts/industry_deviation_metrics.py data/industry_observations/NASDAQCOM_monthly.csv --output audit-output/NASDAQCOM_deviation.json
+          python scripts/industry_deviation_metrics.py data/industry_observations/CSUSHPINSA_monthly.csv --output audit-output/CSUSHPINSA_deviation.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: industry-deviation-descriptive-evidence
+          path: |
+            audit-output/
+            data/industry_observations/
+          retention-days: 30
