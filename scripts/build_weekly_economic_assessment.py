@@ -74,7 +74,7 @@ def snapshot(root, as_of):
     def age_months(month):
         y, m = map(int, month[:7].split("-"))
         ay, am = map(int, as_of[:7].split("-"))
-        return (ay - y) * 12 + am
+        return (ay - y) * 12 + (am - m)
     def change(name, months):
         by_month = {r["date"][:7]: float(r["value"]) for r in trimmed[name]}
         year, month = map(int, common_date[:7].split("-"))
