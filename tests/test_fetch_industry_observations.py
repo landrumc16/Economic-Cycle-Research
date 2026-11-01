@@ -15,7 +15,7 @@ class FetchIndustryObservationsTests(unittest.TestCase):
 
     def test_unapproved_series(self):
         with self.assertRaises(ValueError):
-            normalize_csv("observation_date,UNRATE\n2000-01-01,4\n", "UNRATE")
+            normalize_csv("observation_date,NOT_APPROVED\n2000-01-01,4\n", "NOT_APPROVED")
 
     def test_empty(self):
         with self.assertRaises(ValueError):
