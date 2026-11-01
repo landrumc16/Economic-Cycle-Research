@@ -18,7 +18,7 @@ def normalize_csv(payload, series):
     if series not in ALLOWED:
         raise ValueError("Series not approved")
     reader = csv.DictReader(io.StringIO(payload))
-    if not reader.fieldnames or series not in reader.fieldnames:
+    if not reader.fieldnames or series not in reader.fieldnames or not ({"observation_date", "DATE"} & set(reader.fieldnames)):
         raise ValueError("Unexpected FRED CSV columns")
     by_month = {}
     valid = 0
@@ -57,6 +57,13 @@ def main():
     with urllib.request.urlopen(request, timeout=30) as response:
         payload = response.read().decode("utf-8-sig")
     observations = normalize_csv(payload, args.series)
+    # The current month is incomplete at a mid-month cutoff. Exclude it uniformly.
+    end_date = date.fromisoformat(args.end)
+    observations = [row for row in observations
+                    if row["date"][:7] < end_date.strftime("%Y-%m")
+                    or row["last_observed_date"] == args.end]
+    if not observations:
+        raise ValueError("No complete monthly observations")
     out = Path(args.output_dir)
     out.mkdir(parents=True, exist_ok=True)
     with (out / (args.series + "_monthly.csv")).open("w", newline="") as f:
