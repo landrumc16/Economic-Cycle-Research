@@ -32,3 +32,11 @@ Avoid "soft landing", "hard landing", "healthy economy", "overheated market", "s
 
 ## Historical cleanup
 Prior documents containing interpretive language remain archival and are not silently rewritten. New scorecards and dashboards must use the terminology above. Historical records should be migrated with explicit mappings and a documented review.
+
+## Behavioral cycles and market adjustment
+- Treat recurring market adjustments as observed historical phenomena, not evidence of a deterministic crash date or magnitude.
+- Measure speculative positioning, leverage, concentration, risk appetite, liquidity, realized drawdowns and recoveries where historical data permit.
+- Describe policy responses by instrument, timing and subsequent observations. Do not code interventions as having \"stopped\", \"prevented\", or \"postponed\" a crash without a separately identified causal counterfactual.
+- A later decline does not establish continuity with an earlier imbalance; test persistence of the same vulnerabilities and competing initiating mechanisms.
+- Distinguish any decline, a predeclared correction threshold (for example 10%), a predeclared bear-market threshold (for example 20%), and a recession; thresholds are conventions, not physical laws.
+- Apply the same inclusion, censoring and classification rules to all episodes, including exogenous shocks. Mechanism-specific cohort exclusions must be declared in advance and shown alongside full-sample sensitivity.
