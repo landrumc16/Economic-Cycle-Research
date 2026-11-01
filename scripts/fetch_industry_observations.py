@@ -47,6 +47,20 @@ def normalize_csv(payload, series):
             for k, v in sorted(by_month.items())]
 
 
+def api_observations_to_csv(data, series):
+    """Adapt official FRED API JSON to the existing validated CSV normalizer."""
+    if not isinstance(data, dict) or not isinstance(data.get("observations"), list):
+        raise ValueError("Unexpected FRED API observations response")
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["observation_date", series])
+    for item in data["observations"]:
+        if not isinstance(item, dict) or "date" not in item or "value" not in item:
+            raise ValueError("Malformed FRED API observation")
+        writer.writerow([item["date"], item["value"]])
+    return output.getvalue()
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("series", choices=sorted(ALLOWED))
@@ -79,14 +93,7 @@ def main():
                     f"FRED API download failed for {args.series} after 3 attempts: {type(exc).__name__}"
                 ) from exc
             time.sleep(2 ** attempt * 5)
-    if not isinstance(data.get("observations"), list):
-        raise ValueError("Unexpected FRED API observations response")
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["observation_date", args.series])
-    for item in data["observations"]:
-        writer.writerow([item["date"], item["value"]])
-    payload = output.getvalue()
+    payload = api_observations_to_csv(data, args.series)
     observations = normalize_csv(payload, args.series)
     # The current month is incomplete at a mid-month cutoff. Exclude it uniformly.
     end_date = date.fromisoformat(args.end)
