@@ -27,7 +27,12 @@ def build(root):
             groups = data["groups"]
             for group in groups.values():
                 assert group["eligible"] == group["drawdown"] + group["no_drawdown"]
+            episode_data = json.loads((root / "audit-output" / f"{series}_episodes_{horizon}m.json").read_text())
+            assert episode_data["horizon_months"] == horizon
             results.append({
+                "episode_summary": {key: episode_data[key] for key in (
+                    "alert_clusters", "eligible_clusters", "clusters_with_decline",
+                    "clusters_without_decline", "observed_hit_fraction")},
                 "horizon_months": horizon,
                 "high": groups["high_deviation"],
                 "other": groups["other"],
@@ -50,6 +55,15 @@ def markdown(report):
             difference = item["fraction_difference"]
             pp = "N/A" if difference is None else f"{difference * 100:+.1f}"
             lines.append(f"| {series} | {item['horizon_months']} | {high['eligible']} | {high['drawdown']} | {high['no_drawdown']} | {other['eligible']} | {other['drawdown']} | {pp} |")
+    lines += ["", "## Episode-level alerts", "",
+              "| Series | Horizon | Alert clusters | Eligible | With decline | Without decline | Hit fraction |",
+              "|---|---:|---:|---:|---:|---:|---:|"]
+    for series, horizons in report["series"].items():
+        for item in horizons:
+            ep = item["episode_summary"]
+            fraction = ep["observed_hit_fraction"]
+            rate = "N/A" if fraction is None else f"{fraction * 100:.1f}%"
+            lines.append(f"| {series} | {item['horizon_months']} | {ep['alert_clusters']} | {ep['eligible_clusters']} | {ep['clusters_with_decline']} | {ep['clusters_without_decline']} | {rate} |")
     lines += ["", "## Interpretation limits", ""]
     lines += [f"- {limitation}" for limitation in report["limitations"]]
     lines += ["", "A positive difference is an observed association, not validated forecasting ability or evidence of causation.", ""]
