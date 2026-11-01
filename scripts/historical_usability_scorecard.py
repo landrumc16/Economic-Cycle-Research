@@ -38,6 +38,7 @@ def scorecard(snapshot, leads, horizon_months=12):
         mature = idx + horizon_months < len(months)
         evaluations.append({"month": month, "curve_pp": curve, "credit_pp": credit,
                             "signal": signal, "retrospective_listed_peak_outcome": outcome if mature else "UNMATURED",
+                            "retrospective_drawdown_crossing_outcome": outcome if mature else "UNMATURED",
                             "future_coverage_complete": False,
                             "point_in_time_eligible": False})
     mature_rows = [r for r in evaluations if r["retrospective_listed_peak_outcome"] != "UNMATURED"
@@ -57,13 +58,16 @@ def scorecard(snapshot, leads, horizon_months=12):
         "flagged_followed_by_listed_peak": flagged_with_listed_peak,
         "unflagged_followed_by_listed_peak": unflagged_with_listed_peak,
         "listed_peak_count": len(events),
+        "listed_drawdown_crossing_count": len(events),
+        "flagged_followed_by_drawdown_crossing": flagged_with_listed_peak,
+        "unflagged_followed_by_drawdown_crossing": unflagged_with_listed_peak,
         "event_target": "FIRST_20_PERCENT_DRAWDOWN_CROSSING",
         "lead_window_rows": len(lead_rows),
         "point_in_time_certified": False,
         "negative_outcome_coverage_certified": False,
         "predictive_publication": "BLOCKED",
         "monthly_assessments": evaluations,
-        "limitations": [
+        "evaluation_caveat": "Selected drawdown crossings only; apparent non-events are not verified negative outcomes",\n        "limitations": [
             "Retrospective, revised observations; no verified contemporaneous release dates",
             "Event list contains selected historical drawdown crossings, not complete independent outcomes",
             "No-listed-event months cannot be interpreted as verified negatives or used to claim false-alarm rate",
