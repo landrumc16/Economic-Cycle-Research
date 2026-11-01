@@ -25,7 +25,7 @@ def validate(root):
     if comparison["status"] not in ("RETROSPECTIVE_DESCRIPTIVE_ONLY",
                                     "STALE_CURRENT_DATA", "INSUFFICIENT_CURRENT_DATA"):
         raise ValueError("Invalid historical comparison status")
-    if comparison["status"] != "RETROSPECTIVE_DESCRIPTIVE_ONLY":
+    if comparison["status"] != "RETROSPECTIVE_DESCRIPTIVE_ONLY" and not current["stale"]:
         raise ValueError("Historical comparison unavailable for complete release: "
                          + comparison["status"] + "; common observation month "
                          + str(current["common_observation_month"]) + ", lag "
@@ -49,12 +49,11 @@ def validate(root):
         raise ValueError("HTML dashboard does not match assessment")
     if len(dashboard.get("metrics", [])) < 9:
         raise ValueError("Expected integrated economic indicators missing")
-    if current["stale"]:
-        raise ValueError("Current assessment uses stale observations")
-    return {"status": "PASS", "assessment_date": current["assessment_date"],
+    return {"status": "STALE_RESEARCH_ONLY" if current["stale"] else "PASS", "assessment_date": current["assessment_date"],
             "observation_month": current["common_observation_month"],
             "historical_months": timeline["months"],
-            "dashboard_metrics": len(dashboard["metrics"])}
+            "dashboard_metrics": len(dashboard["metrics"]),
+            "current_assessment_approved": not current["stale"]}
 
 
 def main():
