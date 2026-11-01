@@ -59,7 +59,35 @@ def compare(current, previous=None):
             "new_observation_month_since_previous": changed_month,
             "metrics": metrics,
             "interpretation": interpret(current),
+            "cycle_conditions": cycle_conditions(current),
             "limitations": current["limitations"]}
+
+
+def cycle_conditions(current):
+    """Transparent condition tags, not an inferred business-cycle phase."""
+    if current["stale"]:
+        return {"status": "STALE", "tags": [], "reason": "Latest shared observations are stale"}
+    required = ("unemployment_change_3m_pp", "industrial_production_growth_12m_log_pct",
+                "cpi_inflation_12m_log_pct", "consumer_credit_growth_12m_log_pct",
+                "business_credit_growth_12m_log_pct")
+    if any(current.get(key) is None for key in required):
+        return {"status": "INSUFFICIENT_DATA", "tags": [],
+                "reason": "Missing comparable macroeconomic indicators"}
+    tags = []
+    if current["unemployment_change_3m_pp"] > 0:
+        tags.append("LABOR_SOFTENING")
+    if current["industrial_production_growth_12m_log_pct"] < 0:
+        tags.append("PRODUCTION_CONTRACTION")
+    if current["cpi_inflation_12m_log_pct"] > 0:
+        tags.append("POSITIVE_INFLATION")
+    if (current["consumer_credit_growth_12m_log_pct"] > 0
+            and current["business_credit_growth_12m_log_pct"] > 0):
+        tags.append("BROAD_CREDIT_EXPANSION")
+    for name in ("equity_acceleration", "housing_acceleration"):
+        if current[name].get("high_acceleration"):
+            tags.append(name.upper())
+    return {"status": "DESCRIPTIVE_TAGS_ONLY", "tags": tags,
+            "reason": "Conditions are not a calibrated expansion/recession classification"}
 
 
 def interpret(current):
@@ -111,6 +139,7 @@ def render(report):
                      f'<strong>{fmt(metric["value"])}</strong>'
                      f'<p>{esc(metric["units"])}</p><small>{esc(note)}</small></section>')
     limitations = "".join(f"<li>{esc(note)}</li>" for note in report["limitations"])
+    condition_tags = ", ".join(report["cycle_conditions"]["tags"]) or "None / unavailable"
     comparison = ("No previous assessment supplied" if report["previous_assessment_date"] is None
                   else f'Previous assessment: {esc(report["previous_assessment_date"])}. '
                        f'New observation month: {esc(report["new_observation_month_since_previous"])}.')
@@ -134,6 +163,7 @@ footer{{border-top:1px solid #ccd7e4;padding-top:18px;color:#516277}}
  · Lag: {report["months_since_common_observation"]} months</p></header>
 <main><div class="grid">{''.join(cards)}</div>
 <section><h2>Observed conditions</h2><p class="note">{esc(report["interpretation"])}</p></section>
+<section><h2>Cycle-condition tags</h2><p>{esc(condition_tags)}</p><small>Descriptive observations, not a calibrated economic phase.</small></section>
 <section><h2>Change since previous assessment</h2><p>{comparison}</p></section>
 <section><h2>Method and limitations</h2><ul>{limitations}</ul></section></main>
 <footer>Research-only · Current-vintage monthly observations · No investment advice or validated forecasts</footer>
