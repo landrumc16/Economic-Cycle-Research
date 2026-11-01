@@ -3,7 +3,10 @@ import argparse
 import json
 from pathlib import Path
 
-from scripts.v5_cycle_evaluation import REFERENCE_INTERVALS
+try:
+    from scripts.v5_cycle_evaluation import REFERENCE_INTERVALS
+except ModuleNotFoundError:
+    from v5_cycle_evaluation import REFERENCE_INTERVALS
 
 
 def shift(month, n):
