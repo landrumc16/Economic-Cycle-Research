@@ -17,6 +17,7 @@ class RealWorkbookSnapshotTests(unittest.TestCase):
             evidence,
         )
         self.assertEqual(snapshot["review_status"], "UNREVIEWED_AUTOMATED_SNAPSHOT")
+        self.assertEqual(snapshot["retrieval_date"], "2026-11-01")
         self.assertEqual(status["workbook_reconciliation"], "NOT_RECONCILED")
         self.assertEqual(status["macro_promotion"],
                          {"UNRATE": "BLOCKED", "CPIAUCSL": "BLOCKED", "GDPC1": "BLOCKED"})
