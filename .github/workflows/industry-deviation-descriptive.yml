@@ -163,8 +163,10 @@ jobs:
           fi
       - name: Monthly integrated release acceptance gate
         run: python scripts/validate_weekly_release.py
+      - name: Convert dated workbook promotion evidence
+        run: python scripts/v5_workbook_evidence.py data/workbook_evidence/promotion_gate_2026-11-01.json
       - name: Build fail-closed unified research status
-        run: python scripts/v5_unified_research_status.py audit-output/weekly_release_acceptance.json audit-output/v5_forecast_release_gate.json
+        run: python scripts/v5_unified_research_status.py audit-output/weekly_release_acceptance.json audit-output/v5_forecast_release_gate.json --workbook-evidence audit-output/v5_workbook_evidence.json
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - name: Persist assessment history
