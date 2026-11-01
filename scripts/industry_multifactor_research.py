@@ -119,10 +119,49 @@ def analyze(prices, indicators, horizon=12, drawdown_threshold=0.20,
             "retrospective_indicator_median": median,
             "cells": cells,
         }
+    # Three-way descriptive stratification: acceleration, fundamentals and credit.
+    triples = {}
+    if "housing_income_divergence" in aligned:
+        for credit_name in ("consumer_credit_growth", "business_credit_growth"):
+            if credit_name not in aligned:
+                continue
+            complete = [r for r in records
+                        if r["indicators"]["housing_income_divergence"] is not None
+                        and r["indicators"][credit_name] is not None]
+            if not complete:
+                triples[credit_name] = {"status": "NO_OVERLAP", "eligible_months": 0}
+                continue
+            def median_of(key):
+                values = sorted(r["indicators"][key] for r in complete)
+                return values[len(values) // 2]
+            fundamental_cut = median_of("housing_income_divergence")
+            credit_cut = median_of(credit_name)
+            cells = {}
+            for acceleration in (False, True):
+                for fundamental in (False, True):
+                    for credit in (False, True):
+                        subset = [r for r in complete
+                                  if r["acceleration"] == acceleration
+                                  and (r["indicators"]["housing_income_divergence"] > fundamental_cut) == fundamental
+                                  and (r["indicators"][credit_name] > credit_cut) == credit]
+                        n = len(subset)
+                        declines = sum(r["subsequent_drawdown"] for r in subset)
+                        cells[f"a{int(acceleration)}_f{int(fundamental)}_c{int(credit)}"] = {
+                            "months": n, "declines": declines,
+                            "fraction": round(declines / n, 6) if n else None}
+            triples[credit_name] = {
+                "status": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
+                "eligible_months": len(complete),
+                "missing_months": len(records) - len(complete),
+                "fundamental_median": fundamental_cut,
+                "credit_median": credit_cut,
+                "cells": cells,
+            }
     return {"status": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
             "horizon_months": horizon, "drawdown_threshold": drawdown_threshold,
             "eligible_price_months": len(records),
-            "groups": groups, "joint_comparisons": joint, "observations": records,
+            "groups": groups, "joint_comparisons": joint,
+            "three_factor_comparisons": triples, "observations": records,
             "limitations": [
                 "Indicator medians use the full sample and must not be used as live thresholds",
                 "Inputs must have separately documented source, units and observation availability",
