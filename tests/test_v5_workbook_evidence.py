@@ -22,6 +22,14 @@ class WorkbookEvidenceTests(unittest.TestCase):
         result = convert(rows("APPROVED", "PASS", "PASS"), URL, reviewed=True)
         self.assertEqual(set(result["macro_promotion"].values()), {"APPROVED"})
 
+    def test_header_included_in_real_snapshot(self):
+        header = ["Series", "Official data publisher", "Staging source",
+                  "Structural QA", "Official exception",
+                  "Publisher numeric cross-check", "Historical vintage review",
+                  "Approval"]
+        result = convert([header] + rows(), URL)
+        self.assertEqual(result["macro_promotion"]["UNRATE"], "BLOCKED")
+
     def test_incomplete_rows_rejected(self):
         with self.assertRaises(ValueError):
             convert(rows()[:2], URL, reviewed=True)
