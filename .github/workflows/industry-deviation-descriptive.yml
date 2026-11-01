@@ -8,6 +8,8 @@ on:
       - 'scripts/industry_deviation_registry_audit.py'
       - 'tests/test_fetch_industry_observations.py'
       - 'tests/test_industry_deviation_metrics.py'
+      - 'scripts/industry_deviation_comparison.py'
+      - 'tests/test_industry_deviation_comparison.py'
       - 'data/industry_deviation_episode_registry_v1.json'
       - '.github/workflows/industry-deviation-descriptive.yml'
 jobs:
@@ -21,7 +23,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Unit tests
-        run: python -m unittest discover -s tests -p 'test_*industry*metrics.py' -v && python -m unittest discover -s tests -p 'test_fetch_industry_observations.py' -v
+        run: python -m unittest discover -s tests -p 'test_industry_deviation_*.py' -v && python -m unittest discover -s tests -p 'test_fetch_industry_observations.py' -v
       - name: Registry audit
         run: python scripts/industry_deviation_registry_audit.py
       - name: Fetch retrospective observations
@@ -32,6 +34,10 @@ jobs:
         run: |
           python scripts/industry_deviation_metrics.py data/industry_observations/NASDAQCOM_monthly.csv --output audit-output/NASDAQCOM_deviation.json
           python scripts/industry_deviation_metrics.py data/industry_observations/CSUSHPINSA_monthly.csv --output audit-output/CSUSHPINSA_deviation.json
+      - name: Compare high-deviation and other months
+        run: |
+          python scripts/industry_deviation_comparison.py data/industry_observations/NASDAQCOM_monthly.csv --output audit-output/NASDAQCOM_comparison.json
+          python scripts/industry_deviation_comparison.py data/industry_observations/CSUSHPINSA_monthly.csv --output audit-output/CSUSHPINSA_comparison.json
       - uses: actions/upload-artifact@v4
         with:
           name: industry-deviation-descriptive-evidence
