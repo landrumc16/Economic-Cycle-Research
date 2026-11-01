@@ -11,7 +11,7 @@ class ScorecardTests(unittest.TestCase):
                 ["2000-03", "", "0.4", "3.0"],
                 ["2000-04", "", "0.3", "1.0"]]},
             "pathways": {"rows": [
-                ["parent", "peak"], ["1", "2000-03-10"]]}
+                ["parent", "peak", "prior", "crossing"], ["1", "2000-02-10", "2000-01", "2000-03-10"]]}
         }
         self.leads = {"rows": [["id"], ["1"]]}
 
