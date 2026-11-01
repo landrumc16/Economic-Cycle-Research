@@ -5,6 +5,7 @@ on:
   push:
     paths:
       - 'scripts/historical_usability_*.py'
+      - 'scripts/historical_mechanism_comparison.py'
       - 'tests/test_historical_usability_*.py'
       - 'data/workbook_historical_research_snapshot_2026-10-30.json'
       - 'data/v2_canonical_lead_window_summary_2026-10-31.json'
@@ -26,6 +27,7 @@ jobs:
         run: |
           python scripts/historical_usability_inventory.py
           python scripts/historical_usability_scorecard.py
+          python scripts/historical_mechanism_comparison.py
       - name: Check scorecard boundaries
         run: |
           python - <<'PY'
@@ -49,4 +51,5 @@ jobs:
           path: |
             audit-output/historical_usability_inventory.json
             audit-output/historical_usability_scorecard.json
+            audit-output/historical_mechanism_comparison.json
           if-no-files-found: warn
