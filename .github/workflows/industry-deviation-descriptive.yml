@@ -142,13 +142,13 @@ jobs:
             echo "## Economic Cycle Research — Version 4 Monthly Review"
             echo
             if [ -f audit-output/weekly_release_acceptance.json ]; then
-              echo "**Monthly release gate:** PASS"
+              echo "**Monthly release gate:** $(python -c 'import json; print(json.load(open("audit-output/weekly_release_acceptance.json"))["status"])')"
               echo
               echo '~~~json'
               cat audit-output/weekly_release_acceptance.json
               echo '~~~'
             else
-              echo "**Weekly release gate:** NOT PASSED — inspect preceding steps."
+              echo "**Monthly release gate:** NOT PASSED — inspect preceding steps."
             fi
             if [ -f audit-output/historical_condition_comparison.md ]; then
               echo
