@@ -40,7 +40,8 @@ def compare(rows, horizon=12, threshold=0.20, percentile_cutoff=90):
         for value in path[1:]:
             high = max(high, value)
             maximum_drawdown = max(maximum_drawdown, 1 - value / high)
-        group = "high_deviation" if m["historical_percentile"] >= percentile_cutoff else "other"
+        group = "high_deviation" if (m["historical_percentile"] >= percentile_cutoff
+                 and m["trailing_log_return"] > 0) else "other"
         outcome = maximum_drawdown >= threshold
         summary[group]["eligible"] += 1
         summary[group]["drawdown"] += int(outcome)
