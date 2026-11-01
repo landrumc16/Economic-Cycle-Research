@@ -61,7 +61,10 @@ def episodes(rows, horizon=12, threshold=0.20, cutoff=90):
             "first_crossing_months_after_alert": lead,
             "max_forward_path_drawdown": round(maximum, 6) if complete else None,
         })
+    leads = [item["first_crossing_months_after_alert"] for item in results
+             if item["first_crossing_months_after_alert"] is not None]
     return {
+        "median_lead_months": sorted(leads)[len(leads) // 2] if leads else None,
         "status": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
         "unit": "consecutive alert clusters; first alert anchors followup",
         "horizon_months": horizon,
