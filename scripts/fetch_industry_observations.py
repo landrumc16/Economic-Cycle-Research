@@ -8,6 +8,9 @@ import io
 import json
 import urllib.parse
 import urllib.request
+import urllib.error
+import time
+import socket
 from datetime import date
 from pathlib import Path
 
@@ -57,8 +60,18 @@ def main():
     query = urllib.parse.urlencode({"id": args.series, "cosd": args.start, "coed": args.end})
     url = "https://fred.stlouisfed.org/graph/fredgraph.csv?" + query
     request = urllib.request.Request(url, headers={"User-Agent": "Economic-Cycle-Research/1.0"})
-    with urllib.request.urlopen(request, timeout=30) as response:
-        payload = response.read().decode("utf-8-sig")
+    payload = None
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                payload = response.read().decode("utf-8-sig")
+            break
+        except (TimeoutError, socket.timeout, urllib.error.URLError) as exc:
+            if attempt == 2:
+                raise RuntimeError(
+                    f"FRED download failed for {args.series} after 3 attempts: {exc}"
+                ) from exc
+            time.sleep(2 ** attempt * 5)
     observations = normalize_csv(payload, args.series)
     # The current month is incomplete at a mid-month cutoff. Exclude it uniformly.
     end_date = date.fromisoformat(args.end)
