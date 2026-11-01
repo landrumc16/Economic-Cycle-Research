@@ -50,7 +50,14 @@
       "start_month": "1995-01",
       "end_month": "2002-12",
       "evidence_status": "quantitative_candidate",
-      "baseline_series": null,
+      "baseline_series": {
+        "id": "NASDAQCOM",
+        "url": "https://fred.stlouisfed.org/series/NASDAQCOM",
+        "frequency": "daily",
+        "series_type": "broad_equity_index_proxy",
+        "limitation": "Not a pure industry measure; requires sector-specific cross-check",
+        "status": "SOURCE_IDENTIFIED_NOT_INGESTED"
+      },
       "valuation_series": null,
       "fundamentals_series": null,
       "capital_flows_series": null,
@@ -65,7 +72,14 @@
       "start_month": "2000-01",
       "end_month": "2012-12",
       "evidence_status": "quantitative_candidate",
-      "baseline_series": null,
+      "baseline_series": {
+        "id": "CSUSHPINSA",
+        "url": "https://fred.stlouisfed.org/series/CSUSHPINSA",
+        "frequency": "monthly",
+        "series_type": "housing_price_index",
+        "limitation": "National home prices, not housing equity returns; revised data cannot be used as point-in-time signals without vintage retrieval",
+        "status": "SOURCE_IDENTIFIED_NOT_INGESTED"
+      },
       "valuation_series": null,
       "fundamentals_series": null,
       "capital_flows_series": null,
@@ -95,7 +109,14 @@
       "start_month": "2020-01",
       "end_month": null,
       "evidence_status": "comparison_candidate",
-      "baseline_series": null,
+      "baseline_series": {
+        "id": "CSUSHPINSA",
+        "url": "https://fred.stlouisfed.org/series/CSUSHPINSA",
+        "frequency": "monthly",
+        "series_type": "housing_price_index",
+        "limitation": "National home prices, not housing equity returns; revised data cannot be used as point-in-time signals without vintage retrieval",
+        "status": "SOURCE_IDENTIFIED_NOT_INGESTED"
+      },
       "valuation_series": null,
       "fundamentals_series": null,
       "capital_flows_series": null,
@@ -110,7 +131,14 @@
       "start_month": "2013-01",
       "end_month": "2019-12",
       "evidence_status": "comparison_candidate",
-      "baseline_series": null,
+      "baseline_series": {
+        "id": "NASDAQCOM",
+        "url": "https://fred.stlouisfed.org/series/NASDAQCOM",
+        "frequency": "daily",
+        "series_type": "broad_equity_index_proxy",
+        "limitation": "Not a pure industry measure; requires sector-specific cross-check",
+        "status": "SOURCE_IDENTIFIED_NOT_INGESTED"
+      },
       "valuation_series": null,
       "fundamentals_series": null,
       "capital_flows_series": null,
@@ -129,6 +157,11 @@
       "id": "CSUSHPINSA",
       "url": "https://fred.stlouisfed.org/series/CSUSHPINSA",
       "use": "national home prices; distinguish housing prices from homebuilder equity"
+    },
+    {
+      "id": "ALFRED_CSUSHPINSA",
+      "url": "https://alfred.stlouisfed.org/series?seid=CSUSHPINSA",
+      "use": "Historical release vintages; series available in ALFRED from 2014, not necessarily contemporaneous to 2000s housing expansion"
     }
   ]
 }
