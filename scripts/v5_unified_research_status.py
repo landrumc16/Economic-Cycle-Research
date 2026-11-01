@@ -22,6 +22,8 @@ def build(release, forecast, workbook=None):
                                     and all(v != "NOT_RECONCILED" for v in macro.values())
                                     else "NOT_RECONCILED"),
         "macro_promotion": macro,
+        "workbook_snapshot_retrieval_date": workbook.get("snapshot_retrieval_date"),
+        "workbook_snapshot_review_status": workbook.get("snapshot_review_status", "UNKNOWN"),
         "canonical_macro_approved": (workbook.get("evidence_reviewed") is True
                                      and all(v == "APPROVED" for v in macro.values())),
         "github_monthly_release_status": release.get("status", "UNKNOWN"),
