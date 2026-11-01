@@ -14,6 +14,7 @@ on:
       - 'scripts/industry_deviation_episode_analysis.py'
       - 'tests/test_industry_deviation_episode_analysis.py'
       - 'scripts/industry_multifactor_research.py'
+      - 'scripts/derive_credit_growth.py'
       - 'tests/test_industry_multifactor_research.py'
       - 'tests/test_industry_deviation_comparison.py'
       - 'data/industry_deviation_episode_registry_v1.json'
@@ -38,6 +39,13 @@ jobs:
         run: |
           python scripts/fetch_industry_observations.py NASDAQCOM --start 1980-01-01 --end 2026-10-31
           python scripts/fetch_industry_observations.py CSUSHPINSA --start 1987-01-01 --end 2026-10-31
+          python scripts/fetch_industry_observations.py TOTALSL --start 1980-01-01 --end 2026-10-31
+          python scripts/fetch_industry_observations.py BUSLOANS --start 1980-01-01 --end 2026-10-31
+      - name: Derive historical credit growth
+        run: |
+          for series in TOTALSL BUSLOANS; do
+            python scripts/derive_credit_growth.py "data/industry_observations/${series}_monthly.csv" --output "data/industry_observations/${series}_growth12m.csv"
+          done
       - name: Calculate backward-looking descriptive deviations
         run: |
           python scripts/industry_deviation_metrics.py data/industry_observations/NASDAQCOM_monthly.csv --output audit-output/NASDAQCOM_deviation.json
@@ -62,6 +70,11 @@ jobs:
         run: |
           python scripts/industry_multifactor_research.py data/industry_observations/NASDAQCOM_monthly.csv --output audit-output/NASDAQCOM_multifactor_baseline.json
           python scripts/industry_multifactor_research.py data/industry_observations/CSUSHPINSA_monthly.csv --output audit-output/CSUSHPINSA_multifactor_baseline.json
+          for series in NASDAQCOM CSUSHPINSA; do
+            for horizon in 6 12 24; do
+              python scripts/industry_multifactor_research.py "data/industry_observations/${series}_monthly.csv" --horizon "$horizon" --indicator "consumer_credit_growth=data/industry_observations/TOTALSL_growth12m.csv" --indicator "business_credit_growth=data/industry_observations/BUSLOANS_growth12m.csv" --output "audit-output/${series}_credit_joint_${horizon}m.json"
+            done
+          done
       - name: Generate consolidated historical report
         run: python scripts/industry_deviation_summary.py
       - name: Descriptive release acceptance gate
