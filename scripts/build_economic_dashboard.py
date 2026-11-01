@@ -12,6 +12,10 @@ FIELDS = (
     ("consumer_credit_growth_12m_log_pct", "Consumer credit", "% log growth / 12m"),
     ("business_credit_growth_12m_log_pct", "Business lending", "% log growth / 12m"),
     ("housing_price_income_growth_gap_12m_log_pp", "Home prices less income", "pp log growth / 12m"),
+    ("unemployment_rate_pct", "Unemployment", "%"),
+    ("unemployment_change_3m_pp", "Unemployment change", "pp / 3m"),
+    ("cpi_inflation_12m_log_pct", "Consumer inflation", "% log growth / 12m"),
+    ("industrial_production_growth_12m_log_pct", "Industrial production", "% log growth / 12m"),
 )
 
 
