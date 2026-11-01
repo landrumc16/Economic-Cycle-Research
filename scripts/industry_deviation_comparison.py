@@ -21,9 +21,15 @@ def compare(rows, horizon=12, threshold=0.20, percentile_cutoff=90):
     summary = {"high_deviation": {"eligible": 0, "drawdown": 0},
                "other": {"eligible": 0, "drawdown": 0}}
     observations = []
+    excluded_no_baseline = 0
+    excluded_incomplete_horizon = 0
     for i, row in enumerate(ordered):
         m = metrics.get(row["date"])
-        if not m or m["historical_percentile"] is None or i + horizon >= len(ordered):
+        if not m or m["historical_percentile"] is None:
+            excluded_no_baseline += 1
+            continue
+        if i + horizon >= len(ordered):
+            excluded_incomplete_horizon += 1
             continue
         current = float(row["value"])
         future = [float(r["value"]) for r in ordered[i + 1:i + horizon + 1]]
@@ -58,6 +64,8 @@ def compare(rows, horizon=12, threshold=0.20, percentile_cutoff=90):
             "note": "Monthly path drawdown; overlapping horizons; no causal or predictive interpretation.",
             "observed_fraction_difference_high_minus_other": contrast,
             "comparison_available": contrast is not None,
+            "excluded_no_baseline": excluded_no_baseline,
+            "excluded_incomplete_horizon": excluded_incomplete_horizon,
             "groups": summary, "observations": observations}
 
 
