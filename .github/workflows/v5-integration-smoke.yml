@@ -1,0 +1,55 @@
+name: V5 Integration Smoke Tests
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v5_workbook_evidence.py'
+      - 'scripts/v5_unified_research_status.py'
+      - 'tests/test_v5_workbook_evidence.py'
+      - 'tests/test_v5_unified_research_status.py'
+      - 'tests/test_v5_workbook_snapshot_integration.py'
+      - 'data/workbook_evidence/**'
+      - '.github/workflows/v5-integration-smoke.yml'
+jobs:
+  workbook-gates:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Workbook converter unit tests
+        run: python -m unittest discover -s tests -p 'test_v5_workbook_evidence.py' -v
+      - name: Unified status unit tests
+        run: python -m unittest discover -s tests -p 'test_v5_unified_research_status.py' -v
+      - name: Real workbook snapshot integration test
+        run: python -m unittest discover -s tests -p 'test_v5_workbook_snapshot_integration.py' -v
+      - name: Convert real workbook snapshot
+        run: python scripts/v5_workbook_evidence.py data/workbook_evidence/promotion_gate_2026-11-01.json
+      - name: Build sample fail-closed unified status
+        run: |
+          mkdir -p audit-output
+          echo '{"status":"STALE_RESEARCH_ONLY"}' > audit-output/smoke_monthly_release.json
+          echo '{"status":"FORECAST_RELEASE_BLOCKED","numeric_forecasts_approved":false}' > audit-output/smoke_forecast_gate.json
+          python scripts/v5_unified_research_status.py audit-output/smoke_monthly_release.json audit-output/smoke_forecast_gate.json --workbook-evidence audit-output/v5_workbook_evidence.json
+      - name: Assert unapproved release
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('audit-output/unified_research_status.json').read_text())
+          assert data['workbook_reconciliation'] == 'NOT_RECONCILED'
+          assert data['canonical_macro_approved'] is False
+          assert data['numeric_forecasts_approved'] is False
+          assert set(data['macro_promotion'].values()) == {'BLOCKED'}
+          print('V5 integration smoke checks passed')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v5-integration-smoke-evidence
+          path: audit-output/
+          retention-days: 30
