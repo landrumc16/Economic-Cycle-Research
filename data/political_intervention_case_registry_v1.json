@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "status": "INITIAL_CASE_INVENTORY_NOT_CAUSAL_ADJUDICATION",
+  "research_hypotheses": [
+    "Policy can defer adjustment",
+    "Vulnerabilities may persist despite near-term stabilization",
+    "Later downturn can be a new mechanism rather than deferred earlier downturn"
+  ],
+  "cases": [
+    {
+      "id": "1994_1995_tightening",
+      "start": "1994-02",
+      "end": "1995-07",
+      "instrument": "federal_funds_rate_tightening_then_easing",
+      "political_administration": "Clinton",
+      "initial_outcome": "no_immediate_nber_recession",
+      "next_nber_peak": "2001-03",
+      "months_to_next_nber_peak": 68,
+      "deferral_claim": "UNTESTED",
+      "vulnerability_continuity": "UNASSESSED",
+      "source": "https://www.federalreserve.gov/aboutthefed/files/alan-greenspan-interview-20090331.pdf",
+      "notes": "Later recession alone does not establish that the 1994-95 adjustment was deferred."
+    },
+    {
+      "id": "1998_liquidity_response",
+      "start": "1998-09",
+      "end": "1998-11",
+      "instrument": "federal_reserve_rate_cuts_during_financial_stress",
+      "political_administration": "Clinton",
+      "initial_outcome": "stress_episode_and_selected_equity_drawdown",
+      "next_nber_peak": "2001-03",
+      "deferral_claim": "UNTESTED",
+      "vulnerability_continuity": "UNASSESSED",
+      "source": "https://www.federalreserve.gov/newsevents/speech/powell20190823a.htm",
+      "notes": "Not a verified no-equity-crash episode; external Russian default and endogenous leverage interact."
+    },
+    {
+      "id": "2019_policy_easing",
+      "start": "2019-07",
+      "end": "2019-10",
+      "instrument": "federal_reserve_rate_cuts",
+      "political_administration": "Trump",
+      "initial_outcome": "external_shock_censored_at_2020_02",
+      "next_nber_peak": "2020-02",
+      "deferral_claim": "UNIDENTIFIABLE_WITHOUT_SHOCK_ADJUSTMENT",
+      "vulnerability_continuity": "UNASSESSED",
+      "source": "https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions",
+      "notes": "Pandemic recession cannot be attributed to 2019 policy by temporal proximity."
+    }
+  ],
+  "research_fields_to_collect": [
+    "announcement_date",
+    "implementation_date",
+    "documented_contemporaneous_rationale",
+    "fiscal_stance",
+    "fed_policy_stance",
+    "election_proximity",
+    "credit_growth",
+    "private_leverage",
+    "asset_valuation",
+    "inflation",
+    "market_breadth",
+    "recession_outcome",
+    "equity_drawdown_outcome",
+    "intervention_counterfactual",
+    "data_vintage",
+    "source_quality"
+  ],
+  "outcome_source": "https://www.nber.org/research/data/us-business-cycle-expansions-and-contractions",
+  "predictive_publication": "BLOCKED"
+}
