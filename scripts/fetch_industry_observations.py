@@ -12,7 +12,8 @@ from datetime import date
 from pathlib import Path
 
 ALLOWED = {"NASDAQCOM": "daily", "CSUSHPINSA": "monthly",
-           "TOTALSL": "monthly", "BUSLOANS": "monthly"}
+           "TOTALSL": "monthly", "BUSLOANS": "monthly",
+           "PI": "monthly"}
 
 
 def normalize_csv(payload, series):
