@@ -42,6 +42,26 @@ class WeeklyReleaseTests(unittest.TestCase):
             path.write_text(json.dumps(value))
             with self.assertRaises(ValueError):
                 validate(root)
+    def test_mismatched_historical_report_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            folder=self.fixture(root)
+            path=folder/"historical_condition_comparison.json"
+            value=json.loads(path.read_text())
+            value["match_count"]=99
+            path.write_text(json.dumps(value))
+            with self.assertRaises(ValueError):
+                validate(root)
+    def test_unavailable_historical_comparison_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            folder=self.fixture(root)
+            path=folder/"historical_condition_comparison.json"
+            value=json.loads(path.read_text())
+            value["status"]="INSUFFICIENT_CURRENT_DATA"
+            path.write_text(json.dumps(value))
+            with self.assertRaises(ValueError):
+                validate(root)
     def test_missing_html_fails(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
