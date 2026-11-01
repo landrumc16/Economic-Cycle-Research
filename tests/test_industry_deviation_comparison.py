@@ -12,6 +12,7 @@ class ComparisonTests(unittest.TestCase):
                 for i in range(100)]
         groups = compare(rows)["groups"]
         self.assertEqual(sum(v["drawdown"] for v in groups.values()), 0)
+        self.assertEqual(groups["high_deviation"]["eligible"], 0)
 
     def test_future_change_does_not_affect_earlier_group_assignment(self):
         rows = [{"date": f"{2000 + i//12:04d}-{i%12+1:02d}-01", "value": str(100+i)}
