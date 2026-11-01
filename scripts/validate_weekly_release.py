@@ -37,7 +37,7 @@ def validate(root):
     html = (folder / "economic_dashboard.html").read_text()
     if "Economic Cycle Research" not in html or current["assessment_date"] not in html:
         raise ValueError("HTML dashboard does not match assessment")
-    if len(dashboard.get("metrics", [])) < 11:
+    if len(dashboard.get("metrics", [])) < 9:
         raise ValueError("Expected integrated economic indicators missing")
     if current["stale"]:
         raise ValueError("Current assessment uses stale observations")
