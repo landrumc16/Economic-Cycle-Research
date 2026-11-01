@@ -1,0 +1,48 @@
+{
+  "source_url": "https://docs.google.com/spreadsheets/d/1ocdo4Y036ZB93egyY96INfuRcJkw0uHAO5BK416bVnE/edit",
+  "source_range": "'DATA PROMOTION GATE'!A2:H5",
+  "retrieval_date": "2026-11-01",
+  "review_status": "UNREVIEWED_AUTOMATED_SNAPSHOT",
+  "rows": [
+    [
+      "Series",
+      "Official data publisher",
+      "Staging source",
+      "Structural QA",
+      "Official exception",
+      "Publisher numeric cross-check",
+      "Historical vintage review",
+      "Approval"
+    ],
+    [
+      "UNRATE",
+      "BLS",
+      "FRED CONNECTION SETUP!A:B",
+      "QA PASS — DOCUMENTED GAP",
+      "October 2025 documented; no estimate",
+      "PARTIAL PASS — BLS Sep 2026 4.2% independently matched; earlier release/vintage work still incomplete",
+      "PARTIAL — BLS 2025 & 2009 original/revised comparison tables; 12 original crisis releases; full historical vintage review pending",
+      "BLOCKED"
+    ],
+    [
+      "CPIAUCSL",
+      "BLS",
+      "FRED CONNECTION SETUP!C:D",
+      "QA PASS — DOCUMENTED GAP",
+      "October 2025 documented; no all-items index",
+      "PARTIAL PASS — BLS SA Sep 2026 336.298 independently matched; historical coverage/vintage pending",
+      "PENDING",
+      "BLOCKED"
+    ],
+    [
+      "GDPC1",
+      "BEA",
+      "FRED CONNECTION SETUP!E:F",
+      "QA PASS",
+      "None detected",
+      "PARTIAL PASS — BEA 2026 Q3 advance +3.4% annualized reconciles to staged +3.3696% (rounding); prior 10 quarterly levels; historical vintage pending",
+      "PENDING",
+      "BLOCKED"
+    ]
+  ]
+}
