@@ -15,7 +15,7 @@ class WeeklyAssessmentTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         folder = self.root / "data/industry_observations"
         folder.mkdir(parents=True)
-        for series in ("NASDAQCOM", "CSUSHPINSA", "TOTALSL", "BUSLOANS", "PI"):
+        for series in ("NASDAQCOM", "CSUSHPINSA", "TOTALSL", "BUSLOANS", "PI", "UNRATE", "CPIAUCSL", "INDPRO"):
             rows = []
             for i in range(110):
                 year, month = 2010 + i // 12, i % 12 + 1
