@@ -59,9 +59,13 @@ def main():
     observations = normalize_csv(payload, args.series)
     # The current month is incomplete at a mid-month cutoff. Exclude it uniformly.
     end_date = date.fromisoformat(args.end)
+    # Only the last month can be partial; its completion cannot be inferred
+    # from the presence of a final daily observation on the cutoff date.
     observations = [row for row in observations
                     if row["date"][:7] < end_date.strftime("%Y-%m")
-                    or row["last_observed_date"] == args.end]
+                    or (end_date.toordinal() + 1 ==
+                        (date(end_date.year + (end_date.month == 12),
+                              end_date.month % 12 + 1, 1)).toordinal())]
     if not observations:
         raise ValueError("No complete monthly observations")
     out = Path(args.output_dir)
