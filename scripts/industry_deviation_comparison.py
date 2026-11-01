@@ -7,7 +7,10 @@ import csv
 import json
 from pathlib import Path
 
-from industry_deviation_metrics import calculate
+try:
+    from .industry_deviation_metrics import calculate
+except ImportError:
+    from industry_deviation_metrics import calculate
 
 
 def compare(rows, horizon=12, threshold=0.20, percentile_cutoff=90):
