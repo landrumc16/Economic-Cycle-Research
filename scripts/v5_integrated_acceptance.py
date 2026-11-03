@@ -30,8 +30,16 @@ def verify(folder):
         raise ValueError("Forecast gate violation")
     if portal.get("numeric_forecasts_approved") is not False or portal.get("research_only") is not True:
         raise ValueError("Portal claims unapproved forecasts")
-    if monthly["status"] == "STALE_RESEARCH_ONLY" and portal.get("current_conditions_approved") is not False:
-        raise ValueError("Stale assessment presented as current")
+    if portal.get("current_conditions_approved") is not False:
+        raise ValueError("Uncertified current assessment")
+    if unified.get("numeric_forecasts_approved") is not False:
+        raise ValueError("Unified status claims numeric forecasts")
+    if unified.get("canonical_macro_approved") is True and unified.get("workbook_reconciliation") != "RECONCILED":
+        raise ValueError("Unreconciled workbook claims approved macro sources")
+    if portal.get("workbook_reconciliation") != unified.get("workbook_reconciliation"):
+        raise ValueError("Workbook reconciliation mismatch")
+    if portal.get("macro_promotion") != unified.get("macro_promotion"):
+        raise ValueError("Macro promotion mismatch")
     if "research-only" not in (folder / "index.html").read_text().lower():
         raise ValueError("Missing research-only disclosure")
     return {"status": "V5_INTEGRATED_DESCRIPTIVE_RELEASE_ACCEPTED",
