@@ -24,3 +24,13 @@ Ship the existing descriptive/historical research system, not unvalidated crash 
 
 ## Acceptance rule
 No formal Version 5 completion declaration until the Actions run and generated artifacts are independently verified. A passing test suite cannot certify original-release vintage accuracy or authorize predictive publication.
+
+
+## Additional release work — November 3
+- Main monthly workflow triggers on relevant main-branch pushes and retains its day-20 schedule.
+- Lightweight V5 smoke CI now includes unified portal and integrated acceptance regression tests.
+- Full workflow summary reports the integrated artifact gate; its status is not inferred from a successful commit.
+- Unified portal places methodology and source promotion behind a collapsible disclosure and includes mobile navigation improvements.
+- Historical heuristic remains explicitly research-only; no current-cycle approval or numerical forecasts are asserted.
+- **Outstanding external evidence:** No completed monthly run ID, CI log, downloaded artifact, or deployed page inspection has been obtained in this session. The available GitHub connector can inspect a run by ID but does not list recent runs or dispatch new ones. A run URL or ID is needed for direct inspection, unless independently discoverable through the public Actions page.
+- Do not mark V5 released until workflow and artifacts are verified. Dated workbook snapshot is not a live workbook connection.
