@@ -4,6 +4,10 @@ on:
     workflows: ["Milestone 1 - Economic Data Acquisition and QA"]
     types: [completed]
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-economic-dashboard.yml'
 permissions:
   actions: read
   contents: read
@@ -14,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish:
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -34,7 +38,7 @@ jobs:
           headers = {"Authorization": "Bearer " + os.environ["GH_TOKEN"], "Accept": "application/vnd.github+json"}
           def get(url):
               return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=45)
-          if os.environ["EVENT_NAME"] == "workflow_dispatch":
+          if os.environ["EVENT_NAME"] in ("workflow_dispatch", "push"):
               url = f"https://api.github.com/repos/{repo}/actions/workflows/milestone1.yml/runs?branch=main&status=success&per_page=20"
               runs = json.load(get(url))["workflow_runs"]
               if not runs: raise SystemExit("No successful weekly workflow run available")
