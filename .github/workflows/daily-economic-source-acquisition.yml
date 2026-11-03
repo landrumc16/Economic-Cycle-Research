@@ -1,5 +1,11 @@
 name: Daily Economic Source Acquisition
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/daily_acquisition_status.py'
+      - 'tests/test_daily_acquisition_status.py'
+      - '.github/workflows/daily-economic-source-acquisition.yml'
   workflow_dispatch:
   schedule:
     - cron: '35 13 * * 1-5'
