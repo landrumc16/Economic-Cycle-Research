@@ -173,6 +173,8 @@ jobs:
         run: python scripts/v5_unified_research_status.py audit-output/weekly_release_acceptance.json audit-output/v5_forecast_release_gate.json --workbook-evidence audit-output/v5_workbook_evidence.json
       - name: Build V5 unified research landing page
         run: python scripts/v5_unified_portal.py
+      - name: Validate complete V5 integrated release artifacts
+        run: python scripts/v5_integrated_acceptance.py
       - name: Publish unified V5 release summary
         if: always()
         shell: bash
