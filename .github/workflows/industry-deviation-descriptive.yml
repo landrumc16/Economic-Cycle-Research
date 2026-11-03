@@ -1,5 +1,12 @@
 name: Monthly Economic Cycle Assessment
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'tests/**'
+      - 'data/workbook_evidence/**'
+      - '.github/workflows/industry-deviation-descriptive.yml'
   workflow_dispatch:
   schedule:
     - cron: '20 13 20 * *'
