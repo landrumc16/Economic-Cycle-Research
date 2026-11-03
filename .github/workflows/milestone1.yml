@@ -354,7 +354,7 @@ jobs:
           # The monthly workflow owns research generation. Reuse its latest
           # successful archived artifact instead of rerunning its research.
           mkdir -p audit-output/dashboard
-          run_id="$(gh run list --workflow industry-deviation-descriptive.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          run_id="$(gh run list --workflow industry-deviation-descriptive.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)"
           if [ -z "$run_id" ]; then
             echo 'No successful monthly artifact available; weekly publication continues without a monthly report.' >> "$GITHUB_STEP_SUMMARY"
             exit 0
@@ -387,6 +387,25 @@ jobs:
                   dest.joinpath("monthly.json").write_bytes(report.read_bytes())
                   print(f"Published accepted monthly assessment: {assessment.get('assessment_date')}")
           PY
+      - name: Preserve last accepted monthly report when no replacement qualifies
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f audit-output/dashboard/monthly.html ]; then
+            echo 'New accepted monthly report ready for publication.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          base="https://${{ github.repository_owner }}.github.io/Economic-Cycle-Research"
+          if curl --fail --silent --show-error --location --max-time 15 "$base/monthly.html" -o /tmp/previous-monthly.html &&
+             curl --fail --silent --show-error --location --max-time 15 "$base/monthly.json" -o /tmp/previous-monthly.json &&
+             python -c 'import json,sys; x=json.load(open("/tmp/previous-monthly.json")); assert x.get("assessment_date") and x.get("stale") is not True'; then
+            cp /tmp/previous-monthly.html audit-output/dashboard/monthly.html
+            cp /tmp/previous-monthly.json audit-output/dashboard/monthly.json
+            echo 'Retained last accepted monthly assessment; no qualifying replacement.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'No qualifying current monthly assessment; none published. Inspect monthly workflow.' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         uses: actions/configure-pages@v5
