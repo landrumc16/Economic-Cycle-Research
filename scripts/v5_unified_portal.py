@@ -32,6 +32,10 @@ def build(folder):
         "macro_promotion": unified["macro_promotion"],
         "current_conditions_approved": False,
         "numeric_forecasts_approved": False,
+        "daily_refresh_status": unified.get("daily_refresh_status", "NOT_VERIFIED"),
+        "weekly_outlook_status": unified.get("weekly_outlook_status", "NOT_VERIFIED"),
+        "monthly_cycle_status": unified.get("monthly_cycle_status", "RESEARCH_ONLY"),
+        "workbook_snapshot_review_status": unified.get("workbook_snapshot_review_status", "NOT_VERIFIED"),
         "research_only": True,
     }
 
@@ -65,6 +69,9 @@ Preliminary historical phase: <strong>{esc(report["preliminary_historical_phase"
 <p>Current conditions approved: <strong>{'Yes' if report["current_conditions_approved"] else 'No'}</strong>.
 Numeric recession forecasts: <strong>Blocked</strong>.</p>
 <p class="muted">A historical phase is not a real-time cycle determination or a forecast. A stale monthly release is not a current assessment.</p></section>
+<section><h2>Research cadence and provenance</h2>
+<p>Daily refresh: <strong>{esc(report["daily_refresh_status"])}</strong> · Weekly outlook: <strong>{esc(report["weekly_outlook_status"])}</strong> · Monthly cycle: <strong>{esc(report["monthly_cycle_status"])}</strong>.</p>
+<p class="muted">These are evidence states, not confirmation that separate daily or weekly schedules executed. The monthly workflow does not certify live Google Sheets synchronization.</p></section>
 <section><h2>Research reports</h2>
 <nav><a href="economic_dashboard.html">Monthly economic indicators</a>
 <a href="v5_dashboard.html">Historical cycle diagnostics</a>
@@ -72,7 +79,7 @@ Numeric recession forecasts: <strong>Blocked</strong>.</p>
 <p class="muted">Links open the companion files included in the same GitHub Actions artifact.</p></section>
 <details><summary><strong>Research methodology and source verification</strong></summary><section><h2>Source verification</h2>
 <p>Workbook reconciliation: {esc(report["workbook_reconciliation"])}.
-Snapshot date: {esc(report["workbook_snapshot_date"] or "Unavailable")}.</p>
+Snapshot date: {esc(report["workbook_snapshot_date"] or "Unavailable")}. Review status: {esc(report["workbook_snapshot_review_status"])}.</p>
 <table><thead><tr><th>Macro series</th><th>Promotion status</th></tr></thead>
 <tbody>{rows}</tbody></table></section>
 <section><h2>Research limitations</h2>
