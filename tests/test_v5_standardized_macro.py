@@ -37,6 +37,11 @@ class V5MacroTests(unittest.TestCase):
         self.assertEqual(result["value"], 10.0)
         self.assertFalse(result["predictive_use_approved"])
 
+    def test_duplicate_weekly_claims_vintages_rejected(self):
+        with self.assertRaises(ValueError):
+            transform("ICSA", [{"date": "2026-09-05", "value": 200},
+                               {"date": "2026-09-05", "value": 210}], "2026-10-31")
+
     def test_duplicate_vintages_rejected(self):
         with self.assertRaises(ValueError):
             transform("UNRATE", [{"date": "2026-09-01", "value": 4.0},
