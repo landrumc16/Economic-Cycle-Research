@@ -356,17 +356,15 @@ jobs:
           mkdir -p audit-output/dashboard
           run_id="$(gh run list --workflow industry-deviation-descriptive.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty' || true)"
           if [ -z "$run_id" ]; then
-            echo 'No successful monthly artifact available; weekly publication continues without a monthly report.' >> "$GITHUB_STEP_SUMMARY"
-            exit 0
-          fi
-          mkdir -p /tmp/economic-monthly
-          if ! gh run download "$run_id" --name industry-deviation-descriptive-evidence --dir /tmp/economic-monthly; then
-            echo "Monthly artifact from run $run_id unavailable; leaving monthly report unpublished." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            echo 'No successful monthly artifact available; retaining previously published report if present.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            mkdir -p /tmp/economic-monthly
+            if ! gh run download "$run_id" --name industry-deviation-descriptive-evidence --dir /tmp/economic-monthly; then
+              echo "Monthly artifact from run $run_id unavailable; retaining previous report if present." >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi
           python - <<'PY'
           import json
-          import os
           from pathlib import Path
           root = Path("/tmp/economic-monthly/audit-output")
           dest = Path("audit-output/dashboard")
@@ -380,7 +378,7 @@ jobs:
               assessment = json.loads(report.read_text())
               status = approval.get("status")
               # Historical/stale research is not an approved current assessment.
-              if status != "PASS" or assessment.get("stale") is True:
+              if status != "PASS" or assessment.get("stale") is not False or not assessment.get("assessment_date"):
                   print(f"Monthly report not current-qualified ({status}); not publishing.")
               else:
                   dest.joinpath("monthly.html").write_bytes(html.read_bytes())
