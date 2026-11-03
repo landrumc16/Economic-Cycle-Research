@@ -1,7 +1,7 @@
 # Economic Cycle Research — Version 5 Master Roadmap
 
 Date: 2026-10-31
-Status: DESCRIPTIVE RELEASE ACCEPTED — FULL OPERATIONAL CERTIFICATION PENDING
+Status: VERSION 5 DESCRIPTIVE RELEASE COMPLETE — SCHEDULED CONTINUITY AND HOSTED DEPLOYMENT NOT CERTIFIED
 Predecessor: [V4 descriptive closeout](V4_DESCRIPTIVE_RELEASE_CLOSEOUT_2026-10-31.md)
 
 ## Mission
@@ -73,3 +73,10 @@ Turn Version 4's explainable descriptive economic intelligence into a historical
 - **Open M1:** two separate scheduled weekly dates with valid prior-artifact linkage remain unverified.
 - **Open M7:** latest code revision needs successful CI, artifact inspection, and hosted/mobile dashboard verification. Current workbook source promotion remains blocked.
 - Do not close V5 until those checks pass; do not expand the release into new forecasting research.
+
+## Version 5 descriptive release closeout — 2026-11-03
+- **Release decision: COMPLETE for the defined descriptive scope.** GitHub Actions [run 41726835547](https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/41726835547) succeeded on commit `57e4375f6d10f5f7db81e7ea812c561d352d2e42`. Python compilation, parser/comparison tests, FRED/BLS/BEA acquisition and reconciliation, standardized macro measures, integrated weekly readout, offline dashboard generation, V5 descriptive acceptance and artifact manifest all passed.
+- Inspected artifact `milestone1-audit-evidence` ID `13274291995`: 112 files, including `dashboard/weekly-v5.html`, `dashboard/index.html`, `v5_weekly_research_readout.json`, `v5_release_acceptance.json` and `v5_release_evidence_manifest.json`. V5 acceptance: `PASS_DESCRIPTIVE_ONLY` with no issues. Manifest: `DESCRIPTIVE_ARTIFACTS_VERIFIED`, no missing paths or issues; standardized macro coverage **4/4** (CPI inflation, real GDP growth, unemployment change, initial claims change).
+- Monthly descriptive assessment was independently verified in run `41720710428`; daily source acquisition in run `41720903411`. These are successful runs, not proof of long-term scheduling continuity.
+- **Explicit non-blocking limitations:** source freshness not certified by V5 manifest; publisher-original historical vintage replay coverage **0**; independently verified historical outcome events **0**; predictive publication remains **BLOCKED**. Partial-month weekly claims averages may be provisional. Prior-week artifact recovery reported HTTP 401 for unavailable prior archives, so consecutive distinct-date weekly continuity is **not** certified. Hosted/mobile deployment is **not** certified; offline HTML generation and acceptance are verified. Workbook source promotion still requires reconciliation and current assessment approval.
+- Do not describe V5 as a validated crash predictor, certified point-in-time historical model, or fully operational hosted service. The released product is the tested **offline descriptive weekly research artifact and associated existing daily/monthly pipelines**. No further predictive work is required to close this descriptive release.
