@@ -63,3 +63,8 @@ Implement milestones 1–4 before styling the dashboard; then 5–7. Prefer subs
 - Workbook snapshot review state is displayed beside its date and source-promotion status, with a collapsible methodology panel. Regression coverage checks the cadence disclosures and responsive markup.
 - These changes postdate the verified monthly run 41686229400. A fresh run on the latest main commit is necessary to verify this exact revision; prior CI evidence must not be reused as proof of later changes.
 - Full operational closure is not asserted. Remaining limitations are explicit: separate daily/weekly executions not independently evidenced, no live authenticated Sheets synchronization, unreviewed macro promotion snapshot, stale common observation month, no certified numeric forecasts, and no independent hosted/mobile browser test.
+
+## Final release-gate consistency pass — 2026-11-03
+- Strengthened `scripts/v5_integrated_acceptance.py` to reject any uncertified current-conditions approval, any unified numeric-forecast approval, mismatched workbook reconciliation or macro promotion between the portal and canonical-status output, and approved macro claims without reconciliation.
+- Added regression cases for mismatched workbook status and false unified numeric forecast approval. These changes are committed but require a **new** GitHub Actions run to verify them; do not count the prior successful run as verification of these commits.
+- No new model or data feeds introduced. Release remains a verified research-only baseline with pending latest-commit CI and separate daily/weekly operational evidence.
