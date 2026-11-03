@@ -30,10 +30,27 @@ class IntegratedAcceptanceTests(unittest.TestCase):
         }
         for name in FILES:
             (self.folder / name).write_text(json.dumps(data[name]) if name in data else
-                                            "Economic Cycle Research — research-only")
+                                            '<meta name="viewport" content="width=device-width">Economic Cycle Research — research-only')
 
     def test_accept_stale_descriptive_release(self):
         self.assertEqual(verify(self.folder)["status"], "V5_INTEGRATED_DESCRIPTIVE_RELEASE_ACCEPTED")
+
+    def test_reject_broken_portal_link(self):
+        (self.folder / "index.html").write_text(
+            '<meta name="viewport" content="width=device-width"><a href="missing.html">Report</a> research-only')
+        with self.assertRaisesRegex(ValueError, "Broken"):
+            verify(self.folder)
+
+    def test_reject_unsafe_portal_link(self):
+        (self.folder / "index.html").write_text(
+            '<meta name="viewport" content="width=device-width"><a href="../outside.html">Report</a> research-only')
+        with self.assertRaisesRegex(ValueError, "unsafe"):
+            verify(self.folder)
+
+    def test_reject_missing_mobile_viewport(self):
+        (self.folder / "v5_dashboard.html").write_text("<html>research-only</html>")
+        with self.assertRaisesRegex(ValueError, "viewport"):
+            verify(self.folder)
 
     def test_reject_missing_artifact(self):
         (self.folder / "index.html").unlink()
