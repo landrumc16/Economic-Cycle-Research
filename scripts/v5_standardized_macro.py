@@ -15,6 +15,7 @@ def transform(series, observations, as_of):
         raise ValueError("Expected dated observation rows")
     report_date = date.fromisoformat(as_of)
     by_month = {}
+    claims_weeks = {}
     for row in observations:
         d = date.fromisoformat(row["date"])
         release = row.get("release_date")
@@ -24,9 +25,19 @@ def transform(series, observations, as_of):
         if not _num(value):
             continue
         key = _month(row["date"])
+        if series == "ICSA":
+            claims_weeks.setdefault(key, []).append(dict(row))
+            continue
         if key in by_month:
             raise ValueError("Duplicate observation period; select a vintage explicitly")
         by_month[key] = dict(row)
+    if series == "ICSA":
+        # ICSA is weekly. Aggregate dated weekly levels to monthly means;
+        # never silently select one week or treat it as a monthly observation.
+        for key, weeks in claims_weeks.items():
+            by_month[key] = {"date": max(w["date"] for w in weeks),
+                             "value": sum(w["value"] for w in weeks) / len(weeks),
+                             "vintage_verified": all(w.get("vintage_verified") for w in weeks)}
     if not by_month:
         return {"series": series, "status": "INSUFFICIENT_HISTORY", "metric": None,
                 "value": None, "observation_date": None, "comparison_date": None}
@@ -79,7 +90,7 @@ def build(history):
             "predictive_publication": "BLOCKED",
             "limitations": [
                 "Dated historical levels required; single weekly snapshots cannot produce inflation or GDP growth",
-                "Initial claims monthly change is not a four-week moving average",
+                "Initial claims monthly change compares monthly averages of available weekly claims; incomplete months may be provisional",
                 "Quarterly GDP annualization assumes comparable real GDP levels",
                 "Publisher-original vintage certification is required for prospective replay",
             ]}
