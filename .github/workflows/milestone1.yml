@@ -418,6 +418,40 @@ jobs:
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Verify deployed public dashboard and research pages
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import time
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+          base = os.environ["PAGE_URL"].rstrip("/")
+          required = ["index.html", "weekly-v5.html", "state.json", "release-evidence.json"]
+          if Path("audit-output/dashboard/monthly.html").exists():
+              required += ["monthly.html", "monthly.json"]
+          for path in required:
+              url = base + "/" + path
+              for attempt in range(12):
+                  try:
+                      with urllib.request.urlopen(url, timeout=15) as response:
+                          body = response.read()
+                          if response.status != 200 or not body:
+                              raise ValueError("empty or non-200 response")
+                          if path == "index.html" and b'viewport' not in body:
+                              raise ValueError("mobile viewport missing")
+                          print("PUBLIC VERIFIED:", url, len(body), "bytes")
+                          break
+                  except (OSError, ValueError) as exc:
+                      if attempt == 11:
+                          raise RuntimeError(f"Public deployment check failed: {url}: {exc}") from exc
+                      time.sleep(10)
+          PY
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
