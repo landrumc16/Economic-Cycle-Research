@@ -72,6 +72,8 @@ jobs:
               for key, value in outcomes.items():
                   summary.write(f"- {key}: {value}; report present: {evidence['reports_present'][key]}\n")
               summary.write("- Source promotion: BLOCKED; canonical Google Sheets reconciliation: NOT VERIFIED\n")
+          if any(value != "success" for value in outcomes.values()):
+              raise SystemExit("One or more official-source acquisition steps failed; evidence preserved but daily run cannot pass")
           PY
       - name: Preserve dated source acquisition evidence
         if: always()
