@@ -346,6 +346,8 @@ jobs:
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Package approved dashboard for GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-pages-artifact@v3
