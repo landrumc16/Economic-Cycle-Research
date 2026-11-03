@@ -40,3 +40,13 @@ These workflows reuse existing modules. **There is no automated cross-run artifa
 ## Release declaration
 
 **Version 5 historical/descriptive research artifact release is accepted and technically verified.** The broader goal of a fully live, source-promoted, continuously reconciled current economic assessment **is not certified or closed**. Do not call this a predictive release. Preserve existing V1–V4 behavior. Defer enhancements unrelated to these remaining operational checks to Version 6.
+
+## Direct canonical Google Sheets review — 2026-11-03
+
+The live connected native spreadsheet `SEM_Historical_Crash_Research_v1` (`1ocdo4Y036ZB93egyY96INfuRcJkw0uHAO5BK416bVnE`) was read directly, not inferred from the repository's November 1 snapshot.
+
+- `DATA PROMOTION GATE!A1:H9`: UNRATE, CPIAUCSL and GDPC1 all remain **BLOCKED**. UNRATE publisher cross-check partial and vintage review partial; CPIAUCSL cross-check partial and vintage pending; GDPC1 cross-check partial and vintage pending. Missing October 2025 BLS observations must remain missing.
+- `DATA REFRESH STATUS!A1:H9`: November 3 08:11 CST source review reports 12/12 registry feeds and 9/9 refresh categories reviewed, with two numeric observations staged but **zero canonical promotions** and **0/3 primary macro approved**. Source scan and manual workbook notes are **not** proof of automated GitHub-to-Sheets synchronization.
+- `SOURCE VERIFICATION LEDGER!A1:H12`: ledger retains publisher, series IDs, definitions, units, source URLs and observation dates; listing a source is explicitly not verification of fetched observations.
+
+**Reconciliation result:** The live workbook agrees with the repository's fail-closed macro approval state. This is a verified **status reconciliation**, not a verified numerical point-by-point ingestion or authorized source promotion. Current-cycle certification remains blocked; do not mark it complete or replace missing data.
