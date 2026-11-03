@@ -51,6 +51,9 @@ body{{max-width:980px;margin:auto;padding:24px;line-height:1.55}}
 h1{{font-size:2rem}}h2{{font-size:1.15rem}}
 section{{background:#fff;padding:24px;border:1px solid #dae3ed;border-radius:14px;margin:16px 0}}
 nav a{{display:inline-block;margin:6px 14px 6px 0}}
+details{{background:#fff;border:1px solid #dae3ed;border-radius:14px;padding:18px;margin:16px 0}}
+summary{{cursor:pointer;padding:6px 0}}
+@media(max-width:600px){{body{{padding:12px}}section{{padding:16px}}h1{{font-size:1.65rem}}nav a{{display:block;padding:10px 0}}}}
 table{{width:100%;border-collapse:collapse}}td,th{{padding:10px;border-bottom:1px solid #e0e6ed;text-align:left}}
 small,.muted{{color:#53647a}}
 </style></head><body>
@@ -67,7 +70,7 @@ Numeric recession forecasts: <strong>Blocked</strong>.</p>
 <a href="v5_dashboard.html">Historical cycle diagnostics</a>
 <a href="v5_executive_brief.md">Research brief</a></nav>
 <p class="muted">Links open the companion files included in the same GitHub Actions artifact.</p></section>
-<section><h2>Source verification</h2>
+<details><summary><strong>Research methodology and source verification</strong></summary><section><h2>Source verification</h2>
 <p>Workbook reconciliation: {esc(report["workbook_reconciliation"])}.
 Snapshot date: {esc(report["workbook_snapshot_date"] or "Unavailable")}.</p>
 <table><thead><tr><th>Macro series</th><th>Promotion status</th></tr></thead>
@@ -76,7 +79,7 @@ Snapshot date: {esc(report["workbook_snapshot_date"] or "Unavailable")}.</p>
 <p>Source vintage certification and numerical forecast validation remain independent
 release gates. Missing observations are not imputed. Retrospective revised-data
 diagnostics must not be interpreted as live crash predictions.</p></section>
-<footer><small>Historical and descriptive research only · Not investment advice</small></footer>
+</details><footer><small>Historical and descriptive research only · Not investment advice</small></footer>
 </body></html>"""
 
 
