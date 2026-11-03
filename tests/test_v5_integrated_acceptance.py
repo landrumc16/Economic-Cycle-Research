@@ -17,7 +17,7 @@ class IntegratedAcceptanceTests(unittest.TestCase):
                 "current_conditions_approved": False,
                 "workbook_reconciliation": "NOT_RECONCILED",
                 "macro_promotion": {"UNRATE": "BLOCKED"}},
-            "weekly_release_acceptance.json": {"status": "STALE_RESEARCH_ONLY"},
+            "weekly_release_acceptance.json": {"status": "STALE_RESEARCH_ONLY", "observation_month": "2026-08-01", "current_assessment_approved": False},
             "unified_research_status.json": {"github_monthly_release_status": "STALE_RESEARCH_ONLY",
                 "workbook_reconciliation": "NOT_RECONCILED",
                 "macro_promotion": {"UNRATE": "BLOCKED"},
@@ -87,6 +87,43 @@ class IntegratedAcceptanceTests(unittest.TestCase):
         data["current_conditions_approved"] = True
         path.write_text(json.dumps(data))
         with self.assertRaises(ValueError):
+            verify(self.folder)
+
+
+    def test_reject_monthly_observation_mismatch(self):
+        path = self.folder / "weekly_release_acceptance.json"
+        data = json.loads(path.read_text())
+        data["observation_month"] = "2026-07-01"
+        path.write_text(json.dumps(data))
+        with self.assertRaisesRegex(ValueError, "observation date mismatch"):
+            verify(self.folder)
+
+    def test_reject_stale_monthly_current_claim(self):
+        path = self.folder / "weekly_release_acceptance.json"
+        data = json.loads(path.read_text())
+        data["current_assessment_approved"] = True
+        path.write_text(json.dumps(data))
+        with self.assertRaisesRegex(ValueError, "Stale monthly"):
+            verify(self.folder)
+
+    def test_reject_cadence_status_mismatch(self):
+        path = self.folder / "v5_unified_portal.json"
+        data = json.loads(path.read_text())
+        data["daily_refresh_status"] = "VERIFIED"
+        path.write_text(json.dumps(data))
+        with self.assertRaisesRegex(ValueError, "daily_refresh_status"):
+            verify(self.folder)
+
+    def test_reject_unreconciled_macro_promotion(self):
+        path = self.folder / "unified_research_status.json"
+        data = json.loads(path.read_text())
+        data["macro_promotion"]["UNRATE"] = "APPROVED"
+        path.write_text(json.dumps(data))
+        portal = self.folder / "v5_unified_portal.json"
+        p = json.loads(portal.read_text())
+        p["macro_promotion"]["UNRATE"] = "APPROVED"
+        portal.write_text(json.dumps(p))
+        with self.assertRaisesRegex(ValueError, "cannot promote"):
             verify(self.folder)
 
 
