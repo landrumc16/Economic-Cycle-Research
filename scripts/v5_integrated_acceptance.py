@@ -61,6 +61,18 @@ def verify(folder):
         raise ValueError("Portal claims unapproved forecasts")
     if portal.get("current_conditions_approved") is not False:
         raise ValueError("Uncertified current assessment")
+    if monthly["status"] == "STALE_RESEARCH_ONLY" and monthly.get("current_assessment_approved") is True:
+        raise ValueError("Stale monthly observations presented as current")
+    if portal.get("observation_month") != str(monthly.get("observation_month", ""))[:7]:
+        raise ValueError("Monthly observation date mismatch")
+    for key in ("daily_refresh_status", "weekly_outlook_status", "monthly_cycle_status", "workbook_snapshot_review_status"):
+        if portal.get(key) != unified.get(key):
+            raise ValueError(f"Unified cadence/review status mismatch: {key}")
+    if unified.get("workbook_reconciliation") != "RECONCILED":
+        if unified.get("canonical_macro_approved") is not False:
+            raise ValueError("Unreconciled workbook cannot approve canonical macro data")
+        if any(value != "BLOCKED" for value in unified.get("macro_promotion", {}).values()):
+            raise ValueError("Unreconciled workbook cannot promote macro sources")
     if unified.get("numeric_forecasts_approved") is not False:
         raise ValueError("Unified status claims numeric forecasts")
     if unified.get("canonical_macro_approved") is True and unified.get("workbook_reconciliation") != "RECONCILED":
