@@ -1,6 +1,6 @@
 # Version 5 — Business-Cycle Intelligence & Forecasting Dashboard
 
-Status: IMPLEMENTED IN MAIN / RELEASE VERIFICATION PENDING
+Status: V5 DESCRIPTIVE/HISTORICAL RELEASE VERIFIED — CURRENT-DATA AND FORECAST APPROVAL WITHHELD
 Date: 2026-11-01
 
 ## Objective
@@ -48,3 +48,12 @@ Implement milestones 1–4 before styling the dashboard; then 5–7. Prefer subs
 - **Not yet accepted:** GitHub Actions success and artifact rendering have not been verified. A commit alone is not release evidence.
 - The Google Sheets promotion snapshot remains dated/unreviewed; automated authenticated workbook synchronization and daily/weekly cadence verification remain limitations. No live macro approval or numeric recession forecast may be inferred.
 - Next action: inspect an actual run and artifacts, repair only release-blocking failures, then record the verified run and formal closeout.
+
+## Verified release evidence — 2026-11-03
+- GitHub Actions: https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/41686229400 — descriptive job completed successfully on main at commit fd44328c62f1e6fbfb1990d4a0c5ec22c69ca023. All reported unit/regression, historical analysis, monthly assessment, dashboard, and acceptance steps succeeded.
+- Artifact ID 13253584340, `industry-deviation-descriptive-evidence`, 86 files, SHA-256 `5b6b9074cf1d465a5ffeab187d69c1a38530a99fcbb7d082674ee86e97443f62`; downloaded and inspected.
+- `v5_integrated_acceptance.json`: `V5_INTEGRATED_DESCRIPTIVE_RELEASE_ACCEPTED`; `weekly_release_acceptance.json`: `STALE_RESEARCH_ONLY`; 546 historical months and 9 dashboard metrics. HTML/JSON dashboards, brief, portal, forecast gate and status files exist.
+- Common observation month 2026-08, assessment date 2026-11-03. Source workbook snapshot 2026-11-01 is unreviewed, workbook reconciliation `NOT_RECONCILED`, and UNRATE/CPIAUCSL/GDPC1 promotion `BLOCKED`. This release is descriptive/historical only; it does not certify a current cycle state or numerical crash/recession probabilities.
+- Monthly workflow is automated on relevant main pushes and day-20 schedule. Daily refresh status `NOT_RECONCILED` and weekly outlook `DESCRIPTIVE_ONLY` are recorded operational limitations; their separate schedules, fresh workbook reconciliation, and independent live end-to-end runs have not been verified here. Do not claim these cadences operational from this monthly run.
+- The artifact HTML was inspected for presence and structure, but browser visual rendering and a public hosted dashboard URL are not independently certified. The workflow artifact is the verified distribution channel.
+- **Disposition:** V5 research-only artifact release verified; full operational acceptance remains open pending daily/weekly cadence verification, current workbook source-promotion reconciliation where applicable, and browser/deployment verification. Forecast approval is a separate future gate, not a prerequisite to publishing explicitly research-only outputs.
