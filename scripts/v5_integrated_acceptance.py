@@ -1,6 +1,8 @@
 """Accept the integrated monthly V5 research portal only with consistent artifacts."""
 import argparse
 import json
+from html.parser import HTMLParser
+from urllib.parse import unquote, urlsplit
 from pathlib import Path
 
 FILES = ("index.html", "v5_unified_portal.json", "v5_dashboard.html",
@@ -10,10 +12,37 @@ FILES = ("index.html", "v5_unified_portal.json", "v5_dashboard.html",
          "v5_forecast_release_gate.json")
 
 
+class LocalLinks(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.links = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            self.links.extend(value for key, value in attrs if key == "href" and value)
+
+
+def verify_html(folder):
+    for name in ("index.html", "v5_dashboard.html", "economic_dashboard.html"):
+        markup = (folder / name).read_text()
+        if 'name="viewport"' not in markup:
+            raise ValueError(f"Missing mobile viewport: {name}")
+        parser = LocalLinks()
+        parser.feed(markup)
+        for href in parser.links:
+            url = urlsplit(href)
+            if url.scheme or url.netloc or not url.path:
+                continue
+            target = (folder / unquote(url.path)).resolve()
+            if not target.is_relative_to(folder.resolve()) or not target.is_file():
+                raise ValueError(f"Broken or unsafe artifact link in {name}: {href}")
+
+
 def verify(folder):
     missing = [n for n in FILES if not (folder / n).is_file() or not (folder / n).stat().st_size]
     if missing:
         raise ValueError("Missing or empty artifacts: " + ", ".join(missing))
+    verify_html(folder)
     read = lambda n: json.loads((folder / n).read_text())
     portal, monthly, unified = map(read, ("v5_unified_portal.json", "weekly_release_acceptance.json",
                                          "unified_research_status.json"))
