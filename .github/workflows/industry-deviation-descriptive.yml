@@ -189,27 +189,33 @@ jobs:
         shell: bash
         run: |
           echo "## Version 5 Unified Research" >> "$GITHUB_STEP_SUMMARY"
-          if [ -f audit-output/unified_research_status.json ]; then
-            python - <<'PY'
-          import json, os
+          python - <<'PY'
+          import json
+          import os
           from pathlib import Path
-          d = json.loads(Path("audit-output/unified_research_status.json").read_text())
-          lines = [
-              "",
-              f"**Monthly gate:** {d['github_monthly_release_status']}",
-              f"**Workbook reconciliation:** {d['workbook_reconciliation']}",
-              f"**Snapshot date:** {d.get('workbook_snapshot_retrieval_date') or 'Unavailable'}",
-              f"**Macro promotion:** {', '.join(f'{k}={v}' for k,v in d['macro_promotion'].items())}",
-              "**Numeric forecasts:** BLOCKED",
-              "",
-              "Artifacts: v5_dashboard.html, v5_executive_brief.md, unified_research_status.json",
-          ]
+          folder = Path("audit-output")
+          status_file = folder / "unified_research_status.json"
+          acceptance_file = folder / "v5_integrated_acceptance.json"
+          lines = []
+          if status_file.is_file():
+              d = json.loads(status_file.read_text())
+              lines.extend([
+                  f"**Monthly gate:** {d['github_monthly_release_status']}",
+                  f"**Workbook reconciliation:** {d['workbook_reconciliation']}",
+                  f"**Snapshot date:** {d.get('workbook_snapshot_retrieval_date') or 'Unavailable'}",
+                  "**Numeric forecasts:** BLOCKED",
+              ])
+          else:
+              lines.append("**Unified research status:** NOT VERIFIED")
+          if acceptance_file.is_file():
+              a = json.loads(acceptance_file.read_text())
+              lines.append(f"**Integrated artifact gate:** {a['status']}")
+          else:
+              lines.append("**Integrated artifact gate:** NOT VERIFIED")
+          lines.extend(["", "Download the workflow artifact to inspect index.html and research reports."])
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as output:
-              output.write("\\n".join(lines) + "\\n")
+              output.write("\n".join(lines) + "\n")
           PY
-          else
-            echo "Unified research output missing; release not verified." >> "$GITHUB_STEP_SUMMARY"
-          fi
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - name: Persist assessment history
