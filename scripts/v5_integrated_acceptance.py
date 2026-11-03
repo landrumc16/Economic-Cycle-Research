@@ -66,6 +66,8 @@ def verify(folder):
     if portal.get("observation_month") != str(monthly.get("observation_month", ""))[:7]:
         raise ValueError("Monthly observation date mismatch")
     for key in ("daily_refresh_status", "weekly_outlook_status", "monthly_cycle_status", "workbook_snapshot_review_status"):
+        if key not in portal or key not in unified or not isinstance(portal[key], str) or not portal[key]:
+            raise ValueError(f"Missing unified cadence/review status: {key}")
         if portal.get(key) != unified.get(key):
             raise ValueError(f"Unified cadence/review status mismatch: {key}")
     if unified.get("workbook_reconciliation") != "RECONCILED":
