@@ -50,3 +50,8 @@ The live connected native spreadsheet `SEM_Historical_Crash_Research_v1` (`1ocdo
 - `SOURCE VERIFICATION LEDGER!A1:H12`: ledger retains publisher, series IDs, definitions, units, source URLs and observation dates; listing a source is explicitly not verification of fetched observations.
 
 **Reconciliation result:** The live workbook agrees with the repository's fail-closed macro approval state. This is a verified **status reconciliation**, not a verified numerical point-by-point ingestion or authorized source promotion. Current-cycle certification remains blocked; do not mark it complete or replace missing data.
+
+## Daily workflow reliability correction — 2026-11-03
+- Commit `548281f` corrects the daily workflow's false-success failure mode. All official-source acquisition steps retain `continue-on-error` to allow subsequent sources to run and preserve their reports, but the final summary now exits nonzero when **any** FRED/BLS/BEA step outcome is not `success`. The artifact upload remains `if: always()` and retains the evidence even on a failed run.
+- This change was committed **after** the successful manual run `41718925304`; that prior run cannot validate the new failure gate. A new manual or scheduled run is required before claiming the corrected daily workflow verified. GitHub connection presently has read/run-inspection and repository-edit tools but no workflow-dispatch action.
+- Source-promotion restrictions and the authoritative workbook approval state remain unchanged.
