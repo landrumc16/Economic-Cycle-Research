@@ -12,14 +12,35 @@ REPORTS = {
 }
 
 
+def valid_report(source: str, path: Path) -> bool:
+    """Reject malformed, errored, or unpopulated acquisition evidence."""
+    try:
+        report = json.loads(path.read_text())
+        if not isinstance(report, dict) or report.get("promotion") != "BLOCKED":
+            return False
+        if source in ("FRED", "BLS"):
+            series = report.get("series")
+            return (report.get("errors") == [] and isinstance(series, dict)
+                    and bool(series) and all(
+                        isinstance(item, dict) and isinstance(item.get("observations"), int)
+                        and item["observations"] > 0 for item in series.values()))
+        return (report.get("status") == "ACQUIRED NOT RECONCILED"
+                and isinstance(report.get("observations"), int)
+                and report["observations"] > 0)
+    except (OSError, ValueError, TypeError):
+        return False
+
+
 def summarize(root: Path, outcomes: dict[str, str]) -> dict:
     present = {source: (root / REPORTS[source]).is_file() for source in SOURCES}
-    successful = all(outcomes.get(source) == "success" and present[source] for source in SOURCES)
+    valid = {source: valid_report(source, root / REPORTS[source]) for source in SOURCES}
+    successful = all(outcomes.get(source) == "success" and valid[source] for source in SOURCES)
     return {
         "status": "DAILY_SOURCE_ACQUISITION_EVIDENCE",
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
         "step_outcomes": {source: outcomes.get(source, "unknown") for source in SOURCES},
         "reports_present": present,
+        "reports_valid": valid,
         "acquisition_complete": successful,
         "source_promotion": "BLOCKED",
         "workbook_reconciled": False,
