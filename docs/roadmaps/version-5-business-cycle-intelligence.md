@@ -1,6 +1,6 @@
 # Version 5 — Business-Cycle Intelligence & Forecasting Dashboard
 
-Status: APPROVED ROADMAP / IMPLEMENTATION PENDING
+Status: IMPLEMENTED IN MAIN / RELEASE VERIFICATION PENDING
 Date: 2026-11-01
 
 ## Objective
@@ -40,3 +40,11 @@ Extend the technically validated V4 monthly research pipeline to estimate busine
 
 ## Work order
 Implement milestones 1–4 before styling the dashboard; then 5–7. Prefer substantial vertical slices and avoid repeated approval requests for minor decisions.
+
+## November 3, 2026 release checkpoint
+- Existing monthly pipeline includes historical phase estimation, retrospective episode and 3/6/12-month diagnostics, an explicitly blocked numerical forecast gate, executive brief, descriptive dashboard and unified landing page.
+- A separate integrated acceptance gate now checks artifact presence, agreement between release statuses, stale-data handling and forecast restrictions.
+- Monthly workflow retains its day-20 schedule and is configured to run on relevant pushes to main, reducing manual dispatches.
+- **Not yet accepted:** GitHub Actions success and artifact rendering have not been verified. A commit alone is not release evidence.
+- The Google Sheets promotion snapshot remains dated/unreviewed; automated authenticated workbook synchronization and daily/weekly cadence verification remain limitations. No live macro approval or numeric recession forecast may be inferred.
+- Next action: inspect an actual run and artifacts, repair only release-blocking failures, then record the verified run and formal closeout.
