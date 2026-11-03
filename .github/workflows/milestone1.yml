@@ -323,7 +323,7 @@ jobs:
           print("- Dashboard: dashboard/weekly-v5.html in milestone1-audit-evidence")
           PY
       - name: Verify dashboard is eligible for public publication
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'push')
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         run: |
           python - <<'PY'
           import json
@@ -344,17 +344,17 @@ jobs:
           }, indent=2) + "\n")
           PY
       - name: Configure GitHub Pages
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'push')
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         uses: actions/configure-pages@v5
         with:
           enablement: true
       - name: Package approved dashboard for GitHub Pages
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'push')
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         uses: actions/upload-pages-artifact@v3
         with:
           path: audit-output/dashboard
       - name: Deploy approved dashboard to GitHub Pages
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'push')
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         id: deployment
         uses: actions/deploy-pages@v4
       - name: Preserve source evidence even on failure
