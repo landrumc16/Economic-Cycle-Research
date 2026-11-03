@@ -404,6 +404,21 @@ jobs:
           else
             echo 'No qualifying current monthly assessment; none published. Inspect monthly workflow.' >> "$GITHUB_STEP_SUMMARY"
           fi
+      - name: Link only published monthly assessment from dashboard
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          dashboard = Path("audit-output/dashboard")
+          index = dashboard / "index.html"
+          monthly = dashboard / "monthly.html"
+          if monthly.is_file():
+              html = index.read_text()
+              anchor = '<a href="weekly-v5.html">Latest weekly research assessment</a>'
+              assert anchor in html, "Expected weekly navigation anchor missing"
+              html = html.replace(anchor, anchor + ' · <a href="monthly.html">Latest approved monthly assessment</a>', 1)
+              index.write_text(html)
+          PY
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         uses: actions/configure-pages@v5
