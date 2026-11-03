@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Test daily evidence failure gate
+        run: python -m unittest discover -s tests -p 'test_daily_acquisition_status.py' -v
       - name: Acquire official FRED observations
         id: fred
         continue-on-error: true
@@ -41,40 +43,7 @@ jobs:
           FRED_OUTCOME: ${{ steps.fred.outcome }}
           BLS_OUTCOME: ${{ steps.bls.outcome }}
           BEA_OUTCOME: ${{ steps.bea.outcome }}
-        run: |
-          python - <<'PY'
-          import json
-          import os
-          from datetime import datetime, timezone
-          from pathlib import Path
-          root = Path("audit-output")
-          root.mkdir(exist_ok=True)
-          reports = {
-              "FRED": root / "fred-api/fred_api_report.json",
-              "BLS": root / "bls-api/bls_api_report.json",
-              "BEA": root / "bea-api/bea_report.json",
-          }
-          outcomes = {key: os.environ.get(key + "_OUTCOME", "unknown") for key in reports}
-          evidence = {
-              "status": "DAILY_SOURCE_ACQUISITION_EVIDENCE",
-              "generated_at_utc": datetime.now(timezone.utc).isoformat(),
-              "step_outcomes": outcomes,
-              "reports_present": {key: path.is_file() for key, path in reports.items()},
-              "source_promotion": "BLOCKED",
-              "workbook_reconciled": False,
-              "current_assessment_approved": False,
-              "numeric_forecasts_approved": False,
-              "note": "Acquisition is not verification. Weekly and monthly research retain independent fail-closed release gates.",
-          }
-          (root / "daily_acquisition_status.json").write_text(json.dumps(evidence, indent=2) + "\n")
-          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
-              summary.write("## Daily economic source acquisition (research only)\n")
-              for key, value in outcomes.items():
-                  summary.write(f"- {key}: {value}; report present: {evidence['reports_present'][key]}\n")
-              summary.write("- Source promotion: BLOCKED; canonical Google Sheets reconciliation: NOT VERIFIED\n")
-          if any(value != "success" for value in outcomes.values()):
-              raise SystemExit("One or more official-source acquisition steps failed; evidence preserved but daily run cannot pass")
-          PY
+        run: python scripts/daily_acquisition_status.py
       - name: Preserve dated source acquisition evidence
         if: always()
         uses: actions/upload-artifact@v4
