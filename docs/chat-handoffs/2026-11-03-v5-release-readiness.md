@@ -34,3 +34,10 @@ No formal Version 5 completion declaration until the Actions run and generated a
 - Historical heuristic remains explicitly research-only; no current-cycle approval or numerical forecasts are asserted.
 - **Outstanding external evidence:** No completed monthly run ID, CI log, downloaded artifact, or deployed page inspection has been obtained in this session. The available GitHub connector can inspect a run by ID but does not list recent runs or dispatch new ones. A run URL or ID is needed for direct inspection, unless independently discoverable through the public Actions page.
 - Do not mark V5 released until workflow and artifacts are verified. Dated workbook snapshot is not a live workbook connection.
+
+## Verified monthly execution (supersedes earlier missing-run note)
+- Run https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/41686229400, commit fd44328c62f1e6fbfb1990d4a0c5ec22c69ca023, job 126092587842: completed successfully.
+- Downloaded artifact 13253584340, 86 files; inspected portal JSON, unified status, integrated acceptance and monthly release acceptance. Integrated release accepted, monthly status STALE_RESEARCH_ONLY, 2026-08 observation month, 546 historical months, 9 economic indicators.
+- The canonical workbook snapshot remains UNREVIEWED_AUTOMATED_SNAPSHOT, macro promotion blocked, and daily refresh NOT_RECONCILED. Weekly outlook is descriptive only. Numerical forecasting remains blocked. None of these facts is overridden by passing CI.
+- The tested artifact includes the mobile HTML portal and companion dashboards; browser visual inspection and hosted publication are not yet verified.
+- Remaining operational verification: inspect separate daily and weekly workflow schedules/runs, reconcile source promotion with the canonical Sheet, and verify hosted/mobile rendering if hosting is part of the desired deployment. Do not describe V5 as fully operational until these are resolved or explicitly accepted as release limitations.
