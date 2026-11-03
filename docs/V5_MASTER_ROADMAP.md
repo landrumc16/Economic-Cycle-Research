@@ -65,3 +65,11 @@ Turn Version 4's explainable descriptive economic intelligence into a historical
 - Inspected artifact 13272566362 (daily-economic-source-evidence): 60 files, including daily_acquisition_status.json and source reports. Status records acquisition_complete=true, all reports_present=true, all reports_valid=true.
 - Source promotion remains BLOCKED; workbook_reconciled=false; current_assessment_approved=false; numeric_forecasts_approved=false. Acquisition does not certify historical vintages or authorize forecasts.
 - Remaining operational release checks: certify distinct-date weekly continuity and artifact linkage, confirm daily/weekly/monthly reliability together, and verify hosted/mobile dashboard against release artifacts. Full operational Version 5 is not yet certified.
+
+## Release hardening update — 2026-11-03
+- Monthly integrated acceptance now requires explicit cadence/review evidence, rejects mismatched observation months, stale-current claims, and unauthorized workbook macro promotion. Regression tests were added; **post-change CI is not yet certified**.
+- Weekly artifact 13271024721 generated descriptive output, but standardized macro availability was **0 of 4**, and original-vintage replay coverage was **0**. Descriptive release success must not be interpreted as current economic coverage.
+- Fixed prior weekly artifact recovery JSON serialization in `.github/workflows/milestone1.yml` (commit `08b16fc`). The original literal escaped newline could invalidate the recovered snapshot; the new code reads it back to verify parseability.
+- **Open M1:** two separate scheduled weekly dates with valid prior-artifact linkage remain unverified.
+- **Open M7:** latest code revision needs successful CI, artifact inspection, and hosted/mobile dashboard verification. Current workbook source promotion remains blocked.
+- Do not close V5 until those checks pass; do not expand the release into new forecasting research.
