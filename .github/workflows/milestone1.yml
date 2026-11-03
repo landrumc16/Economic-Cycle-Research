@@ -402,7 +402,7 @@ jobs:
           base="https://${{ github.repository_owner }}.github.io/Economic-Cycle-Research"
           if curl --fail --silent --show-error --location --max-time 15 "$base/monthly.html" -o /tmp/previous-monthly.html &&
              curl --fail --silent --show-error --location --max-time 15 "$base/monthly.json" -o /tmp/previous-monthly.json &&
-             python -c 'import json,sys; x=json.load(open("/tmp/previous-monthly.json")); assert x.get("assessment_date") and x.get("stale") is not True'; then
+             python -c 'import json,sys; x=json.load(open("/tmp/previous-monthly.json")); assert x.get("assessment_date") and x.get("stale") is False'; then
             cp /tmp/previous-monthly.html audit-output/dashboard/monthly.html
             cp /tmp/previous-monthly.json audit-output/dashboard/monthly.json
             echo 'Retained last accepted monthly assessment; no qualifying replacement.' >> "$GITHUB_STEP_SUMMARY"
