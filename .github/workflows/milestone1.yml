@@ -343,6 +343,50 @@ jobs:
               "predictive_release": "BLOCKED"
           }, indent=2) + "\n")
           PY
+      - name: Include latest accepted monthly assessment in public dashboard
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The monthly workflow owns research generation. Reuse its latest
+          # successful archived artifact instead of rerunning its research.
+          mkdir -p audit-output/dashboard
+          run_id="$(gh run list --workflow industry-deviation-descriptive.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          if [ -z "$run_id" ]; then
+            echo 'No successful monthly artifact available; weekly publication continues without a monthly report.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          mkdir -p /tmp/economic-monthly
+          if ! gh run download "$run_id" --name industry-deviation-descriptive-evidence --dir /tmp/economic-monthly; then
+            echo "Monthly artifact from run $run_id unavailable; leaving monthly report unpublished." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          root = Path("/tmp/economic-monthly/audit-output")
+          dest = Path("audit-output/dashboard")
+          gate = root / "weekly_release_acceptance.json"
+          html = root / "economic_dashboard.html"
+          report = root / "economic_dashboard.json"
+          if not all(p.is_file() for p in (gate, html, report)):
+              print("Monthly artifact incomplete; not publishing.")
+          else:
+              approval = json.loads(gate.read_text())
+              assessment = json.loads(report.read_text())
+              status = approval.get("status")
+              # Historical/stale research is not an approved current assessment.
+              if status != "PASS" or assessment.get("stale") is True:
+                  print(f"Monthly report not current-qualified ({status}); not publishing.")
+              else:
+                  dest.joinpath("monthly.html").write_bytes(html.read_bytes())
+                  dest.joinpath("monthly.json").write_bytes(report.read_bytes())
+                  print(f"Published accepted monthly assessment: {assessment.get('assessment_date')}")
+          PY
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
         uses: actions/configure-pages@v5
