@@ -94,3 +94,7 @@ Implement milestones 1–4 before styling the dashboard; then 5–7. Prefer subs
 **Not certified:** source-promoted live current-cycle assessment, recurring scheduled executions (as distinct from manual dispatch), automatic daily→weekly→monthly artifact synchronization, canonical Google Sheets approval/reconciliation, numerical forecasts, and hosted interactive/mobile browser deployment. No unsupported approval should be inferred from a successful workflow. Do not expand V5 with new economic research while these operational boundaries remain.
 
 **Formal disposition:** Descriptive Version 5 **released/accepted with documented limitations**; the user's broader fully operational current-data objective remains open and must not be represented as complete.
+
+## Daily acquisition evidence integrity — 2026-11-03
+- `scripts/daily_acquisition_status.py` now requires successful FRED/BLS/BEA steps **and** readable, nonempty, error-free source report evidence with explicit blocked-promotion semantics. The daily workflow runs six targeted regression tests before source acquisition and retains artifacts even when acceptance fails.
+- Implemented in `562df72` and `67658ca`. **These new changes are not yet verified by a completed daily workflow run**; do not conflate monthly/weekly CI with the daily test step. Existing live workbook decisions remain authoritative and blocked.
