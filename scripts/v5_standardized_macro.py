@@ -16,6 +16,7 @@ def transform(series, observations, as_of):
     report_date = date.fromisoformat(as_of)
     by_month = {}
     claims_weeks = {}
+    claims_dates = set()
     for row in observations:
         d = date.fromisoformat(row["date"])
         release = row.get("release_date")
@@ -26,6 +27,9 @@ def transform(series, observations, as_of):
             continue
         key = _month(row["date"])
         if series == "ICSA":
+            if row["date"] in claims_dates:
+                raise ValueError("Duplicate weekly claims observation date; select a vintage explicitly")
+            claims_dates.add(row["date"])
             claims_weeks.setdefault(key, []).append(dict(row))
             continue
         if key in by_month:
