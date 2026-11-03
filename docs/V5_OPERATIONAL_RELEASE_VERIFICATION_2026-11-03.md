@@ -35,3 +35,11 @@ No repeat historical research, no duplicate pipeline, no invented current-cycle 
 - Added four regression cases in `tests/test_v5_integrated_acceptance.py` for these failure modes.
 - Commits: `6061726` and `1deb859`.
 - **Verification pending:** GitHub Actions must run against `1deb859` or later, and the resulting monthly artifact must be inspected. Earlier passing workflows do not validate these new changes. Do not declare full V5 release on the basis of code commits alone.
+
+## Weekly artifact deep inspection and second gate hardening
+- Inspected weekly artifact **13271024721** (47 files) from run **41720903373**.
+- `v5_release_acceptance.json` reports `PASS_DESCRIPTIVE_ONLY` with predictive publication `BLOCKED`.
+- `v5_release_evidence_manifest.json` reports `macro_available=0` of `macro_total=4`, `historical_events=0`, `original_vintage_replay_coverage=0`, and `source_freshness_certified=false`. The archived weekly artifact is a valid *descriptive scaffold*, not a data-complete current economic assessment.
+- `v5_temporal_provenance.json` reports `numeric_available=0`; the weekly artifact did not prove prior dated weekly linkage. This is an operational coverage gap requiring scheduled-run evidence and successful source ingestion, not an invitation to fabricate numbers.
+- Follow-up commits `1537520` and `a782d2c` require explicit nonempty cadence/review fields and update test fixtures.
+- Post-change CI has not been verified. The GitHub commit-to-workflow lookup returned no workflow runs for the latest code commit at the time of inspection.
