@@ -9,11 +9,16 @@ on:
 permissions:
   contents: read
   actions: read
+  pages: write
+  id-token: write
 concurrency:
   group: milestone1-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   audit:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -317,6 +322,39 @@ jobs:
           print("- Predictive publication: BLOCKED pending independent validation")
           print("- Dashboard: dashboard/weekly-v5.html in milestone1-audit-evidence")
           PY
+      - name: Verify dashboard is eligible for public publication
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("audit-output")
+          acceptance = json.loads((root / "v5_release_acceptance.json").read_text())
+          manifest = json.loads((root / "v5_release_evidence_manifest.json").read_text())
+          assert acceptance.get("status") == "PASS_DESCRIPTIVE_ONLY" and not acceptance.get("issues"), "V5 descriptive gate failed"
+          assert manifest.get("status") == "DESCRIPTIVE_ARTIFACTS_VERIFIED" and not manifest.get("issues"), "V5 evidence manifest failed"
+          dashboard = root / "dashboard"
+          for name in ("index.html", "weekly-v5.html", "state.json"):
+              assert (dashboard / name).is_file(), f"Missing dashboard/{name}"
+          (dashboard / "release-evidence.json").write_text(json.dumps({
+              "source_run": "${{ github.run_id }}",
+              "descriptive_release": acceptance["status"],
+              "manifest": manifest["status"],
+              "predictive_release": "BLOCKED"
+          }, indent=2) + "\n")
+          PY
+      - name: Configure GitHub Pages
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        uses: actions/configure-pages@v5
+      - name: Package approved dashboard for GitHub Pages
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: audit-output/dashboard
+      - name: Deploy approved dashboard to GitHub Pages
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        id: deployment
+        uses: actions/deploy-pages@v4
       - name: Preserve source evidence even on failure
         if: always()
         uses: actions/upload-artifact@v4
