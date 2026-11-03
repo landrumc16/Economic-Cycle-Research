@@ -13,6 +13,10 @@ on:
       - 'tests/test_v5_workbook_snapshot_integration.py'
       - 'data/workbook_evidence/**'
       - '.github/workflows/v5-integration-smoke.yml'
+      - 'scripts/v5_unified_portal.py'
+      - 'scripts/v5_integrated_acceptance.py'
+      - 'tests/test_v5_unified_portal.py'
+      - 'tests/test_v5_integrated_acceptance.py'
 jobs:
   workbook-gates:
     runs-on: ubuntu-latest
@@ -31,6 +35,10 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_v5_workbook_snapshot_integration.py' -v
       - name: Workbook freshness regression tests
         run: python -m unittest discover -s tests -p 'test_v5_workbook_freshness.py' -v
+      - name: Integrated portal and release acceptance regression tests
+        run: |
+          python -m unittest discover -s tests -p 'test_v5_unified_portal.py' -v
+          python -m unittest discover -s tests -p 'test_v5_integrated_acceptance.py' -v
       - name: Convert real workbook snapshot
         run: python scripts/v5_workbook_evidence.py data/workbook_evidence/promotion_gate_2026-11-01.json
       - name: Assess snapshot freshness
