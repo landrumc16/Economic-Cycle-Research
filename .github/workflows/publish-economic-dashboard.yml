@@ -1,0 +1,74 @@
+name: Publish Economic Research Dashboard
+on:
+  workflow_run:
+    workflows: ["Milestone 1 - Economic Data Acquisition and QA"]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: economic-research-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Retrieve latest successful weekly research evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          SOURCE_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request, zipfile, io
+          from pathlib import Path
+          repo = os.environ["REPO"]
+          headers = {"Authorization": "Bearer " + os.environ["GH_TOKEN"], "Accept": "application/vnd.github+json"}
+          def get(url):
+              return urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=45)
+          if os.environ["EVENT_NAME"] == "workflow_dispatch":
+              url = f"https://api.github.com/repos/{repo}/actions/workflows/milestone1.yml/runs?branch=main&status=success&per_page=20"
+              runs = json.load(get(url))["workflow_runs"]
+              if not runs: raise SystemExit("No successful weekly workflow run available")
+              run_id = runs[0]["id"]
+          else:
+              run_id = int(os.environ["SOURCE_RUN"])
+          artifacts = json.load(get(f"https://api.github.com/repos/{repo}/actions/runs/{run_id}/artifacts"))["artifacts"]
+          matches = [a for a in artifacts if a["name"] == "milestone1-audit-evidence" and not a.get("expired")]
+          if not matches: raise SystemExit("Missing successful weekly research artifact")
+          data = get(matches[0]["archive_download_url"]).read()
+          with zipfile.ZipFile(io.BytesIO(data)) as archive:
+              archive.extractall("evidence")
+          root = Path("evidence")
+          acceptance = json.loads((root / "v5_release_acceptance.json").read_text())
+          manifest = json.loads((root / "v5_release_evidence_manifest.json").read_text())
+          if acceptance.get("status") != "PASS_DESCRIPTIVE_ONLY" or acceptance.get("issues"):
+              raise SystemExit("V5 descriptive release gate not approved")
+          if manifest.get("status") != "DESCRIPTIVE_ARTIFACTS_VERIFIED" or manifest.get("issues"):
+              raise SystemExit("V5 evidence manifest not approved")
+          dashboard = root / "dashboard"
+          for name in ("index.html", "weekly-v5.html", "state.json"):
+              if not (dashboard / name).is_file(): raise SystemExit(f"Missing dashboard file: {name}")
+          Path("site").mkdir(exist_ok=True)
+          import shutil
+          shutil.copytree(dashboard, "site", dirs_exist_ok=True)
+          (Path("site") / "release-evidence.json").write_text(json.dumps({
+              "source_run": run_id, "descriptive_release": acceptance["status"],
+              "manifest": manifest["status"], "predictive_release": "BLOCKED"
+          }, indent=2) + "\n")
+          print(f"Publishing verified descriptive dashboard from workflow run {run_id}")
+          PY
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
