@@ -17,6 +17,10 @@ class PortalTests(unittest.TestCase):
                     "workbook_snapshot_retrieval_date": "2026-11-01",
                     "macro_promotion": {"UNRATE": "BLOCKED", "CPIAUCSL": "BLOCKED", "GDPC1": "BLOCKED"},
                     "canonical_macro_approved": False,
+                    "daily_refresh_status": "NOT_RECONCILED",
+                    "weekly_outlook_status": "DESCRIPTIVE_ONLY",
+                    "monthly_cycle_status": "RESEARCH_ONLY",
+                    "workbook_snapshot_review_status": "UNREVIEWED_AUTOMATED_SNAPSHOT",
                 },
                 "v5_dashboard.json": {
                     "status": "V5_RESEARCH_DASHBOARD_ONLY",
@@ -31,6 +35,11 @@ class PortalTests(unittest.TestCase):
             self.assertFalse(result["current_conditions_approved"])
             self.assertFalse(result["numeric_forecasts_approved"])
             self.assertIn("Historical cycle diagnostics", render(result))
+            self.assertIn("NOT_RECONCILED", render(result))
+            self.assertIn("DESCRIPTIVE_ONLY", render(result))
+            self.assertIn("UNREVIEWED_AUTOMATED_SNAPSHOT", render(result))
+            self.assertIn("<details>", render(result))
+            self.assertIn("viewport", render(result))
             inputs["weekly_release_acceptance.json"]["status"] = "PASS"
             (root / "weekly_release_acceptance.json").write_text(json.dumps(inputs["weekly_release_acceptance.json"]))
             with self.assertRaises(ValueError):
