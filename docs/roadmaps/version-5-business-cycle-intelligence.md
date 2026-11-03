@@ -68,3 +68,9 @@ Implement milestones 1–4 before styling the dashboard; then 5–7. Prefer subs
 - Strengthened `scripts/v5_integrated_acceptance.py` to reject any uncertified current-conditions approval, any unified numeric-forecast approval, mismatched workbook reconciliation or macro promotion between the portal and canonical-status output, and approved macro claims without reconciliation.
 - Added regression cases for mismatched workbook status and false unified numeric forecast approval. These changes are committed but require a **new** GitHub Actions run to verify them; do not count the prior successful run as verification of these commits.
 - No new model or data feeds introduced. Release remains a verified research-only baseline with pending latest-commit CI and separate daily/weekly operational evidence.
+
+## Release artifact portability gate — 2026-11-03
+- Added `verify_html` to the integrated acceptance gate: all three generated dashboards must carry mobile viewport metadata; all local anchor targets must exist inside the packaged artifact, and path traversal is rejected. Added regression tests for missing viewport, broken links, and unsafe relative paths.
+- Inspected the 86-file artifact from run 41693166685 against these new structural rules: all three HTML files contain viewport metadata and the portal's three companion report links resolve. This is retrospective artifact inspection, **not** a successful CI run of the new gate code.
+- Commits `bc556b5` and `85bf9cf` require a new GitHub Actions run. Do not mark the release closed on older run 41693166685.
+- Remaining release limitations: independently scheduled daily/weekly runs and authenticated live workbook reconciliation are unverified; macro promotions and numerical forecasts remain blocked; hosted/mobile visual deployment is not certified. Historical/descriptive research artifact distribution is the verified delivery path.
