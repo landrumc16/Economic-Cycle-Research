@@ -28,3 +28,10 @@ This is an evidence-based verification record, not permission to promote sources
 
 ## Scope discipline
 No repeat historical research, no duplicate pipeline, no invented current-cycle assessment, and no speculative new features. Nonessential improvements belong in Version 6.
+
+## Follow-up implementation pass — 2026-11-03
+- Strengthened `scripts/v5_integrated_acceptance.py` to reject inconsistent daily/weekly/monthly status and workbook review status between the portal and unified research status.
+- Added fail-closed checks for mismatched monthly observation dates, stale monthly data presented as current, and source approval while workbook reconciliation is incomplete.
+- Added four regression cases in `tests/test_v5_integrated_acceptance.py` for these failure modes.
+- Commits: `6061726` and `1deb859`.
+- **Verification pending:** GitHub Actions must run against `1deb859` or later, and the resulting monthly artifact must be inspected. Earlier passing workflows do not validate these new changes. Do not declare full V5 release on the basis of code commits alone.
