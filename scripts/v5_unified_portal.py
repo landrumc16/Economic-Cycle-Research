@@ -30,8 +30,7 @@ def build(folder):
         "workbook_reconciliation": unified["workbook_reconciliation"],
         "workbook_snapshot_date": unified.get("workbook_snapshot_retrieval_date"),
         "macro_promotion": unified["macro_promotion"],
-        "current_conditions_approved": bool(monthly["status"] == "PASS"
-                                            and unified["canonical_macro_approved"]),
+        "current_conditions_approved": False,
         "numeric_forecasts_approved": False,
         "research_only": True,
     }
