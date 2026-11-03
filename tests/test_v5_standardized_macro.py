@@ -26,6 +26,17 @@ class V5MacroTests(unittest.TestCase):
             transform("CPIAUCSL", [{"date": "2026-09-01", "value": 300,
                                      "release_date": "2026-11-01"}], "2026-10-31")
 
+    def test_weekly_claims_are_monthly_averaged(self):
+        result = transform("ICSA", [
+            {"date": "2026-08-01", "value": 200},
+            {"date": "2026-08-08", "value": 220},
+            {"date": "2026-09-05", "value": 231},
+            {"date": "2026-09-12", "value": 231},
+        ], "2026-10-31")
+        self.assertEqual(result["status"], "DESCRIPTIVE_TRANSFORM_AVAILABLE")
+        self.assertEqual(result["value"], 10.0)
+        self.assertFalse(result["predictive_use_approved"])
+
     def test_duplicate_vintages_rejected(self):
         with self.assertRaises(ValueError):
             transform("UNRATE", [{"date": "2026-09-01", "value": 4.0},
