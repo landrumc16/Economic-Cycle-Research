@@ -153,7 +153,8 @@ jobs:
                           continue
                       target = Path("audit-output/v3_previous_weekly_snapshot.json")
                       target.parent.mkdir(parents=True, exist_ok=True)
-                      target.write_text(json.dumps(previous, indent=2) + "\\n")
+                      target.write_text(json.dumps(previous, indent=2) + chr(10))
+                      json.loads(target.read_text())
                       print("Recovered prior dated snapshot:", previous["as_of"], "run", run["id"])
                       raise SystemExit(0)
                   except (OSError, ValueError, KeyError, zipfile.BadZipFile) as exc:
