@@ -62,7 +62,7 @@ small,.muted{{color:#53647a}}
 Preliminary historical phase: <strong>{esc(report["preliminary_historical_phase"])}</strong>.</p>
 <p>Current conditions approved: <strong>{'Yes' if report["current_conditions_approved"] else 'No'}</strong>.
 Numeric recession forecasts: <strong>Blocked</strong>.</p>
-<p class="muted">A historical phase is not a real-time cycle determination or a forecast.</p></section>
+<p class="muted">A historical phase is not a real-time cycle determination or a forecast. A stale monthly release is not a current assessment.</p></section>
 <section><h2>Research reports</h2>
 <nav><a href="economic_dashboard.html">Monthly economic indicators</a>
 <a href="v5_dashboard.html">Historical cycle diagnostics</a>
