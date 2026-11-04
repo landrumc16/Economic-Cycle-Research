@@ -20,6 +20,14 @@ class PublicSiteTests(unittest.TestCase):
         for name in ("economic_dashboard.html","v5_dashboard.html","v5_executive_brief.md"):
             (self.root/name).write_text("Existing research")
 
+    def test_daily_publication_can_recover_stale_research_with_explicit_warning(self):
+        workflow=(Path(__file__).resolve().parents[1]/
+                  ".github/workflows/milestone1.yml").read_text()
+        self.assertIn('status not in ("PASS", "STALE_RESEARCH_ONLY")',workflow)
+        self.assertIn('"Historical research only" not in overview.read_text()',workflow)
+        self.assertIn('if status != "PASS" or assessment.get("stale") is not False',workflow)
+        self.assertIn('Preserve last accepted monthly report',workflow)
+
     def test_daily_acquisition_and_monthly_assessment_have_distinct_schedules(self):
         repository=Path(__file__).resolve().parents[1]
         daily=(repository/".github/workflows/milestone1.yml").read_text()
