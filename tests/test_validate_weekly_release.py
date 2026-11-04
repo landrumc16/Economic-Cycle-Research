@@ -63,6 +63,23 @@ class WeeklyReleaseTests(unittest.TestCase):
             self.assertEqual(result["status"], "STALE_RESEARCH_ONLY")
             self.assertFalse(result["current_assessment_approved"])
 
+    def test_stale_historical_comparison_can_publish_current_descriptive(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            folder = self.fixture(root)
+            path = folder / "weekly_economic_assessment.json"
+            current = json.loads(path.read_text())
+            current["historical_comparison_stale"] = True
+            path.write_text(json.dumps(current))
+            comparison = {"status": "STALE_HISTORICAL_DATA", "matches": [],
+                          "match_count": 0, "observation_month": "2026-09-01"}
+            (folder / "historical_condition_comparison.json").write_text(json.dumps(comparison))
+            dashboard_path = folder / "economic_dashboard.json"
+            dashboard = json.loads(dashboard_path.read_text())
+            dashboard["historical_comparison"] = comparison
+            dashboard_path.write_text(json.dumps(dashboard))
+            self.assertEqual(validate(root)["status"], "PASS")
+
     def test_mismatched_historical_report_fails(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)
