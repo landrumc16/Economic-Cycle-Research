@@ -39,24 +39,24 @@ def snapshot(root, as_of):
             raise ValueError("Source metadata incompatible: " + name)
         sources[name] = rows
     common_date = min(rows[-1]["date"] for rows in sources.values())
-    # Re-anchor ALL signals to the latest shared month. No mixing different dates.
+    # Align historical comparisons, but use each series latest date for current indicators.
     trimmed = {name: [r for r in rows if r["date"] <= common_date]
                for name, rows in sources.items()}
     def growth(name, months=12):
-        rows = trimmed[name]
+        rows = sources[name]
         by_date = {r["date"][:7]: float(r["value"]) for r in rows}
-        year, month = map(int, common_date[:7].split("-"))
+        year, month = map(int, rows[-1]["date"][:7].split("-"))
         index = year * 12 + month - months
         prior = f"{(index - 1) // 12:04d}-{(index - 1) % 12 + 1:02d}"
-        current = by_date.get(common_date[:7])
+        current = by_date.get(rows[-1]["date"][:7])
         previous = by_date.get(prior)
         if current is None or previous is None or current <= 0 or previous <= 0:
             return None
         return round(100 * math.log(current / previous), 4)
     def acceleration(name):
-        rows = trimmed[name]
+        rows = sources[name]
         signals = calculate(rows)
-        if not signals or signals[-1]["date"] != common_date:
+        if not signals or signals[-1]["date"] != rows[-1]["date"]:
             return {"status": "INSUFFICIENT_HISTORY"}
         last = signals[-1]
         percentile = last["historical_percentile"]
@@ -76,33 +76,38 @@ def snapshot(root, as_of):
         ay, am = map(int, as_of[:7].split("-"))
         return (ay - y) * 12 + (am - m)
     def change(name, months):
-        by_month = {r["date"][:7]: float(r["value"]) for r in trimmed[name]}
-        year, month = map(int, common_date[:7].split("-"))
+        by_month = {r["date"][:7]: float(r["value"]) for r in sources[name]}
+        year, month = map(int, sources[name][-1]["date"][:7].split("-"))
         index = year * 12 + month - months
         prior = f"{(index - 1) // 12:04d}-{(index - 1) % 12 + 1:02d}"
-        current, earlier = by_month.get(common_date[:7]), by_month.get(prior)
+        current, earlier = by_month.get(sources[name][-1]["date"][:7]), by_month.get(prior)
         return round(current - earlier, 4) if current is not None and earlier is not None else None
     return {
         "status": "RESEARCH_SNAPSHOT_NOT_FORECAST",
         "assessment_date": as_of,
         "common_observation_month": common_date,
         "months_since_common_observation": age_months(common_date),
-        "stale": age_months(common_date) > 2,
+        "stale": any(age_months(sources[name][-1]["date"]) > 2 for name in
+                     ("UNRATE", "CPIAUCSL", "INDPRO", "TOTALSL", "BUSLOANS")),
+        "historical_comparison_stale": age_months(common_date) > 2,
         "equity_acceleration": equity,
         "housing_acceleration": housing,
         "consumer_credit_growth_12m_log_pct": growth("TOTALSL"),
         "business_credit_growth_12m_log_pct": growth("BUSLOANS"),
         "housing_price_income_growth_gap_12m_log_pp": divergence,
-        "unemployment_rate_pct": float(trimmed["UNRATE"][-1]["value"]),
+        "unemployment_rate_pct": float(sources["UNRATE"][-1]["value"]),
         "unemployment_change_3m_pp": change("UNRATE", 3),
         "cpi_inflation_12m_log_pct": growth("CPIAUCSL"),
         "industrial_production_growth_12m_log_pct": growth("INDPRO"),
         "sources": {name: {"latest_available_month": sources[name][-1]["date"],
-                           "latest_used_month": trimmed[name][-1]["date"],
+                           "latest_used_month": sources[name][-1]["date"],
+                           "historical_alignment_month": trimmed[name][-1]["date"],
+                           "observation_lag_months": age_months(sources[name][-1]["date"]),
                            "source_url": json.loads((directory / (name + "_metadata.json")).read_text())["source_url"]}
                     for name in series},
         "limitations": [
-            "Weekly publication cadence does not imply weekly input data",
+            "Monthly assessment; indicators use individually dated observations",
+            "Historical comparisons use the common month and may lag current indicators",
             "This is a common-month retrospective snapshot, not a point-in-time reconstruction",
             "Current-vintage observations may have been revised",
             "Publication dates and release lags are not certified",
@@ -115,7 +120,7 @@ def snapshot(root, as_of):
 def markdown(result):
     def show(value):
         return "Unavailable" if value is None else str(value)
-    lines = ["# Weekly economic research assessment", "",
+    lines = ["# Monthly economic research assessment", "",
              f"Assessment date: **{result['assessment_date']}**",
              f"Latest common observation month: **{result['common_observation_month']}**",
              f"Observation lag: **{result['months_since_common_observation']} months**",
@@ -133,9 +138,12 @@ def markdown(result):
         signal = result[name]
         lines.append(f"- {name}: {show(signal.get('high_acceleration'))}; "
                      f"historical percentile: {show(signal.get('historical_percentile'))}")
+    lines += ["", "## Source observation dates", ""]
+    lines.extend("- {}: {} ({} months lag)".format(name, source["latest_used_month"], source["observation_lag_months"])
+                 for name, source in result["sources"].items())
     lines += ["", "## Interpretation", "",
               "These are observed conditions, not an estimated recession phase or crash forecast.",
-              "A change from last week's assessment may reflect a newly published monthly observation or revised data.",
+              "Changes since the previous assessment may reflect new observations or revisions.",
               "", "## Data limitations", ""]
     lines.extend("- " + note for note in result["limitations"])
     return "\n".join(lines) + "\n"
