@@ -17,10 +17,12 @@ def compare(timeline, assessment, max_examples=12):
         raise ValueError("Invalid example count")
     if assessment["stale"]:
         return {"status": "STALE_CURRENT_DATA", "matches": [], "match_count": 0}
-    if assessment.get("historical_comparison_stale", False):
+    if (assessment.get("historical_comparison_stale", False) or
+            any(info.get("latest_used_month") != assessment["common_observation_month"]
+                for info in assessment.get("sources", {}).values())):
         return {"status": "STALE_HISTORICAL_DATA", "matches": [], "match_count": 0,
                 "observation_month": assessment["common_observation_month"],
-                "limitations": ["Historical shared-month comparison is older than current individual series"]}
+                "limitations": ["Current indicators have different observation dates; a same-month historical match would be misleading"]}
     try:
         from .build_economic_dashboard import cycle_conditions
     except ImportError:
