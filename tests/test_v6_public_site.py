@@ -148,8 +148,11 @@ class PublicSiteTests(unittest.TestCase):
         self.assertEqual(len(result),1)
 
     def test_monthly_page_uses_dated_prior_comparison_when_available(self):
+        (self.root/"weekly_release_acceptance.json").write_text(json.dumps({"status":"PASS","assessment_date":"2026-10-20"}))
+        (self.root/"v5_unified_portal.json").write_text(json.dumps({"monthly_release":"PASS","numeric_forecasts_approved":False}))
         (self.root/"economic_dashboard.json").write_text(json.dumps({
-            "status":"DESCRIPTIVE_DASHBOARD",
+            "status":"DESCRIPTIVE_DASHBOARD","stale":False,
+            "assessment_date":"2026-10-20",
             "previous_assessment_date":"2026-09-20",
             "metrics":[{"title":"Unemployment rate","units":"percentage points","delta":0.2},
                        {"title":"Unqualified metric","units":"percent","delta":None}]
@@ -158,6 +161,22 @@ class PublicSiteTests(unittest.TestCase):
         markup=(self.root/"monthly-research.html").read_text()
         self.assertIn("+0.20 percentage points since 2026-09-20",markup)
         self.assertNotIn("Unqualified metric",markup)
+
+    def test_invalid_comparison_chronology_is_withheld(self):
+        gate={"status":"PASS","assessment_date":"2026-10-20"}
+        (self.root/"weekly_release_acceptance.json").write_text(json.dumps(gate))
+        (self.root/"v5_unified_portal.json").write_text(json.dumps({"monthly_release":"PASS","numeric_forecasts_approved":False}))
+        for previous,current in (("2026-10-20","2026-10-20"),("2026-11-01","2026-10-20"),("2026-09-20","2027-01-20")):
+            (self.root/"economic_dashboard.json").write_text(json.dumps({
+                "status":"DESCRIPTIVE_DASHBOARD","stale":False,
+                "assessment_date":current,"previous_assessment_date":previous,
+                "metrics":[{"title":"Unemployment","units":"points","delta":0.3}]
+            }))
+            with self.subTest(previous=previous,current=current):
+                build(self.root,date(2026,11,4))
+                markup=(self.root/"monthly-research.html").read_text()
+                self.assertNotIn("+0.30 points",markup)
+                self.assertIn("chronology is invalid",markup)
 
     def test_monthly_page_discloses_missing_prior_assessment(self):
         build(self.root,date(2026,11,4))
