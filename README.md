@@ -150,3 +150,9 @@ Commits `eac941ef`, `cc68a875`, `4011108e`: the existing daily publisher previou
 Commit `07c87ab6` removes a duplicate `test_v6_*.py` invocation from the official monthly workflow, leaving its original pre-publication test gate in place. This avoids redundant work without weakening coverage. Attempted direct public fetch of `https://landrumc16.github.io/Economic-Cycle-Research/overview.html`; the tool could not access it, which is inconclusive about deployment health.
 
 **Release certification remains outstanding:** Run the current monthly workflow and daily/Pages workflow, record passing job IDs, confirm the live site and 11 sector pages, historical page, current/stale labeling, and V5 archive. No new run or public HTTP result was verified here.
+
+### V6 PASS chronology safeguard — 2026-11-04
+
+Commits `28d37496` and `3237f664`: public-site builder rejects a monthly release marked PASS when its assessment date is absent, malformed, or after the generation date. The existing `validate_weekly_release.py` already emits `assessment_date` in the release gate, so the new check enforces an existing contract. Added tests for invalid, future, and valid dates. No new workflow or framework.
+
+**Operational blocker:** GitHub file edits work, but no current Actions run or public Pages response could be verified here. Do not certify Version 6 until the full test suite, monthly and daily workflows, and live Pages checks pass. Use the existing workflows and retain evidence of the run IDs.
