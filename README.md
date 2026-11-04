@@ -84,3 +84,9 @@ Commits `7dd24895` and `59c47823`: corrected the public overview's misleading **
 Commits `c3b0bbc7`, `a43c6277`, `fec881d6`: generate `sector-01.html` through `sector-11.html` with distinct economic exposure, industry examples, qualified investment evidence or explicit insufficiency; link from sector index. Pages deployment now treats all 11 pages as a required recoverable bundle and verifies each published page. Tests cover links, responsive viewport and evidence-gated status.
 
 **Operational release pending:** Connected GitHub tool does not expose workflow dispatch or run listing. Public GitHub Pages and Actions URLs were not retrievable through the web tool in this session. No CI, deployment, or scheduled execution success is asserted. Run existing workflows, inspect failure logs, verify all 11 live sector pages plus monthly assessment, and close the roadmap only with run/deployment evidence.
+
+### V6 source-date validity gate — 2026-11-04
+
+Commits `d9582dd7` and `66386f2e`: public indicator cards now withhold numeric values when the individual FRED source's `latest_used_month` is missing or not a valid YYYY-MM calendar month. This closes a misleading undated-number pathway while retaining valid dated observations. Regression tests cover missing, impossible and valid months.
+
+**Release verification blocker remains:** Connected GitHub API in this session cannot dispatch or list workflow runs; public `https://landrumc16.github.io/Economic-Cycle-Research/overview.html` could not be retrieved. Unit tests are committed, not claimed passing. Existing monthly workflow runs V6 regression tests and generates the V6 bundle; existing Pages workflow publishes and verifies it. Inspect actual Actions runs and published pages before accepting V6. Note first publication now requires 11 sector detail files alongside the overview and evidence bundle.
