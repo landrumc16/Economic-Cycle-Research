@@ -134,6 +134,18 @@ class PublicSiteTests(unittest.TestCase):
         assessment["sources"]["UNRATE"]["latest_used_month"] = "2026-09"
         self.assertEqual(observation_summary(assessment)[1]["value"], "4.20%")
 
+    def test_monthly_assessment_native_full_date_is_accepted(self):
+        assessment={"unemployment_rate_pct":4.2,
+                    "sources":{"UNRATE":{"latest_used_month":"2026-09-01",
+                                         "source_url":"https://fred.stlouisfed.org/series/UNRATE"}}}
+        metric=observation_summary(assessment,as_of=date(2026,11,4))[1]
+        self.assertEqual(metric["value"],"4.20%")
+        self.assertEqual(metric["date"],"2026-09-01")
+        assessment["sources"]["UNRATE"]["latest_used_month"]="2026-12-01"
+        self.assertEqual(observation_summary(assessment,as_of=date(2026,11,4))[1]["value"],"Unavailable")
+        assessment["sources"]["UNRATE"]["latest_used_month"]="2026-09-99"
+        self.assertEqual(observation_summary(assessment,as_of=date(2026,11,4))[1]["value"],"Unavailable")
+
     def test_numeric_observations_require_source_qualified_https_provenance(self):
         assessment={"unemployment_rate_pct":4.2,
                     "sources":{"UNRATE":{"latest_used_month":"2026-09"}}}
