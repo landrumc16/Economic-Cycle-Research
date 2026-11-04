@@ -142,6 +142,30 @@ class PublicSiteTests(unittest.TestCase):
             self.assertIn('href="sectors.html"',detail)
             self.assertIn("Insufficient Evidence",detail)
 
+    def test_historical_comparisons_are_qualified_and_navigable(self):
+        build(self.root,date(2026,11,4))
+        overview=(self.root/"overview.html").read_text()
+        self.assertIn('href="historical.html"',overview)
+        historical=(self.root/"historical.html").read_text()
+        self.assertIn("unavailable or unqualified",historical)
+        self.assertIn('href="v5_dashboard.html"',historical)
+        (self.root/"economic_dashboard.json").write_text(json.dumps({
+            "status":"DESCRIPTIVE_DASHBOARD",
+            "historical_comparison":{"status":"RETROSPECTIVE_DESCRIPTIVE_ONLY",
+                                     "match_count":8,"historical_months_examined":140}
+        }))
+        build(self.root,date(2026,11,4))
+        historical=(self.root/"historical.html").read_text()
+        self.assertIn("8 matching historical months out of 140",historical)
+        self.assertIn("not a crash probability",historical)
+        (self.root/"economic_dashboard.json").write_text(json.dumps({
+            "status":"DESCRIPTIVE_DASHBOARD",
+            "historical_comparison":{"status":"RETROSPECTIVE_DESCRIPTIVE_ONLY",
+                                     "match_count":141,"historical_months_examined":140}
+        }))
+        build(self.root,date(2026,11,4))
+        self.assertIn("unavailable or unqualified",(self.root/"historical.html").read_text())
+
     def test_v6_preserves_accepted_v5_index(self):
         (self.root/"index.html").write_text("V5 accepted landing")
         build(self.root,date(2026,11,4))
