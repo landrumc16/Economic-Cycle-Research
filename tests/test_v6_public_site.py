@@ -53,6 +53,17 @@ class PublicSiteTests(unittest.TestCase):
         build(self.root,date(2026,11,4))
         self.assertTrue((self.root/"overview.html").exists())
 
+    def test_nonfinite_and_missing_provenance_never_become_current_values(self):
+        metrics=observation_summary({
+            "industrial_production_growth_12m_log_pct":float("nan"),
+            "unemployment_rate_pct":float("inf"),
+            "sources":{"INDPRO":None,"UNRATE":"invalid"}
+        })
+        self.assertEqual(metrics[0]["value"],"Unavailable")
+        self.assertEqual(metrics[1]["value"],"Unavailable")
+        self.assertEqual(metrics[0]["date"],"unavailable")
+        self.assertEqual(metrics[1]["date"],"unavailable")
+
     def test_v6_preserves_accepted_v5_index(self):
         (self.root/"index.html").write_text("V5 accepted landing")
         build(self.root,date(2026,11,4))
