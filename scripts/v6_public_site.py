@@ -32,8 +32,8 @@ def observation_summary(assessment):
         ("Jobs", "UNRATE", "unemployment_rate_pct", "Unemployment rate"),
         ("Inflation", "CPIAUCSL", "cpi_inflation_12m_log_pct",
          "Consumer prices, 12-month log change"),
-        ("Financial stress", "BUSLOANS", "business_credit_growth_12m_log_pct",
-         "Business credit, 12-month log change"),
+        ("Business credit", "BUSLOANS", "business_credit_growth_12m_log_pct",
+         "Business credit growth, 12-month log change (not a direct financial-stress measure)"),
     )
     result = []
     for label, series, metric, description in definitions:
@@ -112,8 +112,13 @@ def build(folder, as_of, evidence=None):
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
+                '<p><strong>Interpretation:</strong> These are dated observations, not a validated economic-cycle classification. '
+                'A change in business lending alone cannot establish financial stress.</p>'
+                '<h3>What changed?</h3>' + monthly_changes(folder) +
+                '<h3>What is uncertain?</h3><p>Release lags, revisions, historical-vintage limitations, '
+                'and missing sector investment evidence prevent stronger conclusions.</p>'
                 '<a href="monthly-research.html">Monthly assessment</a></section>'
-                f'<section><h2>Growth, jobs, prices and vulnerabilities</h2><div class="grid">{"".join(cards)}</div></section>'
+                f'<section><h2>Growth, jobs, prices and credit conditions</h2><div class="grid">{"".join(cards)}</div></section>'
                 '<section><h2>Sector research</h2><p>Economic sensitivity and investment valuation are separate questions. '
                 'Outlooks remain withheld until dated and point-in-time evidence is verified.</p>'
                 '<a href="sectors.html">Explore all 11 sectors</a></section>')
