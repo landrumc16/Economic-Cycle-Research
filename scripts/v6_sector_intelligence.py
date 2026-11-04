@@ -55,6 +55,12 @@ def _qualified(item: dict, as_of: date) -> bool:
             return False
         if observed > as_of:
             return False
+        # A historic observation cannot silently become a current investment call.
+        age_months = (as_of.year - observed.year) * 12 + as_of.month - observed.month
+        max_age = {"economic_fit": 3, "earnings": 6,
+                   "valuation": 3, "relative_total_return": 12}[key]
+        if age_months > max_age:
+            return False
     history = item["relative_total_return"]
     return (
         isinstance(history.get("benchmark"), str)
