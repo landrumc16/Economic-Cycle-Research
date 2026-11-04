@@ -68,6 +68,15 @@ class PublicSiteTests(unittest.TestCase):
         self.assertIn('href="historical.html"', library)
         self.assertIn('href="sectors.html"', library)
 
+    def test_v61_structured_outlook_is_evidence_gated(self):
+        build(self.root, date(2026,11,4))
+        report = json.loads((self.root/"v6_1_economic_outlook.json").read_text())
+        self.assertEqual(report["monthly_gate"], "STALE_RESEARCH_ONLY")
+        self.assertEqual(report["observed_outlook"]["direction"], "Not established")
+        self.assertFalse(report["historical_phase_certified"])
+        self.assertFalse(report["numeric_forecasts_approved"])
+        self.assertEqual(report["sector_outlooks_qualified"], 0)
+
     def test_sector_detail_discloses_conditional_rating(self):
         build(self.root,date(2026,11,4))
         detail=(self.root/"sector-01.html").read_text()
