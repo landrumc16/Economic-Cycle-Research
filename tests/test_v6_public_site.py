@@ -93,6 +93,29 @@ class PublicSiteTests(unittest.TestCase):
         self.assertEqual(historical["negative_controls_validated"], 0)
         self.assertIn("Independent holdout tests", historical["missing_evidence"][1])
 
+    def test_v61_historical_episode_validation_is_integrated(self):
+        episodes = [{"id": "control-1", "outcome": "non_downturn",
+                     "signal_date": "2001-01-01", "data_available_date": "2000-12-01",
+                     "outcome_date": "2002-01-01", "point_in_time_verified": True}]
+        (self.root/"v6_historical_episodes.json").write_text(json.dumps(episodes))
+        build(self.root, date(2026,11,4))
+        report = json.loads((self.root/"v6_1_economic_outlook.json").read_text())
+        validation = report["historical_validation"]
+        self.assertEqual(validation["negative_controls"], 1)
+        self.assertEqual(validation["independent_events"], 0)
+        self.assertFalse(validation["predictive_skill_certified"])
+        self.assertFalse(report["historical_phase_certified"])
+
+    def test_v61_rejects_lookahead_episode_before_publication(self):
+        (self.root/"overview.html").write_text("last accepted")
+        episodes = [{"id": "future", "outcome": "contraction",
+                     "signal_date": "2007-01-01", "data_available_date": "2008-01-01",
+                     "outcome_date": "2009-01-01", "point_in_time_verified": True}]
+        (self.root/"v6_historical_episodes.json").write_text(json.dumps(episodes))
+        with self.assertRaises(ValueError):
+            build(self.root, date(2026,11,4))
+        self.assertEqual((self.root/"overview.html").read_text(), "last accepted")
+
     def test_v61_publication_promotes_and_verifies_structured_outlook(self):
         workflow = (Path(__file__).resolve().parents[1] /
                     ".github/workflows/milestone1.yml").read_text()
