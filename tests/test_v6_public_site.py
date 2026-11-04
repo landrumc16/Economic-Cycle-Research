@@ -52,6 +52,18 @@ class PublicSiteTests(unittest.TestCase):
             build(self.root,date(2026,11,4))
         self.assertEqual((self.root/"index.html").read_text(),"last good")
 
+    def test_stale_gate_suppresses_otherwise_valid_monthly_deltas(self):
+        (self.root/"economic_dashboard.json").write_text(json.dumps({
+            "status":"DESCRIPTIVE_DASHBOARD","stale":False,
+            "previous_assessment_date":"2026-09-20",
+            "metrics":[{"title":"Unemployment","units":"points","delta":0.3}]
+        }))
+        build(self.root,date(2026,11,4))
+        for name in ("overview.html","monthly-research.html"):
+            content=(self.root/name).read_text()
+            self.assertNotIn("+0.30 points",content)
+            self.assertIn("monthly data are stale",content)
+
     def test_future_dated_indicator_is_withheld_on_both_public_pages(self):
         self.root.joinpath("weekly_economic_assessment.json").write_text(json.dumps({
             "industrial_production_growth_12m_log_pct":9.5,
