@@ -15,6 +15,8 @@ ALLOWED = {"Favorable", "Mixed", "Caution"}
 
 def _qualified(item: dict, as_of: date) -> bool:
     """A sector rating requires dated, attributable investment AND economic evidence."""
+    if not isinstance(item, dict):
+        return False
     required = ("economic_fit", "earnings", "valuation", "relative_total_return")
     if not all(isinstance(item.get(key), dict) for key in required):
         return False
@@ -31,7 +33,9 @@ def _qualified(item: dict, as_of: date) -> bool:
     history = item["relative_total_return"]
     return (
         history.get("benchmark") is not None
-        and history.get("sample_size", 0) >= 1
+        and isinstance(history.get("sample_size"), int)
+        and not isinstance(history.get("sample_size"), bool)
+        and history["sample_size"] >= 1
         and history.get("point_in_time_verified") is True
         and item.get("outlook") in ALLOWED
     )
@@ -46,6 +50,8 @@ def build_sector_report(evidence: dict, as_of: date) -> dict:
     sectors = []
     for name in SECTORS:
         item = evidence.get(name, {})
+        if not isinstance(item, dict):
+            item = {}
         qualified = _qualified(item, as_of)
         sectors.append({
             "sector": name,
