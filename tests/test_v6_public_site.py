@@ -33,7 +33,7 @@ class PublicSiteTests(unittest.TestCase):
         (self.root/"weekly_release_acceptance.json").write_text('{"status":"FAIL"}')
         with self.assertRaises(ValueError):
             build(self.root,date(2026,11,4))
-        self.assertEqual((self.root/"index.html").read_text(),"last good")
+        self.assertEqual((self.root/"overview.html").read_text(),"last good")
 
     def test_missing_link_preserves_last_good(self):
         (self.root/"index.html").write_text("last good")
