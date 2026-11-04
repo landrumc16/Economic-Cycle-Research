@@ -77,6 +77,13 @@ class PublicSiteTests(unittest.TestCase):
         self.assertFalse(report["numeric_forecasts_approved"])
         self.assertEqual(report["sector_outlooks_qualified"], 0)
 
+    def test_v61_publication_promotes_and_verifies_structured_outlook(self):
+        workflow = (Path(__file__).resolve().parents[1] /
+                    ".github/workflows/milestone1.yml").read_text()
+        self.assertIn('outlook_path = root / "v6_1_economic_outlook.json"', workflow)
+        self.assertIn('outlook.get("numeric_forecasts_approved") is not False', workflow)
+        self.assertIn('required += ["v6_1_economic_outlook.json"]', workflow)
+
     def test_sector_detail_discloses_conditional_rating(self):
         build(self.root,date(2026,11,4))
         detail=(self.root/"sector-01.html").read_text()
