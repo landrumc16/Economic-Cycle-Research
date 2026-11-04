@@ -25,6 +25,15 @@ class HistoricalComparisonTests(unittest.TestCase):
         report=compare(self.timeline,self.current)
         self.assertEqual(report["historical_months_examined"],1)
         self.assertEqual(report["match_count"],1)
+    def test_mixed_observation_dates_do_not_create_false_historical_match(self):
+        self.current["sources"] = {
+            "UNRATE": {"latest_used_month": "2026-09-01"},
+            "CSUSHPINSA": {"latest_used_month": "2026-07-01"},
+        }
+        report = compare(self.timeline, self.current)
+        self.assertEqual(report["status"], "STALE_HISTORICAL_DATA")
+        self.assertEqual(report["matches"], [])
+
     def test_stale_does_not_match(self):
         self.current["stale"]=True
         self.assertEqual(compare(self.timeline,self.current)["status"],"STALE_CURRENT_DATA")
