@@ -23,14 +23,18 @@ def validate(root):
     if timeline["status"] != "RETROSPECTIVE_DESCRIPTIVE_ONLY":
         raise ValueError("Invalid historical timeline status")
     if comparison["status"] not in ("RETROSPECTIVE_DESCRIPTIVE_ONLY",
-                                    "STALE_CURRENT_DATA", "INSUFFICIENT_CURRENT_DATA"):
+                                    "STALE_CURRENT_DATA", "INSUFFICIENT_CURRENT_DATA",
+                                    "STALE_HISTORICAL_DATA"):
         raise ValueError("Invalid historical comparison status")
-    if comparison["status"] != "RETROSPECTIVE_DESCRIPTIVE_ONLY" and not current["stale"]:
+    if (comparison["status"] != "RETROSPECTIVE_DESCRIPTIVE_ONLY"
+            and comparison["status"] != "STALE_HISTORICAL_DATA" and not current["stale"]):
         raise ValueError("Historical comparison unavailable for complete release: "
                          + comparison["status"] + "; common observation month "
                          + str(current["common_observation_month"]) + ", lag "
                          + str(current.get("months_since_common_observation"))
                          + " months. Preserve the freshness gate; do not label stale data current.")
+    if comparison["status"] == "STALE_HISTORICAL_DATA" and not current.get("historical_comparison_stale"):
+        raise ValueError("Historical staleness not established by assessment")
     if dashboard.get("historical_comparison") != comparison:
         raise ValueError("Dashboard historical comparison does not match generated report")
     if dashboard.get("stale") != current["stale"]:
