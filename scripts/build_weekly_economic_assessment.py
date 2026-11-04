@@ -89,7 +89,9 @@ def snapshot(root, as_of):
         "months_since_common_observation": age_months(common_date),
         "stale": any(age_months(sources[name][-1]["date"]) > 2 for name in
                      ("UNRATE", "CPIAUCSL", "INDPRO", "TOTALSL", "BUSLOANS")),
-        "historical_comparison_stale": age_months(common_date) > 2,
+        "historical_comparison_stale": (age_months(common_date) > 2 or
+                                        any(rows[-1]["date"] != common_date
+                                            for rows in sources.values())),
         "equity_acceleration": equity,
         "housing_acceleration": housing,
         "consumer_credit_growth_12m_log_pct": growth("TOTALSL"),
