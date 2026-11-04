@@ -454,7 +454,7 @@ jobs:
               index.write_text(html)
           PY
       - name: Add V6 sector and research pages from qualified monthly artifact
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
         run: |
           python - <<'PY'
           import json
@@ -498,6 +498,19 @@ jobs:
                       for name, body in fetched.items():
                           (target / name).write_bytes(body)
                       print("Recovered last published V6 research bundle.")
+              if (target / "overview.html").is_file():
+                  index = target / "index.html"
+                  markup = index.read_text()
+                  if 'href="sectors.html"' not in markup:
+                      markup = markup.replace(
+                          "</body>",
+                          '<section><h2>Sector &amp; Industry Intelligence</h2>'
+                          '<p>Evidence-qualified sector research and methodology.</p>'
+                          '<a href="overview.html">Plain-English overview</a> · '
+                          '<a href="sectors.html">Explore sectors</a> · '
+                          '<a href="research.html">Research &amp; methodology</a>'
+                          '</section></body>')
+                      index.write_text(markup)
 
           PY
       - name: Configure GitHub Pages
