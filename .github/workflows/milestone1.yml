@@ -523,6 +523,8 @@ jobs:
               if not legacy.exists():
                   legacy.write_bytes(index.read_bytes())
               index.write_bytes((target / "overview.html").read_bytes())
+              if index.read_bytes() != (target / "overview.html").read_bytes():
+                  raise RuntimeError("V6 home page does not match accepted overview")
           PY
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
