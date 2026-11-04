@@ -467,7 +467,7 @@ jobs:
           else:
               root = gates[0].parent
               gate = json.loads(gates[0].read_text())
-              names = ("overview.html", "sectors.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md")
+              names = ("overview.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md")
               if gate.get("status") == "PASS" and all((root / name).is_file() for name in names):
                   for name in names:
                       (target / name).write_bytes((root / name).read_bytes())
@@ -482,7 +482,7 @@ jobs:
                   import urllib.error
                   import urllib.request
                   base = "https://${{ github.repository_owner }}.github.io/Economic-Cycle-Research/"
-                  names = ("overview.html", "sectors.html", "research.html", "v6_sector_report.json",
+                  names = ("overview.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json",
                            "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md")
                   fetched = {}
                   for name in names:
@@ -530,7 +530,7 @@ jobs:
           base = os.environ["PAGE_URL"].rstrip("/")
           required = ["index.html", "weekly-v5.html", "state.json", "release-evidence.json"]
           if Path("audit-output/dashboard/overview.html").exists():
-              required += ["overview.html", "sectors.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md"]
+              required += ["overview.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md"]
           if Path("audit-output/dashboard/monthly.html").exists():
               required += ["monthly.html", "monthly.json"]
           for path in required:
