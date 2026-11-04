@@ -16,6 +16,20 @@ Version 6 is the next major improvement, not a rebuild of accepted Version 5 res
 4. **Monthly assessment:** What changed since the previous accepted report, observed conditions, vulnerabilities, competing explanations, and explicit uncertainty.
 5. **Research library:** Expandable, navigable detailed studies, calculations, provenance, source-vintage qualifications, historical methods, and prior reports. Keep historical weekly reports as archives, not competing current conclusions.
 
+## Sector & industry investment intelligence (required V6 feature)
+
+Add a **Sector & Industry Intelligence** section for readers who ask where investments may be more or less attractive given the observed economy. Cover all 11 GICS sectors, with expandable industry-level analysis where reliable data exist. The public summary uses plain-English **Favorable / Mixed / Caution / Insufficient Evidence** research outlooks only when the evidence supports them, never as automatic buy/sell instructions.
+
+- **Economic fit:** Explain how labor, growth, inflation, interest rates, credit conditions, commodity prices and financial stress may help or hurt each sector.
+- **Investment fit:** Separately assess earnings trends, valuation relative to history and peers, profitability, balance-sheet resilience, and recent price performance. A strong industry is not necessarily an attractively priced investment.
+- **Historical evidence:** Compare relative sector returns versus a broad-market benchmark in comparable conditions, including weak periods and counterexamples. Report observation dates, sample sizes, uncertainty, transaction-cost assumptions, and survivorship/look-ahead caveats.
+- **Industry drilldowns:** Highlight subindustries with materially different exposures; distinguish sector-wide trends from company-specific opportunities.
+- **Reader experience:** A concise sector overview with evidence-based explanations and a link to a detailed research page per sector; show what would change the assessment.
+- **Data integrity:** Source-qualified price/total-return, classification, valuation, earnings and macro datasets are prerequisites. If missing, mark **INSUFFICIENT EVIDENCE**, not a fabricated rating. No investment allocations, model portfolios, target prices, or claims of validated predictive alpha without independently tested evidence.
+- **Update cadence:** Refresh dated market data through the existing acquisition architecture where supported; publish sector conclusions with the official monthly assessment. Do not add a competing weekly research pipeline.
+
+**Acceptance:** All 11 sectors are covered or explicitly flagged for missing evidence; research conclusions link to dated source data; sector and industry history can be inspected; current economic fit and valuation are distinct; backtests guard against look-ahead/survivorship bias; failed updates retain the last accepted report; unsupported recommendations are blocked.
+
 ## Milestones and acceptance gates
 
 ### M1 — Stabilize one operating pipeline
@@ -37,8 +51,9 @@ Version 6 is the next major improvement, not a rebuild of accepted Version 5 res
 - Provide navigation from each major dashboard conclusion to supporting research.
 **Gate:** Every substantive headline conclusion has traceable supporting evidence; research pages render and are navigable on mobile.
 
-### M4 — Coherent monthly economic intelligence
+### M4 — Coherent monthly economic and sector intelligence
 - Synthesize growth, employment, prices, credit, asset prices, and financial stress.
+- Integrate the Sector & Industry Intelligence section: economic sensitivity, valuation, relative performance, sector-level outlooks, and deep research pages.
 - Compare to prior accepted assessment and relevant historical mechanisms; disclose conflicting indicators.
 - Use latest individually dated, source-qualified observations; do not force a common observation month for current metrics.
 - Preserve descriptive-only release gates; no unvalidated recession/crash probabilities or inevitable-crash claims.
@@ -70,4 +85,4 @@ Version 6 is the next major improvement, not a rebuild of accepted Version 5 res
 
 ## Release definition
 
-**Version 6 is complete when:** daily data acquisition and monthly assessment operate reliably; one mobile-friendly public dashboard serves clear explanations and linked research pages; source and revision provenance are visible; a qualified official monthly assessment is live; failures preserve previous accepted research; tests and deployment checks pass; scheduled execution evidence is verified or explicitly identified as the sole pending time-dependent check. Future expansion should not require revisiting this foundation.
+**Version 6 is complete when:** daily data acquisition and monthly assessment operate reliably; sector and industry investment research is source-qualified and clearly explained; one mobile-friendly public dashboard serves clear explanations and linked research pages; source and revision provenance are visible; a qualified official monthly assessment is live; failures preserve previous accepted research; tests and deployment checks pass; scheduled execution evidence is verified or explicitly identified as the sole pending time-dependent check. Future expansion should not require revisiting this foundation.
