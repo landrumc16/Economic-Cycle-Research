@@ -30,6 +30,49 @@ Add a **Sector & Industry Intelligence** section for readers who ask where inves
 
 **Acceptance:** All 11 sectors are covered or explicitly flagged for missing evidence; research conclusions link to dated source data; sector and industry history can be inspected; current economic fit and valuation are distinct; backtests guard against look-ahead/survivorship bias; failed updates retain the last accepted report; unsupported recommendations are blocked.
 
+## Build-to-completion sequence (execute in order)
+
+The steps below are the **implementation order**, not seven separate development programs. Each step produces a user-visible or operational deliverable, passes its acceptance checks, and is committed before the next step. Reuse accepted V5 systems; do not start over.
+
+| Step | Implement | Deliverable | Completion evidence |
+| --- | --- | --- | --- |
+| 1. Foundation | Inventory only live daily, monthly and Pages entry points; eliminate redundant weekly production; consolidate FRED/BLS/BEA acquisition and source-qualified persistence; verify revision/missing-data handling. | One daily acquisition process and one official monthly research workflow. | Automated source tests, workflow logs, dated acquisition artifacts, and preservation of last valid data on source failure. |
+| 2. Economic intelligence | Reuse existing growth, labor, inflation, credit, financial stress and historical research; reconcile individual observation dates and source lags; generate concise narrative, monthly changes and uncertainty. | Structured monthly assessment with plain-English executive findings and detailed evidence. | Regression tests with fresh, lagged, missing and revised inputs; no unsupported forecasts. |
+| 3. Sector intelligence | Establish a qualified data inventory for 11 GICS sectors; add relative total-return history, earnings/valuation where sourced, economic sensitivity, industry distinctions, and evidence-gated outlooks. Start with sectors having verifiable coverage; label gaps explicitly. | Sector overview and 11 sector detail entries, each either evidence-backed or marked insufficient evidence. | Source-date and benchmark checks, historical bias controls, and tests that missing data never create favorable ratings. |
+| 4. Public experience | Adapt existing GitHub Pages design into a mobile-first overview: monthly executive summary, growth/jobs/prices/stress cards, what changed, sector opportunities, and drill-down links. | One polished public home page understandable without economics training. | Mobile and desktop smoke tests; all headline statements link to evidence; accessible labels and dates. |
+| 5. Research deep dives | Reuse existing episode and crash-mechanism studies; expose historical comparison charts, indicator histories, sector detail, methodology, revisions, source links and archives as organized pages/expandable sections. | Navigable research library behind the plain-language home page. | Every major conclusion is traceable; navigation and source links verified; historical limitations visible. |
+| 6. Expansion interfaces | Keep acquisition, calculations, report data and HTML separate; document a minimal series/sector registration convention and implement one tested example. Avoid a plugin framework or new runtime unless required. | Small, documented extension points for new indicators, sectors and historical studies. | Demonstrated addition without modifying unrelated workflows or pages. |
+| 7. Operational release | Run complete tests; exercise failed acquisition and rejected monthly publication; deploy GitHub Pages; check live URLs, report dates, monthly archives, and scheduling. Update README and close out. | Publicly deployed Version 6 with a first qualified monthly report and release evidence. | Green relevant CI, verified live pages, last-good preservation test, commit IDs, manual and actual scheduled run evidence distinguished. |
+
+### Execution rules and dependencies
+
+- Step 1 is a prerequisite for publication, but Steps 2–5 may reuse accepted historical data while live-source issues are being resolved. Do not stall all UI work on a missing provider key.
+- Do not invent valuation or sector return data to complete Step 3. Publish an explicit **Insufficient Evidence** state for gaps; record gaps as limitations rather than silently manufacturing ratings.
+- Implement a thin end-to-end slice early: qualified observation → monthly assessment → public summary → linked evidence. Then fill out remaining sectors and research pages.
+- Maintain a single monthly publication decision. Stage candidate output, validate, then publish atomically; on failure, retain the last accepted report and expose the reason.
+- Record each milestone as **Implemented / Tested / Deployed / Verified**, with links to commits and runs. Do not count a green CI run as proof of published research, or a manual run as scheduled execution.
+- Avoid new roadmap files or process layers. Update this roadmap's evidence and the README only.
+
+## Finished product specification
+
+**Public site navigation:** Overview · Economic Indicators · Sectors & Industries · Historical Comparisons · Monthly Reports · Research & Methodology.
+
+**Overview page:** The top of the page answers four questions in ordinary language: *Where is the economy now? What changed since the last assessment? Which vulnerabilities deserve attention? What is uncertain?* It includes a visible assessment publication date, underlying observation dates, four explanatory panels (growth, jobs, inflation, financial stress), and a short sector opportunities/risks preview. Every panel links to a detailed evidence page.
+
+**Indicators page:** Interactive or accessible static time-series charts, definitions, units, changes over time, source links, observation/retrieval dates, revision flags and missing-data notices. Show source-specific freshness, not a misleading common-month current label.
+
+**Sectors & Industries page:** All 11 GICS sectors with an evidence-qualified outlook (**Favorable / Mixed / Caution / Insufficient Evidence**), rationale, valuation versus fundamentals, relative performance against a broad-market benchmark, economic sensitivity and links to industry-level research. Separate observed historical relationships from forward-looking hypotheses. Never infer a stock purchase from sector growth alone.
+
+**Historical Comparisons page:** Different recession/crash mechanisms, comparable historical episodes, contrasting non-crash periods, timelines and charts. State where the analogy breaks down and whether the underlying data are retrospective rather than point-in-time.
+
+**Monthly Reports page:** Latest accepted official assessment first; previous accepted reports accessible; explicit change since last report, observed strengths, weaknesses, risks, and unknowns. A failed or unqualified candidate must not replace an accepted publication.
+
+**Research & Methodology page:** Expandable technical research, full indicator definitions, transformations, original sources, historical vintages, release dates, revisions, sample sizes, backtest limitations, predictive safeguards and archived weekly studies. Make detailed research available without cluttering the overview.
+
+**Visual and usability requirements:** Mobile-first, readable typography, clear labels and charts, sensible color contrast, plain-English summaries, expandable technical detail, fast static-page loading, keyboard-accessible navigation, and no unexplained confidence scores.
+
+**What Version 6 is not:** An automated trading service, personalized investment adviser, guaranteed sector rotation strategy, or certified crash prediction model. Qualified research findings are publishable without claiming predictive validation.
+
 ## Milestones and acceptance gates
 
 ### M1 — Stabilize one operating pipeline
