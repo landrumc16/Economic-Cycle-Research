@@ -70,6 +70,48 @@ def observation_summary(assessment, definitions=INDICATORS, as_of=None):
                        "source_url": url if valid_date and verified_source else ""})
     return result
 
+def economic_outlook(assessment, status, as_of):
+    """Describe observed growth and employment direction without predicting a cycle phase."""
+    result = {"phase": "Not established", "direction": "Not established",
+              "summary": "The available evidence does not establish a reliable economic-cycle stage.",
+              "reasons": [], "limitations": "Historical similarity is not a validated forecast."}
+    if status != "PASS" or assessment.get("stale") is not False:
+        result["summary"] = "The latest observations are too old for a current economic-cycle conclusion."
+        return result
+    verified = {m["label"]: m for m in observation_summary(assessment, as_of=as_of)
+                if m["value"] != "Unavailable"}
+    if not {"Growth", "Jobs", "Inflation"}.issubset(verified):
+        result["summary"] = "Not enough source-dated growth, jobs and inflation observations are available to establish economic direction."
+        return result
+    growth = assessment["industrial_production_growth_12m_log_pct"]
+    inflation = assessment["cpi_inflation_12m_log_pct"]
+    change = assessment.get("unemployment_change_3m_pp")
+    result["reasons"] = [
+        "Industrial production is growing from a year earlier." if growth > 0 else
+        "Industrial production is declining from a year earlier." if growth < 0 else
+        "Industrial production is flat from a year earlier.",
+        "Consumer prices are rising year over year; this does not indicate whether inflation is accelerating." if inflation > 0 else
+        "Measured consumer price inflation is not positive year over year."
+    ]
+    if isinstance(change, (int, float)) and not isinstance(change, bool) and math.isfinite(change):
+        result["reasons"].append(
+            "Unemployment increased over three months." if change > 0 else
+            "Unemployment decreased over three months." if change < 0 else
+            "Unemployment is unchanged over three months.")
+        if growth > 0 and change < 0:
+            result["direction"] = "Growth and employment improving"
+            result["summary"] = "Production is growing and unemployment is falling. These observed conditions suggest resilience, but do not establish a historical cycle phase."
+        elif growth < 0 and change > 0:
+            result["direction"] = "Growth and employment weakening"
+            result["summary"] = "Production is contracting and unemployment is rising. These are warning signs, but do not establish a recession or predict a crash."
+        else:
+            result["direction"] = "Mixed signals"
+            result["summary"] = "Production and employment send mixed signals. A confident directional call is not supported."
+    else:
+        result["summary"] = "Growth, jobs and inflation are dated, but a qualified employment trend is missing; direction remains unconfirmed."
+    return result
+
+
 def monthly_changes(folder, monthly_status="PASS", as_of=None, accepted_date=None):
     """Reuse qualified comparisons, never stale research as a current change."""
     if monthly_status != "PASS":
@@ -148,6 +190,18 @@ def build(folder, as_of, evidence=None):
                      f'<p>{source_link} · <a href="economic_dashboard.html">Historical context</a></p></article>')
     if status == "PASS" and assessment.get("stale") is True:
         raise ValueError("PASS monthly gate contradicts stale assessment")
+    outlook = economic_outlook(assessment, status, as_of)
+    reasons = "".join(f"<li>{esc(reason)}</li>" for reason in outlook["reasons"])
+    executive = ('<section><h2>Where We Are</h2>'
+                 f'<h3>{esc(outlook["phase"])}</h3><p>{esc(outlook["summary"])}</p>'
+                 '<h2>Where We Are Heading</h2>'
+                 f'<p><strong>{esc(outlook["direction"])}</strong></p>'
+                 f'<ul>{reasons}</ul><p>{esc(outlook["limitations"])}</p>'
+                 '<p><a href="historical.html">Explore historical comparisons</a></p></section>'
+                 '<section><h2>Where Investors Should Look</h2>'
+                 '<p>We compare all 11 market sectors, but historical economic fit is not the same as an attractive investment today. '
+                 'Only sectors with verified earnings, valuation and historical returns receive an outlook; the others remain Insufficient Evidence.</p>'
+                 '<a href="sectors.html">See sector research</a></section>')
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
@@ -234,7 +288,7 @@ def build(folder, as_of, evidence=None):
         "<p>Retrospective data can include later revisions. Matching months can overlap "
         "within the same event, and counterexamples matter. No independently validated "
         "probability or point-in-time predictive skill is asserted.</p></details>")
-    pages = {"overview.html":page("Overview",overview),"sectors.html":page("Sectors & Industries",sector_cards),
+    pages = {"overview.html":page("Overview",executive+overview),"sectors.html":page("Sectors & Industries",sector_cards),
              "monthly-research.html":page("Monthly Reports",monthly),"research.html":page("Research & Methodology",research),
              "historical.html":page("Historical Comparisons",history)}
     pages.update(sector_pages)
