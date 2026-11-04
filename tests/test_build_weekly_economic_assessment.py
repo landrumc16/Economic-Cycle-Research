@@ -36,6 +36,21 @@ class WeeklyAssessmentTests(unittest.TestCase):
         self.assertTrue(result["stale"])
         self.assertIn("Housing price", markdown(result) or "")
 
+    def test_lagging_housing_does_not_stale_current_macro(self):
+        housing = self.root / "data/industry_observations/CSUSHPINSA_monthly.csv"
+        with housing.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=["date", "value"])
+            writer.writeheader()
+            for i in range(90):
+                writer.writerow({"date": f"{2010 + i // 12:04d}-{i % 12 + 1:02d}-01",
+                                 "value": round(100 * math.exp(i * 0.01), 6)})
+        result = snapshot(self.root, "2019-02-15")
+        self.assertFalse(result["stale"])
+        self.assertTrue(result["historical_comparison_stale"])
+        self.assertEqual(result["sources"]["UNRATE"]["latest_used_month"], "2019-02-01")
+        self.assertEqual(result["sources"]["CSUSHPINSA"]["latest_used_month"], "2017-06-01")
+        self.assertEqual(result["common_observation_month"], "2017-06-01")
+
     def test_future_data_not_used(self):
         first = snapshot(self.root, "2018-01-15")
         path = self.root / "data/industry_observations/PI_monthly.csv"
