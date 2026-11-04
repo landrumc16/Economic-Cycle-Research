@@ -144,16 +144,8 @@ def build(folder, as_of, evidence=None):
                 '<a href="monthly-research.html">Monthly assessment</a></section>'
                 f'<section><h2>Growth, jobs, prices and credit conditions</h2><div class="grid">{"".join(cards)}</div></section>'
                 '<section><h2>Sector research</h2><p>Economic sensitivity and investment valuation are separate questions. '
-                'Outlooks remain withheld until dated and point-in-time evidence is verified.</p>'
+                'Evidence-qualified outlooks appear only when dated research passes validation; otherwise Insufficient Evidence is shown.</p>'
                 '<a href="sectors.html">Explore all 11 sectors</a></section>')
-    sector_cards = "".join(f'<article><h2>{esc(s["sector"])}</h2><p><strong>{esc(s["outlook"])}</strong></p>'
-                           f'<p>{esc(s["reason"])}</p><p><strong>Economic exposure (hypothesis):</strong> '
-                           f'{esc(s["economic_exposure_hypothesis"])}</p>'
-                           f'<p><strong>Industries to examine:</strong> {esc(s["industry_examples"])}</p>'
-                           '<p>These are structural sensitivities, not verified current investment signals.</p>'
-                           '<details><summary>Research evidence</summary>'
-                           f'<pre style="white-space:pre-wrap;overflow-wrap:anywhere">{esc(json.dumps({"economic_fit":s["economic_fit"],"investment_fit":s["investment_fit"]},indent=2))}</pre></details></article>'
-                           for s in sectors["sectors"])
     # Sector-specific deep links keep the summary readable while exposing the
     # evidence and industry distinctions without adding a framework.
     sector_pages = {}
