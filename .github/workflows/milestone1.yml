@@ -466,7 +466,7 @@ jobs:
 
           source = Path("/tmp/economic-monthly")
           target = Path("audit-output/dashboard")
-          names = ("overview.html", "sectors.html", "monthly-research.html",
+          names = ("overview.html", "historical.html", "sectors.html", "monthly-research.html",
                    "research.html", "v6_sector_report.json", "v5_dashboard.html",
                    "economic_dashboard.html", "v5_executive_brief.md") + tuple(
               f"sector-{i:02d}.html" for i in range(1, 12))
@@ -556,7 +556,7 @@ jobs:
           base = os.environ["PAGE_URL"].rstrip("/")
           required = ["index.html", "weekly-v5.html", "state.json", "release-evidence.json"]
           if Path("audit-output/dashboard/overview.html").exists():
-              required += ["overview.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md"]
+              required += ["overview.html", "historical.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md"]
               required += [f"sector-{i:02d}.html" for i in range(1, 12)]
               required += ["v5_legacy_index.html"]
           if Path("audit-output/dashboard/monthly.html").exists():
