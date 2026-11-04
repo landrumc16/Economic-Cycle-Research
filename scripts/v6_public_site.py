@@ -14,7 +14,7 @@ except ImportError:
 NAV = (("Overview","overview.html"),("Indicators","economic_dashboard.html"),
        ("Sectors & Industries","sectors.html"),("Historical Comparisons","historical.html"),
        ("Monthly Reports","monthly-research.html"),("Research & Methodology","research.html"))
-STYLE = """<style>:root{font:16px system-ui,sans-serif;color:#19334c;background:#f2f6fa}body{max-width:1000px;margin:auto;padding:20px;line-height:1.6}header,section,article,details{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:20px;margin:14px 0}header{background:#17324c;color:white}header a{color:#e4f5ff}nav{display:flex;flex-wrap:wrap;gap:14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid article{margin:0}summary{cursor:pointer}a:focus-visible{outline:3px solid orange}@media(max-width:600px){body{padding:10px}header,section,article,details{padding:14px}nav{display:grid;grid-template-columns:1fr 1fr}}</style>"""
+STYLE = """<style>:root{font:16px system-ui,sans-serif;color:#19334c;background:#f2f6fa}*{box-sizing:border-box}body{max-width:1000px;margin:auto;padding:20px;line-height:1.65}header,section,article,details{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:20px;margin:14px 0;overflow-wrap:anywhere}header{background:#17324c;color:white}header a{color:#e4f5ff}nav{display:flex;flex-wrap:wrap;gap:14px}nav a{padding:4px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid article{margin:0}main>section:first-of-type{border-top:5px solid #397ba3}h1,h2,h3{line-height:1.25}h2{margin-top:0}li{margin:7px 0}summary{cursor:pointer;font-weight:600}a:focus-visible{outline:3px solid orange}footer{padding:16px;color:#526579;font-size:.85rem}@media(max-width:600px){body{padding:10px}header,section,article,details{padding:14px}nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}h1{font-size:1.65rem}h2{font-size:1.3rem}}</style>"""
 
 def esc(value):
     return html.escape(str(value), quote=True)
@@ -194,6 +194,9 @@ def build(folder, as_of, evidence=None):
     reasons = "".join(f"<li>{esc(reason)}</li>" for reason in outlook["reasons"])
     sector_order = {"Favorable": 0, "Mixed": 1, "Caution": 2, "Insufficient Evidence": 3}
     ranked = sorted(sectors["sectors"], key=lambda s: (sector_order.get(s["outlook"], 4), s["sector"]))
+    qualified_count = sum(s["outlook"] != "Insufficient Evidence" for s in ranked)
+    sector_note = (f"{qualified_count} of 11 sectors currently have evidence-qualified investment outlooks. "
+                   "An unqualified sector is not automatically unattractive.")
     sector_highlights = "".join(
         f'<li><a href="sector-{next(i for i, original in enumerate(sectors["sectors"], 1) if original["sector"] == s["sector"]):02d}.html">{esc(s["sector"])}</a>: '
         f'<strong>{esc(s["outlook"])}</strong></li>'
@@ -207,7 +210,7 @@ def build(folder, as_of, evidence=None):
                  '<section><h2>Where Investors Should Look</h2>'
                  '<p>We compare all 11 market sectors, but historical economic fit is not the same as an attractive investment today. '
                  'Only sectors with verified earnings, valuation and historical returns receive an outlook; the others remain Insufficient Evidence.</p>'
-                 f'<ol>{sector_highlights}</ol>'
+                 f'<p>{esc(sector_note)}</p><ol>{sector_highlights}</ol>'
                  '<a href="sectors.html">See all 11 sector assessments</a></section>')
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
@@ -260,7 +263,19 @@ def build(folder, as_of, evidence=None):
                'No validated crash probability is available.</p>'
                '<a href="economic_dashboard.html">Changes and indicator details</a> · '
                '<a href="v5_executive_brief.md">Historical research brief</a></section>')
-    research = ('<section><h2>Historical research and methodology</h2><p>Accepted Version 5 studies remain available.</p>'
+    research = ('<section><h2>Research Library</h2><p>Explore the evidence behind the economic and sector conclusions. '
+                'The executive homepage deliberately keeps the technical details here.</p></section>'
+                '<details><summary>Economic indicators and observation dates</summary>'
+                '<p><a href="economic_dashboard.html">Open dated economic indicators and source data</a></p></details>'
+                '<details><summary>Historical cycles and downturn mechanisms</summary>'
+                '<p><a href="historical.html">Review historical comparisons</a> and '
+                '<a href="v5_dashboard.html">accepted Version 5 historical research</a>.</p></details>'
+                '<details><summary>Sector and industry evidence</summary>'
+                '<p><a href="sectors.html">Explore all 11 sector assessments</a>. Economic sensitivity and '
+                'investment valuation are assessed separately.</p></details>'
+                '<details><summary>Monthly research and earlier reports</summary>'
+                '<p><a href="monthly-research.html">Official monthly research</a> and '
+                '<a href="v5_executive_brief.md">research archive</a>.</p></details>'
                 '<a href="v5_dashboard.html">Historical mechanisms</a> · '
                 '<a href="economic_dashboard.html">Dated indicators</a> · '
                 '<a href="v5_executive_brief.md">Research archive</a></section>'
