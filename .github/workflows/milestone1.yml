@@ -516,20 +516,13 @@ jobs:
                       (target / name).write_bytes(body)
                   print("Recovered all pages from previous V6 publication.")
           if (target / "overview.html").is_file():
+              # The accepted V6 overview is the one public home page. Retain
+              # the original V5 landing as a historical archive, not a rival home.
               index = target / "index.html"
-              markup = index.read_text()
-              if 'href="sectors.html"' not in markup:
-                  if "</body>" not in markup:
-                      raise RuntimeError("Legacy landing page missing body end")
-                  markup = markup.replace(
-                      "</body>",
-                      '<section><h2>Sector &amp; Industry Intelligence</h2>'
-                      '<p>Evidence-gated sector research and source limitations.</p>'
-                      '<a href="overview.html">Plain-English overview</a> · '
-                      '<a href="sectors.html">Explore sectors</a> · '
-                      '<a href="research.html">Research &amp; methodology</a>'
-                      '</section></body>')
-                  index.write_text(markup)
+              legacy = target / "v5_legacy_index.html"
+              if not legacy.exists():
+                  legacy.write_bytes(index.read_bytes())
+              index.write_bytes((target / "overview.html").read_bytes())
           PY
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
