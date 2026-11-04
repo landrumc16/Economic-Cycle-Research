@@ -554,8 +554,17 @@ jobs:
                           body = response.read()
                           if response.status != 200 or not body:
                               raise ValueError("empty or non-200 response")
-                          if path == "index.html" and b'viewport' not in body:
+                          if path.endswith(".html") and b'viewport' not in body:
                               raise ValueError("mobile viewport missing")
+                          if path == "v6_sector_report.json":
+                              import json
+                              report = json.loads(body)
+                              if len(report.get("sectors", [])) != 11:
+                                  raise ValueError("incomplete 11-sector report")
+                          if path == "overview.html":
+                              for href in (b'sectors.html', b'monthly-research.html', b'research.html'):
+                                  if href not in body:
+                                      raise ValueError("missing V6 navigation link")
                           print("PUBLIC VERIFIED:", url, len(body), "bytes")
                           break
                   except (OSError, ValueError) as exc:
