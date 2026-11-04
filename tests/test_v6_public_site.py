@@ -101,6 +101,14 @@ class PublicSiteTests(unittest.TestCase):
         self.assertIn("Page generated: 2026-11-04",markup)
         self.assertIn("Official assessment: 2026-10-20",markup)
 
+    def test_overview_does_not_mislabel_credit_growth_as_stress(self):
+        build(self.root,date(2026,11,4))
+        overview=(self.root/"overview.html").read_text()
+        self.assertIn("Business credit",overview)
+        self.assertIn("not a direct financial-stress measure",overview)
+        self.assertIn("What changed?",overview)
+        self.assertIn("What is uncertain?",overview)
+
     def test_v6_preserves_accepted_v5_index(self):
         (self.root/"index.html").write_text("V5 accepted landing")
         build(self.root,date(2026,11,4))
