@@ -1,0 +1,27 @@
+name: Version 6.1 Regression Gate
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v6_*.py'
+      - 'tests/test_v6_*.py'
+      - '.github/workflows/v6-1-regression.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile Version 6 source and tests
+        run: python -m compileall -q scripts/v6_*.py tests/test_v6_*.py
+      - name: Run Version 6 regression suite
+        run: python -m unittest discover -s tests -p 'test_v6_*.py' -v
