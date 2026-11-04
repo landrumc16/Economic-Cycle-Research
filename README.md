@@ -72,3 +72,9 @@ Commits `8c75a13e` and `39cc91fd` distinguish HTML generation date from the offi
 Commit `130b1306` fixes a first-publication deadlock: the Pages workflow previously accepted only monthly `PASS` artifacts for V6, although the V6 generator explicitly supports `STALE_RESEARCH_ONLY` as a historical-only research release. Pages now accepts either gate, but requires the explicit **Historical research only** warning on stale V6 overview pages. This does not turn stale data into a current monthly conclusion or approve unsupported sector ratings.
 
 **Release not certified:** Execute the monthly workflow and Pages workflow, inspect test failures and Pages URLs, and verify the dated official assessment and scheduled data refresh. Connected GitHub actions available in this chat support file commits but not workflow dispatch/listing; live deployment verification is outstanding.
+
+### V6 executive overview semantic correction — 2026-11-04
+
+Commits `7dd24895` and `59c47823`: corrected the public overview's misleading **Financial stress** label for BUSLOANS 12-month credit growth (now **Business credit** with explicit qualification); added visible prior-comparison and uncertainty sections to the overview; added regression test. Financial stress cannot be inferred from loan growth alone.
+
+**Current release blockers:** No verified passing CI or Pages deployment run was accessible through connected GitHub tools; public site URL was inaccessible from web retrieval. The daily acquisition schedule, official monthly artifact qualification, and live V6 pages still require operational verification. Resume from the latest commit, run existing monthly and Pages workflows, inspect their logs and evidence artifacts, and only mark release accepted after actual tests and live verification. Do not invent market data or sector ratings.
