@@ -142,6 +142,17 @@ class PublicSiteTests(unittest.TestCase):
             self.assertIn('href="sectors.html"',detail)
             self.assertIn("Insufficient Evidence",detail)
 
+    def test_stale_release_cannot_publish_sector_evidence(self):
+        from unittest.mock import patch
+        from scripts.v6_sector_intelligence import build_sector_report
+        submitted={"Energy":{"outlook":"Favorable"}}
+        with patch("scripts.v6_public_site.build_sector_report",
+                   side_effect=build_sector_report) as sector_builder:
+            build(self.root,date(2026,11,4),submitted)
+            self.assertEqual(sector_builder.call_args.args[0],{})
+        self.assertIn("Insufficient Evidence",(self.root/"sectors.html").read_text())
+        self.assertNotIn("Favorable",(self.root/"sectors.html").read_text())
+
     def test_historical_comparisons_are_qualified_and_navigable(self):
         build(self.root,date(2026,11,4))
         overview=(self.root/"overview.html").read_text()
