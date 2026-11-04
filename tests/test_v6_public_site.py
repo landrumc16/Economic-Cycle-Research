@@ -38,6 +38,10 @@ class PublicSiteTests(unittest.TestCase):
         base["unemployment_change_3m_pp"] = 0.4
         self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"],
                          "Growth and employment weakening")
+        base["sources"]["UNRATE"]["latest_used_month"] = "2026-05"
+        self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"],
+                         "Not established")
+        base["sources"]["UNRATE"]["latest_used_month"] = "2026-09"
         base["sources"]["INDPRO"]["latest_used_month"] = "2027-01"
         self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"], "Not established")
 
