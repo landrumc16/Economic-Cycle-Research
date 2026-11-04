@@ -479,6 +479,26 @@ jobs:
                   print("Added V6 research pages from accepted monthly artifact.")
               else:
                   print("V6 sector pages unavailable or monthly gate not current-qualified; preserving existing dashboard.")
+                  import urllib.error
+                  import urllib.request
+                  base = "https://${{ github.repository_owner }}.github.io/Economic-Cycle-Research/"
+                  names = ("overview.html", "sectors.html", "research.html", "v6_sector_report.json",
+                           "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md")
+                  fetched = {}
+                  for name in names:
+                      try:
+                          with urllib.request.urlopen(base + name, timeout=15) as response:
+                              fetched[name] = response.read()
+                      except urllib.error.HTTPError as exc:
+                          if exc.code == 404 and not fetched:
+                              print("No prior V6 publication found; legacy dashboard remains.")
+                              break
+                          raise RuntimeError("Incomplete previous V6 publication; refusing to drop pages") from exc
+                  if fetched and len(fetched) == len(names):
+                      for name, body in fetched.items():
+                          (target / name).write_bytes(body)
+                      print("Recovered last published V6 research bundle.")
+
           PY
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
