@@ -222,6 +222,8 @@ jobs:
         run: python scripts/validate_industry_deviation_release.py
       - name: Build V6 evidence-gated public research pages
         run: python scripts/v6_public_site.py --as-of "$(date -u +%F)"
+      - name: Validate Version 6.1 release artifacts
+        run: python scripts/v6_1_release_gate.py --directory audit-output
       - name: Persist assessment history
         uses: actions/cache/save@v4
         with:
