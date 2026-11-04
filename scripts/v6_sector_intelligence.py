@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import math
+from urllib.parse import urlparse
 from datetime import date
 from pathlib import Path
 
@@ -38,11 +40,14 @@ def _qualified(item: dict, as_of: date) -> bool:
     for key in required:
         entry = item[key]
         if (not isinstance(entry.get("source_url"), str)
-                or not entry["source_url"].startswith("https://")
+                or urlparse(entry["source_url"]).scheme != "https"
+                or not urlparse(entry["source_url"]).hostname
+                or urlparse(entry["source_url"]).hostname in {"example.org", "example.com", "example.net"}
                 or not isinstance(entry.get("methodology"), str)
                 or not entry["methodology"].strip()
                 or not isinstance(entry.get("value"), (int, float))
-                or isinstance(entry.get("value"), bool)):
+                or isinstance(entry.get("value"), bool)
+                or not math.isfinite(entry["value"])):
             return False
         try:
             observed = date.fromisoformat(entry["observation_date"])
