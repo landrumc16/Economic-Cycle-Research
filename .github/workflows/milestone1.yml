@@ -407,6 +407,13 @@ jobs:
             cp /tmp/previous-monthly.json audit-output/dashboard/monthly.json
             echo 'Retained last accepted monthly assessment; no qualifying replacement.' >> "$GITHUB_STEP_SUMMARY"
           else
+            # A previously published report must never disappear because a refresh
+            # could not retrieve it. Distinguish genuine absence from network failure.
+            status="$(curl --silent --show-error --location --max-time 15 -o /dev/null -w '%{http_code}' "$base/monthly.json" || echo 000)"
+            if [ "$status" != "404" ]; then
+              echo "::error::Cannot verify previous monthly publication (HTTP $status); refusing deployment to protect last valid assessment."
+              exit 1
+            fi
             echo 'No qualifying current monthly assessment; none published. Inspect monthly workflow.' >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Link only published monthly assessment from dashboard
