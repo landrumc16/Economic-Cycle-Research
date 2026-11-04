@@ -82,7 +82,11 @@ def build(folder, as_of, evidence=None):
                 'Outlooks remain withheld until dated and point-in-time evidence is verified.</p>'
                 '<a href="sectors.html">Explore all 11 sectors</a></section>')
     sector_cards = "".join(f'<article><h2>{esc(s["sector"])}</h2><p><strong>{esc(s["outlook"])}</strong></p>'
-                           f'<p>{esc(s["reason"])}</p><details><summary>Research evidence</summary>'
+                           f'<p>{esc(s["reason"])}</p><p><strong>Economic exposure (hypothesis):</strong> '
+                           f'{esc(s["economic_exposure_hypothesis"])}</p>'
+                           f'<p><strong>Industries to examine:</strong> {esc(s["industry_examples"])}</p>'
+                           '<p>These are structural sensitivities, not verified current investment signals.</p>'
+                           '<details><summary>Research evidence</summary>'
                            f'<pre style="white-space:pre-wrap;overflow-wrap:anywhere">{esc(json.dumps({"economic_fit":s["economic_fit"],"investment_fit":s["investment_fit"]},indent=2))}</pre></details></article>'
                            for s in sectors["sectors"])
     descriptions = []
