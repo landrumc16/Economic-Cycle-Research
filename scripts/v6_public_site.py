@@ -2,6 +2,7 @@
 import argparse
 import html
 import json
+import math
 from datetime import date
 from pathlib import Path
 try:
@@ -37,8 +38,13 @@ def observation_summary(assessment):
     result = []
     for label, series, metric, description in definitions:
         raw = assessment.get(metric)
-        value = f"{raw:.2f}%" if isinstance(raw, (int, float)) and not isinstance(raw, bool) else "Unavailable"
-        source = assessment.get("sources", {}).get(series, {})
+        value = (f"{raw:.2f}%" if isinstance(raw, (int, float))
+                 and not isinstance(raw, bool) and math.isfinite(raw)
+                 else "Unavailable")
+        sources = assessment.get("sources")
+        sources = sources if isinstance(sources, dict) else {}
+        source = sources.get(series)
+        source = source if isinstance(source, dict) else {}
         result.append({"label": label, "description": description, "value": value,
                        "date": source.get("latest_used_month", "unavailable"),
                        "source_url": source.get("source_url", "")})
