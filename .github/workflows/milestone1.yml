@@ -561,6 +561,7 @@ jobs:
               required += ["v5_legacy_index.html"]
           if Path("audit-output/dashboard/monthly.html").exists():
               required += ["monthly.html", "monthly.json"]
+          published = {}
           for path in required:
               url = base + "/" + path
               for attempt in range(12):
@@ -580,12 +581,19 @@ jobs:
                               for href in (b'sectors.html', b'monthly-research.html', b'research.html'):
                                   if href not in body:
                                       raise ValueError("missing V6 navigation link")
+                          published[path] = body
                           print("PUBLIC VERIFIED:", url, len(body), "bytes")
                           break
                   except (OSError, ValueError) as exc:
                       if attempt == 11:
                           raise RuntimeError(f"Public deployment check failed: {url}: {exc}") from exc
                       time.sleep(10)
+          if "overview.html" in published:
+              if published["index.html"] != published["overview.html"]:
+                  raise RuntimeError("Live homepage does not match approved V6 overview")
+              if published["v5_legacy_index.html"] == published["index.html"]:
+                  raise RuntimeError("Legacy V5 archive was replaced by the V6 homepage")
+              print("PUBLIC VERIFIED: one V6 homepage and distinct V5 archive")
           PY
       - name: Preserve source evidence even on failure
         if: always()
