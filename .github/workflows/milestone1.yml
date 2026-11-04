@@ -474,15 +474,19 @@ jobs:
           qualified = False
           if root:
               gate = json.loads(gates[0].read_text())
-              qualified = gate.get("status") == "PASS" and all(
+              qualified = gate.get("status") in ("PASS", "STALE_RESEARCH_ONLY") and all(
                   (root / name).is_file() for name in names)
+              if qualified:
+                  overview = (root / "overview.html").read_text()
+                  if gate["status"] == "STALE_RESEARCH_ONLY" and "Historical research only" not in overview:
+                      raise ValueError("Stale monthly evidence lacks mandatory public warning")
           if qualified:
               sector_report = json.loads((root / "v6_sector_report.json").read_text())
               if len(sector_report.get("sectors", [])) != 11:
                   raise ValueError("Invalid monthly V6 sector report; refusing publication")
               for name in names:
                   (target / name).write_bytes((root / name).read_bytes())
-              print("Published qualified V6 research bundle.")
+              print("Published evidence-gated V6 bundle; current gate:", gate["status"])
           else:
               # The absence of a new qualified artifact must never silently erase
               # an accepted previous V6 publication on a Pages redeployment.
