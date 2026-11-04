@@ -121,6 +121,42 @@ def economic_outlook(assessment, status, as_of):
     return result
 
 
+def cycle_research_contract(outlook, assessment, as_of):
+    """Transparent descriptive candidates; never certified phases or forecasts."""
+    direction = outlook["direction"]
+    if direction == "Growth and employment improving":
+        candidate = "Expansion or recovery (not distinguishable from these observations)"
+    elif direction == "Growth and employment weakening":
+        candidate = "Slowing expansion or contraction (not distinguishable from these observations)"
+    elif direction == "Mixed signals":
+        candidate = "Transition or mixed conditions"
+    else:
+        candidate = "Unclassified"
+    return {
+        "candidate_phase": candidate,
+        "certified_phase": None,
+        "method": "Industrial production year-over-year direction and unemployment three-month change; inflation contextual only",
+        "independent_historical_episodes_validated": 0,
+        "negative_controls_validated": 0,
+        "historical_analogues": [],
+        "disanalogies": [],
+        "uncertainty": "No independent episode and non-downturn holdout validation; descriptive candidate only.",
+        "contrary_evidence": (
+            ["Growth and employment indicators do not jointly confirm one direction"]
+            if direction == "Mixed signals" else []),
+        "missing_evidence": [
+            "Point-in-time historical episode and non-downturn controls",
+            "Independent holdout tests with chronology and embargo safeguards",
+            "Verified sector earnings, valuation and benchmark-relative return evidence",
+        ],
+        "what_would_change_the_view": (
+            "New source-dated growth, employment and inflation observations, "
+            "and independently validated historical comparisons."
+        ),
+        "as_of": as_of.isoformat(),
+    }
+
+
 def monthly_changes(folder, monthly_status="PASS", as_of=None, accepted_date=None):
     """Reuse qualified comparisons, never stale research as a current change."""
     if monthly_status != "PASS":
@@ -332,6 +368,7 @@ def build(folder, as_of, evidence=None):
              "historical.html":page("Historical Comparisons",history)}
     pages.update(sector_pages)
     # Keep the headline and its evidence together for auditing and future expansion.
+    outlook["historical_research"] = cycle_research_contract(outlook, assessment, as_of)
     outlook["evidence"] = [
         {"indicator": m["label"], "value": m["value"], "observation_date": m["date"],
          "source_url": m["source_url"]}
