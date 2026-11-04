@@ -156,3 +156,9 @@ Commit `07c87ab6` removes a duplicate `test_v6_*.py` invocation from the officia
 Commits `28d37496` and `3237f664`: public-site builder rejects a monthly release marked PASS when its assessment date is absent, malformed, or after the generation date. The existing `validate_weekly_release.py` already emits `assessment_date` in the release gate, so the new check enforces an existing contract. Added tests for invalid, future, and valid dates. No new workflow or framework.
 
 **Operational blocker:** GitHub file edits work, but no current Actions run or public Pages response could be verified here. Do not certify Version 6 until the full test suite, monthly and daily workflows, and live Pages checks pass. Use the existing workflows and retain evidence of the run IDs.
+
+### V6 sector-dashboard messaging correction — 2026-11-04
+
+Commits `bb7874a1` and `4dc4fb98`: corrected the public overview's unconditional claim that sector outlooks are withheld, which conflicted with the implemented evidence-qualified PASS sector path. The overview now explains that sectors are rated only when research passes validation and otherwise show Insufficient Evidence. Removed a redundant unused sector-card generator; added a regression assertion.
+
+**Certification remains pending:** no verified current CI run or public GitHub Pages HTTP response was available in this session. Run existing monthly and daily workflows, collect run IDs, confirm all V6 regression tests, official dated research gates, live index/overview, monthly, historical and sector pages, and V5 preservation. Do not mark the release complete before verification.
