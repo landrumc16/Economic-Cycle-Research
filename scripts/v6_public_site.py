@@ -276,9 +276,6 @@ def build(folder, as_of, evidence=None):
                 '<details><summary>Monthly research and earlier reports</summary>'
                 '<p><a href="monthly-research.html">Official monthly research</a> and '
                 '<a href="v5_executive_brief.md">research archive</a>.</p></details>'
-                '<a href="v5_dashboard.html">Historical mechanisms</a> · '
-                '<a href="economic_dashboard.html">Dated indicators</a> · '
-                '<a href="v5_executive_brief.md">Research archive</a></section>'
                 '<details><summary>Methods and limitations</summary><p>Retrospective revised observations are not certified '
                 'point-in-time histories. Sector outlooks require sourced earnings, valuation and benchmark-relative total returns. '
                 'Missing values are not fabricated. No certified crash probabilities are published.</p></details>')
