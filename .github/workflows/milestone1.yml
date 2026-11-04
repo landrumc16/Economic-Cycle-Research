@@ -453,65 +453,78 @@ jobs:
               html = html.replace(anchor, '<a href="monthly.html">Latest approved monthly economic assessment</a> · <a href="weekly-v5.html">Historical weekly research archive</a>', 1)
               index.write_text(html)
           PY
-      - name: Add V6 sector and research pages from qualified monthly artifact
+      - name: Publish qualified V6 bundle or preserve last accepted V6 publication
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+        shell: bash
         run: |
+          set -euo pipefail
           python - <<'PY'
           import json
+          import urllib.error
+          import urllib.request
           from pathlib import Path
-          source = Path("/tmp/economic-monthly")
-          gates = list(source.rglob("weekly_release_acceptance.json"))
-          target = Path("audit-output/dashboard")
-          if len(gates) != 1:
-              print("No qualifying monthly artifact for V6 pages; retaining existing dashboard.")
-          else:
-              root = gates[0].parent
-              gate = json.loads(gates[0].read_text())
-              names = ("overview.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md")
-              if gate.get("status") == "PASS" and all((root / name).is_file() for name in names):
-                  for name in names:
-                      (target / name).write_bytes((root / name).read_bytes())
-                  index = target / "index.html"
-                  markup = index.read_text()
-                  if 'href="sectors.html"' not in markup:
-                      markup = markup.replace("</body>", '<section><h2>Sector &amp; Industry Intelligence</h2><p>All 11 sectors, evidence-gated research outlooks and source limitations.</p><a href="overview.html">Plain-English overview</a> · <a href="sectors.html">Explore sectors</a> · <a href="research.html">Research &amp; methodology</a></section></body>')
-                      index.write_text(markup)
-                  print("Added V6 research pages from accepted monthly artifact.")
-              else:
-                  print("V6 sector pages unavailable or monthly gate not current-qualified; preserving existing dashboard.")
-                  import urllib.error
-                  import urllib.request
-                  base = "https://${{ github.repository_owner }}.github.io/Economic-Cycle-Research/"
-                  names = ("overview.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json",
-                           "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md")
-                  fetched = {}
-                  for name in names:
-                      try:
-                          with urllib.request.urlopen(base + name, timeout=15) as response:
-                              fetched[name] = response.read()
-                      except urllib.error.HTTPError as exc:
-                          if exc.code == 404 and not fetched:
-                              print("No prior V6 publication found; legacy dashboard remains.")
-                              break
-                          raise RuntimeError("Incomplete previous V6 publication; refusing to drop pages") from exc
-                  if fetched and len(fetched) == len(names):
-                      for name, body in fetched.items():
-                          (target / name).write_bytes(body)
-                      print("Recovered last published V6 research bundle.")
-              if (target / "overview.html").is_file():
-                  index = target / "index.html"
-                  markup = index.read_text()
-                  if 'href="sectors.html"' not in markup:
-                      markup = markup.replace(
-                          "</body>",
-                          '<section><h2>Sector &amp; Industry Intelligence</h2>'
-                          '<p>Evidence-qualified sector research and methodology.</p>'
-                          '<a href="overview.html">Plain-English overview</a> · '
-                          '<a href="sectors.html">Explore sectors</a> · '
-                          '<a href="research.html">Research &amp; methodology</a>'
-                          '</section></body>')
-                      index.write_text(markup)
 
+          source = Path("/tmp/economic-monthly")
+          target = Path("audit-output/dashboard")
+          names = ("overview.html", "sectors.html", "monthly-research.html",
+                   "research.html", "v6_sector_report.json", "v5_dashboard.html",
+                   "economic_dashboard.html", "v5_executive_brief.md")
+          gates = list(source.rglob("weekly_release_acceptance.json"))
+          root = gates[0].parent if len(gates) == 1 else None
+          qualified = False
+          if root:
+              gate = json.loads(gates[0].read_text())
+              qualified = gate.get("status") == "PASS" and all(
+                  (root / name).is_file() for name in names)
+          if qualified:
+              sector_report = json.loads((root / "v6_sector_report.json").read_text())
+              if len(sector_report.get("sectors", [])) != 11:
+                  raise ValueError("Invalid monthly V6 sector report; refusing publication")
+              for name in names:
+                  (target / name).write_bytes((root / name).read_bytes())
+              print("Published qualified V6 research bundle.")
+          else:
+              # The absence of a new qualified artifact must never silently erase
+              # an accepted previous V6 publication on a Pages redeployment.
+              base = "https://${{ github.repository_owner }}.github.io/Economic-Cycle-Research/"
+              fetched = {}
+              for name in names:
+                  try:
+                      with urllib.request.urlopen(base + name, timeout=15) as response:
+                          if response.status != 200:
+                              raise RuntimeError("Unexpected HTTP status for " + name)
+                          fetched[name] = response.read()
+                  except urllib.error.HTTPError as exc:
+                      if exc.code == 404 and name == names[0]:
+                          print("No previous V6 bundle; publishing legacy dashboard only.")
+                          break
+                      raise RuntimeError("Incomplete previous V6 publication; refusing to erase it") from exc
+                  except (urllib.error.URLError, TimeoutError) as exc:
+                      raise RuntimeError("Unable to verify previous V6 publication; refusing deployment") from exc
+              if fetched:
+                  if len(fetched) != len(names):
+                      raise RuntimeError("Incomplete recovered V6 bundle")
+                  report = json.loads(fetched["v6_sector_report.json"])
+                  if len(report.get("sectors", [])) != 11:
+                      raise RuntimeError("Invalid previous V6 sector report")
+                  for name, body in fetched.items():
+                      (target / name).write_bytes(body)
+                  print("Recovered all pages from previous V6 publication.")
+          if (target / "overview.html").is_file():
+              index = target / "index.html"
+              markup = index.read_text()
+              if 'href="sectors.html"' not in markup:
+                  if "</body>" not in markup:
+                      raise RuntimeError("Legacy landing page missing body end")
+                  markup = markup.replace(
+                      "</body>",
+                      '<section><h2>Sector &amp; Industry Intelligence</h2>'
+                      '<p>Evidence-gated sector research and source limitations.</p>'
+                      '<a href="overview.html">Plain-English overview</a> · '
+                      '<a href="sectors.html">Explore sectors</a> · '
+                      '<a href="research.html">Research &amp; methodology</a>'
+                      '</section></body>')
+                  index.write_text(markup)
           PY
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
