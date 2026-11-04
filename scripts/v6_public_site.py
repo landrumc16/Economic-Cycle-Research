@@ -9,7 +9,7 @@ try:
 except ImportError:
     from v6_sector_intelligence import build_sector_report
 
-NAV = (("Overview","index.html"),("Indicators","economic_dashboard.html"),
+NAV = (("Overview","overview.html"),("Indicators","economic_dashboard.html"),
        ("Sectors & Industries","sectors.html"),("Historical Comparisons","v5_dashboard.html"),
        ("Monthly Reports","monthly.html"),("Research & Methodology","research.html"))
 STYLE = """<style>:root{font:16px system-ui,sans-serif;color:#19334c;background:#f2f6fa}body{max-width:1000px;margin:auto;padding:20px;line-height:1.6}header,section,article,details{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:20px;margin:14px 0}header{background:#17324c;color:white}header a{color:#e4f5ff}nav{display:flex;flex-wrap:wrap;gap:14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid article{margin:0}summary{cursor:pointer}a:focus-visible{outline:3px solid orange}@media(max-width:600px){body{padding:10px}header,section,article,details{padding:14px}nav{display:grid;grid-template-columns:1fr 1fr}}</style>"""
@@ -69,7 +69,7 @@ def build(folder, as_of, evidence=None):
                 '<details><summary>Methods and limitations</summary><p>Retrospective revised observations are not certified '
                 'point-in-time histories. Sector outlooks require sourced earnings, valuation and benchmark-relative total returns. '
                 'Missing values are not fabricated. No certified crash probabilities are published.</p></details>')
-    pages = {"index.html":page("Overview",overview),"sectors.html":page("Sectors & Industries",sector_cards),
+    pages = {"index.html":page("Overview",overview),"overview.html":page("Overview",overview),"sectors.html":page("Sectors & Industries",sector_cards),
              "monthly.html":page("Monthly Reports",monthly),"research.html":page("Research & Methodology",research)}
     for name, content in pages.items():
         (folder/name).write_text(content)
