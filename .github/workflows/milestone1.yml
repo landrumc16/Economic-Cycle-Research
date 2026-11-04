@@ -467,14 +467,14 @@ jobs:
           else:
               root = gates[0].parent
               gate = json.loads(gates[0].read_text())
-              names = ("sectors.html", "research.html", "v6_sector_report.json")
+              names = ("overview.html", "sectors.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md")
               if gate.get("status") == "PASS" and all((root / name).is_file() for name in names):
                   for name in names:
                       (target / name).write_bytes((root / name).read_bytes())
                   index = target / "index.html"
                   markup = index.read_text()
                   if 'href="sectors.html"' not in markup:
-                      markup = markup.replace("</body>", '<section><h2>Sector &amp; Industry Intelligence</h2><p>All 11 sectors, evidence-gated research outlooks and source limitations.</p><a href="sectors.html">Explore sectors</a> · <a href="research.html">Research &amp; methodology</a></section></body>')
+                      markup = markup.replace("</body>", '<section><h2>Sector &amp; Industry Intelligence</h2><p>All 11 sectors, evidence-gated research outlooks and source limitations.</p><a href="overview.html">Plain-English overview</a> · <a href="sectors.html">Explore sectors</a> · <a href="research.html">Research &amp; methodology</a></section></body>')
                       index.write_text(markup)
                   print("Added V6 research pages from accepted monthly artifact.")
               else:
@@ -509,6 +509,8 @@ jobs:
           from pathlib import Path
           base = os.environ["PAGE_URL"].rstrip("/")
           required = ["index.html", "weekly-v5.html", "state.json", "release-evidence.json"]
+          if Path("audit-output/dashboard/overview.html").exists():
+              required += ["overview.html", "sectors.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md"]
           if Path("audit-output/dashboard/monthly.html").exists():
               required += ["monthly.html", "monthly.json"]
           for path in required:
