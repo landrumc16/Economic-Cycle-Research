@@ -453,6 +453,33 @@ jobs:
               html = html.replace(anchor, '<a href="monthly.html">Latest approved monthly economic assessment</a> · <a href="weekly-v5.html">Historical weekly research archive</a>', 1)
               index.write_text(html)
           PY
+      - name: Add V6 sector and research pages from qualified monthly artifact
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          source = Path("/tmp/economic-monthly")
+          gates = list(source.rglob("weekly_release_acceptance.json"))
+          target = Path("audit-output/dashboard")
+          if len(gates) != 1:
+              print("No qualifying monthly artifact for V6 pages; retaining existing dashboard.")
+          else:
+              root = gates[0].parent
+              gate = json.loads(gates[0].read_text())
+              names = ("sectors.html", "research.html", "v6_sector_report.json")
+              if gate.get("status") == "PASS" and all((root / name).is_file() for name in names):
+                  for name in names:
+                      (target / name).write_bytes((root / name).read_bytes())
+                  index = target / "index.html"
+                  markup = index.read_text()
+                  if 'href="sectors.html"' not in markup:
+                      markup = markup.replace("</body>", '<section><h2>Sector &amp; Industry Intelligence</h2><p>All 11 sectors, evidence-gated research outlooks and source limitations.</p><a href="sectors.html">Explore sectors</a> · <a href="research.html">Research &amp; methodology</a></section></body>')
+                      index.write_text(markup)
+                  print("Added V6 research pages from accepted monthly artifact.")
+              else:
+                  print("V6 sector pages unavailable or monthly gate not current-qualified; preserving existing dashboard.")
+          PY
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
         uses: actions/configure-pages@v5
