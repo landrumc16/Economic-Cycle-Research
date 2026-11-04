@@ -162,6 +162,24 @@ class PublicSiteTests(unittest.TestCase):
         self.assertIn("+0.20 percentage points since 2026-09-20",markup)
         self.assertNotIn("Unqualified metric",markup)
 
+    def test_comparison_date_must_match_accepted_release(self):
+        (self.root/"weekly_release_acceptance.json").write_text(json.dumps({
+            "status":"PASS","assessment_date":"2026-10-20"
+        }))
+        (self.root/"v5_unified_portal.json").write_text(json.dumps({
+            "monthly_release":"PASS","numeric_forecasts_approved":False
+        }))
+        (self.root/"economic_dashboard.json").write_text(json.dumps({
+            "status":"DESCRIPTIVE_DASHBOARD","stale":False,
+            "assessment_date":"2026-10-19","previous_assessment_date":"2026-09-20",
+            "metrics":[{"title":"Unemployment","units":"points","delta":0.3}]
+        }))
+        build(self.root,date(2026,11,4))
+        for page_name in ("overview.html","monthly-research.html"):
+            markup=(self.root/page_name).read_text()
+            self.assertNotIn("+0.30 points",markup)
+            self.assertIn("chronology is invalid",markup)
+
     def test_invalid_comparison_chronology_is_withheld(self):
         gate={"status":"PASS","assessment_date":"2026-10-20"}
         (self.root/"weekly_release_acceptance.json").write_text(json.dumps(gate))
