@@ -60,3 +60,9 @@ Commits `22e72506`, `77af027b`, and `1d1c2832`: repaired the Pages deployment ga
 Commits `50f8dfec`, `856ef061`, `9b55512f`, and `d1e53d2a` reject placeholder sector URLs and nonfinite evidence values, add negative tests, and display actual month-over-month descriptive dashboard metric deltas (with prior assessment date) on `monthly-research.html`. The page states when no prior comparable assessment exists. This reuses `economic_dashboard.json`, not a new analysis pipeline.
 
 **Next release checks:** Run `python -m unittest discover -s tests -p 'test_v6_*.py' -v` in the existing monthly workflow, verify its `economic_dashboard.json` and Pages artifact, inspect the main-branch Pages workflow deployment, and confirm all public V6 URLs. These checks have not been executed successfully in this environment. Source-qualified sector ratings and qualified monthly publication are not certified.
+
+### V6 assessment provenance correction — 2026-11-04
+
+Commits `8c75a13e` and `39cc91fd` distinguish HTML generation date from the official dated monthly assessment; reject stale dashboard comparisons and malformed metric collections instead of implying current changes. Regression tests cover stale comparisons and assessment-date labeling. No new workflow or historical research was introduced.
+
+**Unresolved release gate:** Tests have been committed but not executed against a verified main-branch Actions run; the connected GitHub tool has no dispatch/list-run operation, and live Pages was not independently verified. To resume, inspect the existing monthly and Pages Actions runs, fix concrete failures, verify `overview.html`, `sectors.html`, `monthly-research.html`, `research.html`, and accepted monthly artifacts. Do not claim sector investment ratings without independent, point-in-time market/earnings/valuation evidence.
