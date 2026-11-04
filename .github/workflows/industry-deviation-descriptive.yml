@@ -186,8 +186,6 @@ jobs:
         run: python scripts/v5_integrated_acceptance.py
       - name: V6 sector and public-site regression tests
         run: python -m unittest discover -s tests -p 'test_v6_*.py' -v
-      - name: Build V6 evidence-gated public research pages
-        run: python scripts/v6_public_site.py --as-of "$(date -u +%F)"
       - name: Publish unified V5 release summary
         if: always()
         shell: bash
@@ -222,6 +220,8 @@ jobs:
           PY
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
+      - name: Build V6 evidence-gated public research pages
+        run: python scripts/v6_public_site.py --as-of "$(date -u +%F)"
       - name: Persist assessment history
         uses: actions/cache/save@v4
         with:
