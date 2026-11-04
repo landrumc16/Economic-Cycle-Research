@@ -134,6 +134,21 @@ class PublicSiteTests(unittest.TestCase):
         assessment["sources"]["UNRATE"]["latest_used_month"] = "2026-09"
         self.assertEqual(observation_summary(assessment)[1]["value"], "4.20%")
 
+    def test_numeric_observations_require_source_qualified_https_provenance(self):
+        assessment={"unemployment_rate_pct":4.2,
+                    "sources":{"UNRATE":{"latest_used_month":"2026-09"}}}
+        for source_url in (None,"http://fred.stlouisfed.org/series/UNRATE",
+                           "https://example.com/UNRATE","https://"):
+            assessment["sources"]["UNRATE"]["source_url"]=source_url
+            with self.subTest(source_url=source_url):
+                metric=observation_summary(assessment)[1]
+                self.assertEqual(metric["value"],"Unavailable")
+                self.assertEqual(metric["source_url"],"")
+        assessment["sources"]["UNRATE"]["source_url"]="https://fred.stlouisfed.org/series/UNRATE"
+        metric=observation_summary(assessment)[1]
+        self.assertEqual(metric["value"],"4.20%")
+        self.assertEqual(metric["source_url"],"https://fred.stlouisfed.org/series/UNRATE")
+
     def test_register_additional_dated_indicator_without_changing_pipeline(self):
         definitions=(("Housing", "HOUST", "housing_starts_growth_pct",
                       "Housing starts annual growth"),)
