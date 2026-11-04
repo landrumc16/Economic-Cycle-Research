@@ -54,3 +54,9 @@ Commits `270be83b`, `91c92311`, `11c7eba3`, `869b58cb`, `f8262797`, and `a2b309e
 Commits `22e72506`, `77af027b`, and `1d1c2832`: repaired the Pages deployment gap when no qualified monthly artifact is present (recover complete previously published V6 bundle, or fail if preservation cannot be verified), validate 11-sector JSON before copying, and render nonfinite or malformed source observations as unavailable. Added regression coverage for NaN/Infinity and invalid provenance. This avoids accidentally publishing a false numeric indicator.
 
 **Not yet certified:** The connected GitHub commit-status endpoint returned no statuses for the latest commit; it does not establish passing Actions tests. Public `https://landrumc16.github.io/Economic-Cycle-Research/overview.html` could not be accessed from the available web tool. A green monthly run, successful Pages deployment, and live site checks remain necessary. Inspect Actions and execute tests before release acceptance; retain explicit Insufficient Evidence outlooks for sectors lacking qualified data.
+
+### V6 monthly-comparison and provenance implementation — 2026-11-04
+
+Commits `50f8dfec`, `856ef061`, `9b55512f`, and `d1e53d2a` reject placeholder sector URLs and nonfinite evidence values, add negative tests, and display actual month-over-month descriptive dashboard metric deltas (with prior assessment date) on `monthly-research.html`. The page states when no prior comparable assessment exists. This reuses `economic_dashboard.json`, not a new analysis pipeline.
+
+**Next release checks:** Run `python -m unittest discover -s tests -p 'test_v6_*.py' -v` in the existing monthly workflow, verify its `economic_dashboard.json` and Pages artifact, inspect the main-branch Pages workflow deployment, and confirm all public V6 URLs. These checks have not been executed successfully in this environment. Source-qualified sector ratings and qualified monthly publication are not certified.
