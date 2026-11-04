@@ -130,6 +130,29 @@ def build(folder, as_of, evidence=None):
                            '<details><summary>Research evidence</summary>'
                            f'<pre style="white-space:pre-wrap;overflow-wrap:anywhere">{esc(json.dumps({"economic_fit":s["economic_fit"],"investment_fit":s["investment_fit"]},indent=2))}</pre></details></article>'
                            for s in sectors["sectors"])
+    # Sector-specific deep links keep the summary readable while exposing the
+    # evidence and industry distinctions without adding a framework.
+    sector_pages = {}
+    for index, sector in enumerate(sectors["sectors"], start=1):
+        filename = f"sector-{index:02d}.html"
+        details = (f'<section><h2>{esc(sector["sector"])}</h2>'
+                   f'<p>Research outlook: <strong>{esc(sector["outlook"])}</strong></p>'
+                   f'<p>{esc(sector["reason"])}</p>'
+                   f'<h3>Economic sensitivity</h3><p>{esc(sector["economic_exposure_hypothesis"])}</p>'
+                   f'<h3>Industry distinctions to research</h3><p>{esc(sector["industry_examples"])}</p>'
+                   '<p>These industries have different risks; no company-specific conclusion is implied.</p>'
+                   '<h3>Investment evidence</h3>'
+                   f'<pre style="white-space:pre-wrap;overflow-wrap:anywhere">{esc(json.dumps({"economic_fit":sector["economic_fit"],"investment_fit":sector["investment_fit"]},indent=2))}</pre>'
+                   '<p>Historical analogies are not forward-return forecasts. Missing dated earnings, '
+                   'valuation and benchmarked returns prevent an investment rating.</p>'
+                   '<a href="sectors.html">Back to all sectors</a></section>')
+        sector_pages[filename] = page(sector["sector"] + " Research", details)
+    sector_cards = "".join(
+        f'<article><h2>{esc(s["sector"])}</h2><p><strong>{esc(s["outlook"])}</strong></p>'
+        f'<p>{esc(s["reason"])}</p>'
+        f'<p>{esc(s["economic_exposure_hypothesis"])}</p>'
+        f'<a href="sector-{i:02d}.html">Read sector and industry research</a></article>'
+        for i, s in enumerate(sectors["sectors"], start=1))
     descriptions = []
     for metric in observation_summary(assessment):
         descriptions.append(f'<li><strong>{esc(metric["label"])}:</strong> {esc(metric["description"])} '
@@ -153,6 +176,7 @@ def build(folder, as_of, evidence=None):
                 'Missing values are not fabricated. No certified crash probabilities are published.</p></details>')
     pages = {"overview.html":page("Overview",overview),"sectors.html":page("Sectors & Industries",sector_cards),
              "monthly-research.html":page("Monthly Reports",monthly),"research.html":page("Research & Methodology",research)}
+    pages.update(sector_pages)
     # Stage all new output first; never replace accepted files on a validation failure.
     for name, content in pages.items():
         if not content.startswith("<!doctype html>"):
