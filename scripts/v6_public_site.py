@@ -112,7 +112,7 @@ def build(folder, as_of, evidence=None):
                 '<details><summary>Methods and limitations</summary><p>Retrospective revised observations are not certified '
                 'point-in-time histories. Sector outlooks require sourced earnings, valuation and benchmark-relative total returns. '
                 'Missing values are not fabricated. No certified crash probabilities are published.</p></details>')
-    pages = {"index.html":page("Overview",overview),"overview.html":page("Overview",overview),"sectors.html":page("Sectors & Industries",sector_cards),
+    pages = {"overview.html":page("Overview",overview),"sectors.html":page("Sectors & Industries",sector_cards),
              "monthly-research.html":page("Monthly Reports",monthly),"research.html":page("Research & Methodology",research)}
     # Stage all new output first; never replace accepted files on a validation failure.
     for name, content in pages.items():
