@@ -8,8 +8,10 @@ from pathlib import Path
 from urllib.parse import urlparse
 try:
     from .v6_sector_intelligence import build_sector_report
+    from .v6_historical_validation import validate_episodes
 except ImportError:
     from v6_sector_intelligence import build_sector_report
+    from v6_historical_validation import validate_episodes
 
 NAV = (("Overview","overview.html"),("Indicators","economic_dashboard.html"),
        ("Sectors & Industries","sectors.html"),("Historical Comparisons","historical.html"),
@@ -369,6 +371,16 @@ def build(folder, as_of, evidence=None):
     pages.update(sector_pages)
     # Keep the headline and its evidence together for auditing and future expansion.
     outlook["historical_research"] = cycle_research_contract(outlook, assessment, as_of)
+    historical_evidence_file = folder / "v6_historical_episodes.json"
+    if historical_evidence_file.is_file():
+        episodes = json.loads(historical_evidence_file.read_text())
+        historical_validation = validate_episodes(episodes)
+        outlook["historical_research"]["validation"] = historical_validation
+        outlook["historical_research"]["independent_historical_episodes_validated"] = historical_validation["independent_events"]
+        outlook["historical_research"]["negative_controls_validated"] = historical_validation["negative_controls"]
+        # Coverage alone never promotes an observed candidate to a certified phase.
+    else:
+        outlook["historical_research"]["validation"] = validate_episodes([])
     outlook["evidence"] = [
         {"indicator": m["label"], "value": m["value"], "observation_date": m["date"],
          "source_url": m["source_url"]}
@@ -389,6 +401,7 @@ def build(folder, as_of, evidence=None):
         "numeric_forecasts_approved": False,
         "sector_outlooks_qualified": qualified_count,
         "sector_count": len(sectors["sectors"]),
+        "historical_validation": outlook["historical_research"]["validation"],
     }, indent=2) + "\n")
 
     return {"pages":list(pages),"monthly_status":status,"sector_count":len(sectors["sectors"])}
