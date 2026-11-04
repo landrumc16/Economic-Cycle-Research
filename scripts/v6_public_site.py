@@ -95,10 +95,13 @@ def economic_outlook(assessment, status, as_of):
     ]
     # The trend is derived from the same monthly UNRATE series; its source date must
     # be verified and no older than the accepted monthly research freshness window.
-    labor_date = verified["Jobs"]["date"]
-    labor_month = date.fromisoformat(labor_date + "-01" if len(labor_date) == 7 else labor_date)
-    labor_age = (as_of.year - labor_month.year) * 12 + as_of.month - labor_month.month
-    trend_qualified = 0 <= labor_age <= 2
+    # Do not mix fresh employment with old growth/inflation observations.
+    ages = []
+    for label in ("Growth", "Jobs", "Inflation"):
+        observed = verified[label]["date"]
+        month = date.fromisoformat(observed + "-01" if len(observed) == 7 else observed)
+        ages.append((as_of.year - month.year) * 12 + as_of.month - month.month)
+    trend_qualified = all(0 <= age <= 2 for age in ages)
     if trend_qualified and isinstance(change, (int, float)) and not isinstance(change, bool) and math.isfinite(change):
         result["reasons"].append(
             "Unemployment increased over three months." if change > 0 else
@@ -319,6 +322,12 @@ def build(folder, as_of, evidence=None):
              "monthly-research.html":page("Monthly Reports",monthly),"research.html":page("Research & Methodology",research),
              "historical.html":page("Historical Comparisons",history)}
     pages.update(sector_pages)
+    # Keep the headline and its evidence together for auditing and future expansion.
+    outlook["evidence"] = [
+        {"indicator": m["label"], "value": m["value"], "observation_date": m["date"],
+         "source_url": m["source_url"]}
+        for m in observation_summary(assessment, as_of=as_of)
+    ]
     # Stage all new output first; never replace accepted files on a validation failure.
     for name, content in pages.items():
         if not content.startswith("<!doctype html>"):
