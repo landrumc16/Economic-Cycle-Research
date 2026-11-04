@@ -44,12 +44,13 @@ class SectorGateTests(unittest.TestCase):
             build_sector_report({"Imaginary": {}}, self.today)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
     def test_every_sector_has_distinct_exposure_and_industry_examples(self):
         result=build_sector_report({},self.today)
         self.assertEqual(len({x["economic_exposure_hypothesis"] for x in result["sectors"]}),11)
         for item in result["sectors"]:
             self.assertTrue(item["industry_examples"])
             self.assertEqual(item["outlook"],"Insufficient Evidence")
+
+if __name__ == "__main__":
+    unittest.main()
+
