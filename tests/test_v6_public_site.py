@@ -122,6 +122,8 @@ class PublicSiteTests(unittest.TestCase):
         self.assertIn('outlook_path = root / "v6_1_economic_outlook.json"', workflow)
         self.assertIn('outlook.get("numeric_forecasts_approved") is not False', workflow)
         self.assertIn('required += ["v6_1_economic_outlook.json"]', workflow)
+        self.assertIn('outlook.get("historical_phase_certified") is not False', workflow)
+        self.assertIn('outlook["historical_validation"].get("predictive_skill_certified") is not False', workflow)
 
     def test_sector_detail_discloses_conditional_rating(self):
         build(self.root,date(2026,11,4))
