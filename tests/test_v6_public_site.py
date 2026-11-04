@@ -73,6 +73,19 @@ class PublicSiteTests(unittest.TestCase):
         assessment["sources"]["UNRATE"]["latest_used_month"] = "2026-09"
         self.assertEqual(observation_summary(assessment)[1]["value"], "4.20%")
 
+    def test_register_additional_dated_indicator_without_changing_pipeline(self):
+        definitions=(("Housing", "HOUST", "housing_starts_growth_pct",
+                      "Housing starts annual growth"),)
+        result=observation_summary({
+            "housing_starts_growth_pct":2.5,
+            "sources":{"HOUST":{"latest_used_month":"2026-09",
+                                "source_url":"https://fred.stlouisfed.org/series/HOUST"}}
+        },definitions)
+        self.assertEqual(result[0]["label"],"Housing")
+        self.assertEqual(result[0]["value"],"2.50%")
+        self.assertEqual(result[0]["date"],"2026-09")
+        self.assertEqual(len(result),1)
+
     def test_monthly_page_uses_dated_prior_comparison_when_available(self):
         (self.root/"economic_dashboard.json").write_text(json.dumps({
             "status":"DESCRIPTIVE_DASHBOARD",
