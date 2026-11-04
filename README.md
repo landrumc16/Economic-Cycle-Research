@@ -90,3 +90,9 @@ Commits `c3b0bbc7`, `a43c6277`, `fec881d6`: generate `sector-01.html` through `s
 Commits `d9582dd7` and `66386f2e`: public indicator cards now withhold numeric values when the individual FRED source's `latest_used_month` is missing or not a valid YYYY-MM calendar month. This closes a misleading undated-number pathway while retaining valid dated observations. Regression tests cover missing, impossible and valid months.
 
 **Release verification blocker remains:** Connected GitHub API in this session cannot dispatch or list workflow runs; public `https://landrumc16.github.io/Economic-Cycle-Research/overview.html` could not be retrieved. Unit tests are committed, not claimed passing. Existing monthly workflow runs V6 regression tests and generates the V6 bundle; existing Pages workflow publishes and verifies it. Inspect actual Actions runs and published pages before accepting V6. Note first publication now requires 11 sector detail files alongside the overview and evidence bundle.
+
+### V6 final-gate ordering fix — 2026-11-04
+
+Commit `c830151e`: the monthly workflow now runs `validate_industry_deviation_release.py` **before** generating V6 public pages. Previously pages were built from a preliminary release state before the final acceptance gate, allowing the HTML's displayed status to disagree with the final artifact. The V6 regression tests still execute before generation. No competing workflow was added.
+
+**Release evidence outstanding:** Actual Actions test logs, final monthly gate output, deployed Pages run and live URL checks are not accessible through connected tools here. Run existing monthly workflow, inspect artifact gate and 11 sector files, then existing Pages workflow; record run IDs and verify URLs. Do not mark complete on code commits alone.
