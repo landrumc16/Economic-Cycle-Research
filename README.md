@@ -168,3 +168,9 @@ Commits `bb7874a1` and `4dc4fb98`: corrected the public overview's unconditional
 Commits `209820ef` and `41140e89`: the eleven sector detail pages no longer state unconditionally that missing evidence prevents any rating. They now explain that an outlook is published only if dated earnings, valuation, and benchmarked returns satisfy the evidence gate, otherwise Insufficient Evidence is shown. Added a regression test.
 
 **Not release certified:** current monthly and daily workflow run IDs, passing regression logs, successful Pages deployment, and live URL response remain unavailable. The existing workflows must execute and their results be verified before V6 closeout.
+
+### V6 month-over-month chronology validation — 2026-11-04
+
+Commits `bb1bf795` and `ca6bdbdc`: monthly change rendering now requires a valid prior assessment date strictly before the current comparison date and rejects future-dated current comparisons. This prevents displaying misleading deltas from invalid chronology. Repaired the preexisting positive-delta test to use a PASS release fixture instead of stale research, and added invalid-chronology regression cases.
+
+**Execution/verification blocker:** Connector can edit repository files but does not expose a dispatch or listing action for current push-triggered workflow runs; its commit-run lookup is restricted to PR-triggered runs. No passing CI logs or live Pages HTTP response were obtained. Resume by running existing monthly and daily workflows, checking regression suite and public Pages URL, and recording actual run IDs. Do not certify release until then.
