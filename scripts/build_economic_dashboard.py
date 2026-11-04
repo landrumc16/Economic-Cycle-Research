@@ -61,7 +61,9 @@ def compare(current, previous=None, historical=None):
             "interpretation": interpret(current),
             "cycle_conditions": cycle_conditions(current),
             "historical_comparison": historical,
-            "limitations": current["limitations"]}
+            "limitations": current["limitations"],
+            "sources": current.get("sources", {}),
+            "historical_comparison_stale": current.get("historical_comparison_stale", False)}
 
 
 def cycle_conditions(current):
@@ -151,10 +153,15 @@ def render(report):
     comparison = ("No previous assessment supplied" if report["previous_assessment_date"] is None
                   else f'Previous assessment: {esc(report["previous_assessment_date"])}. '
                        f'New observation month: {esc(report["new_observation_month_since_previous"])}.')
-    freshness = "STALE" if report["stale"] else "RECENT MONTHLY DATA"
+    freshness = "STALE" if report["stale"] else "CURRENT INDICATORS: SOURCE-DATED"
+    source_rows = "".join(
+        "<tr><td>{}</td><td>{}</td><td>{}</td></tr>".format(
+            esc(name), esc(info.get("latest_used_month", "Unavailable")),
+            esc(info.get("observation_lag_months", "Unknown")))
+        for name, info in sorted(report.get("sources", {}).items()))
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Economic Cycle Research | Weekly Assessment</title>
+<title>Economic Cycle Research | Monthly Assessment</title>
 <style>
 :root{{font-family:system-ui,Arial,sans-serif;color-scheme:light;background:#f5f7fa;color:#16263b}}
 body{{max-width:1100px;margin:auto;padding:24px}}header{{padding:24px 0;border-bottom:2px solid #ccd7e4}}
@@ -164,16 +171,18 @@ h1{{font-size:2rem;margin:0 0 10px}}h2{{font-size:1rem;margin:0 0 18px}}
 .metric strong{{display:block;font-size:2rem;font-variant-numeric:tabular-nums}}
 .metric p,.metric small{{color:#516277}}main>section{{margin:24px 0}}
 .note{{background:#eaf0f7;padding:18px;border-radius:8px;line-height:1.6}}
+table{{width:100%;border-collapse:collapse}}td,th{{padding:10px;text-align:left;border-bottom:1px solid #dbe3ec}}
 footer{{border-top:1px solid #ccd7e4;padding-top:18px;color:#516277}}
 </style></head><body><header><h1>Economic Cycle Research</h1>
-<p>Weekly research assessment · {esc(report["assessment_date"])}</p>
+<p>Monthly research assessment · {esc(report["assessment_date"])}</p>
 <p><b>{freshness}</b> · Common observation month: {esc(report["common_observation_month"])}
- · Lag: {report["months_since_common_observation"]} months</p></header>
+ · Historical alignment lag: {report["months_since_common_observation"]} months</p></header>
 <main><div class="grid">{''.join(cards)}</div>
 <section><h2>Observed conditions</h2><p class="note">{esc(report["interpretation"])}</p></section>
 <section><h2>Cycle-condition tags</h2><p>{esc(condition_tags)}</p><small>Descriptive observations, not a calibrated economic phase.</small></section>
 <section><h2>Historical context</h2><p>{esc(history_text)}</p></section>
 <section><h2>Change since previous assessment</h2><p>{comparison}</p></section>
+<section><h2>Observation dates by source</h2><p>Assessment publication date is not the observation date. Different series have different release schedules.</p><table><thead><tr><th>Series</th><th>Latest observation</th><th>Lag (months)</th></tr></thead><tbody>{source_rows}</tbody></table></section>
 <section><h2>Method and limitations</h2><ul>{limitations}</ul></section></main>
 <footer>Research-only · Current-vintage monthly observations · No investment advice or validated forecasts</footer>
 </body></html>"""
