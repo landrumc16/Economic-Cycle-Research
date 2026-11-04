@@ -66,3 +66,9 @@ Commits `50f8dfec`, `856ef061`, `9b55512f`, and `d1e53d2a` reject placeholder se
 Commits `8c75a13e` and `39cc91fd` distinguish HTML generation date from the official dated monthly assessment; reject stale dashboard comparisons and malformed metric collections instead of implying current changes. Regression tests cover stale comparisons and assessment-date labeling. No new workflow or historical research was introduced.
 
 **Unresolved release gate:** Tests have been committed but not executed against a verified main-branch Actions run; the connected GitHub tool has no dispatch/list-run operation, and live Pages was not independently verified. To resume, inspect the existing monthly and Pages Actions runs, fix concrete failures, verify `overview.html`, `sectors.html`, `monthly-research.html`, `research.html`, and accepted monthly artifacts. Do not claim sector investment ratings without independent, point-in-time market/earnings/valuation evidence.
+
+### V6 first-publication correction — 2026-11-04
+
+Commit `130b1306` fixes a first-publication deadlock: the Pages workflow previously accepted only monthly `PASS` artifacts for V6, although the V6 generator explicitly supports `STALE_RESEARCH_ONLY` as a historical-only research release. Pages now accepts either gate, but requires the explicit **Historical research only** warning on stale V6 overview pages. This does not turn stale data into a current monthly conclusion or approve unsupported sector ratings.
+
+**Release not certified:** Execute the monthly workflow and Pages workflow, inspect test failures and Pages URLs, and verify the dated official assessment and scheduled data refresh. Connected GitHub actions available in this chat support file commits but not workflow dispatch/listing; live deployment verification is outstanding.
