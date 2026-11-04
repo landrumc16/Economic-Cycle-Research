@@ -78,3 +78,9 @@ Commit `130b1306` fixes a first-publication deadlock: the Pages workflow previou
 Commits `7dd24895` and `59c47823`: corrected the public overview's misleading **Financial stress** label for BUSLOANS 12-month credit growth (now **Business credit** with explicit qualification); added visible prior-comparison and uncertainty sections to the overview; added regression test. Financial stress cannot be inferred from loan growth alone.
 
 **Current release blockers:** No verified passing CI or Pages deployment run was accessible through connected GitHub tools; public site URL was inaccessible from web retrieval. The daily acquisition schedule, official monthly artifact qualification, and live V6 pages still require operational verification. Resume from the latest commit, run existing monthly and Pages workflows, inspect their logs and evidence artifacts, and only mark release accepted after actual tests and live verification. Do not invent market data or sector ratings.
+
+### V6 sector deep-dive batch — 2026-11-04
+
+Commits `c3b0bbc7`, `a43c6277`, `fec881d6`: generate `sector-01.html` through `sector-11.html` with distinct economic exposure, industry examples, qualified investment evidence or explicit insufficiency; link from sector index. Pages deployment now treats all 11 pages as a required recoverable bundle and verifies each published page. Tests cover links, responsive viewport and evidence-gated status.
+
+**Operational release pending:** Connected GitHub tool does not expose workflow dispatch or run listing. Public GitHub Pages and Actions URLs were not retrievable through the web tool in this session. No CI, deployment, or scheduled execution success is asserted. Run existing workflows, inspect failure logs, verify all 11 live sector pages plus monthly assessment, and close the roadmap only with run/deployment evidence.
