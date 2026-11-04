@@ -144,3 +144,9 @@ Commits `fe25e7a6`, `492a14bb`, `464119c2`: the official monthly assessment work
 Commits `eac941ef`, `cc68a875`, `4011108e`: the existing daily publisher previously searched only monthly workflow artifacts whose gate was `PASS`, so a valid `STALE_RESEARCH_ONLY` artifact could never be selected for the V6 historical-research-only pages. Recovery now accepts either a consistent PASS artifact or a stale artifact containing the required prominent historical-only warning. The separately published accepted `monthly.html` remains PASS-only and is preserved when new data are stale. Added regression guard and corrected the Actions summary wording.
 
 **Release still blocked on execution evidence:** Run existing monthly and daily workflows; require green V6 regression tests and a successful live Pages verifier. No current workflow run ID or live-site HTTP response has been obtained from this environment. Do not mark V6 complete without these.
+
+### V6 workflow simplification — 2026-11-04
+
+Commit `07c87ab6` removes a duplicate `test_v6_*.py` invocation from the official monthly workflow, leaving its original pre-publication test gate in place. This avoids redundant work without weakening coverage. Attempted direct public fetch of `https://landrumc16.github.io/Economic-Cycle-Research/overview.html`; the tool could not access it, which is inconclusive about deployment health.
+
+**Release certification remains outstanding:** Run the current monthly workflow and daily/Pages workflow, record passing job IDs, confirm the live site and 11 sector pages, historical page, current/stale labeling, and V5 archive. No new run or public HTTP result was verified here.
