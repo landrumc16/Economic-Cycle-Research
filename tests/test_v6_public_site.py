@@ -20,6 +20,13 @@ class PublicSiteTests(unittest.TestCase):
         for name in ("economic_dashboard.html","v5_dashboard.html","v5_executive_brief.md"):
             (self.root/name).write_text("Existing research")
 
+    def test_sector_detail_discloses_conditional_rating(self):
+        build(self.root,date(2026,11,4))
+        detail=(self.root/"sector-01.html").read_text()
+        self.assertIn("published only when dated earnings",detail)
+        self.assertIn("Insufficient Evidence",detail)
+        self.assertNotIn("prevent an investment rating",detail)
+
     def test_overview_distinguishes_evidence_qualified_sector_outlooks(self):
         build(self.root,date(2026,11,4))
         overview=(self.root/"overview.html").read_text()
