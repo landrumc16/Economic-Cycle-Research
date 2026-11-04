@@ -159,8 +159,9 @@ def build(folder, as_of, evidence=None):
                    '<p>These industries have different risks; no company-specific conclusion is implied.</p>'
                    '<h3>Investment evidence</h3>'
                    f'<pre style="white-space:pre-wrap;overflow-wrap:anywhere">{esc(json.dumps({"economic_fit":sector["economic_fit"],"investment_fit":sector["investment_fit"]},indent=2))}</pre>'
-                   '<p>Historical analogies are not forward-return forecasts. Missing dated earnings, '
-                   'valuation and benchmarked returns prevent an investment rating.</p>'
+                   '<p>Historical analogies are not forward-return forecasts. An investment outlook is '
+                   'published only when dated earnings, valuation and benchmarked returns pass '
+                   'the evidence gate; otherwise the rating is Insufficient Evidence.</p>'
                    '<a href="sectors.html">Back to all sectors</a></section>')
         sector_pages[filename] = page(sector["sector"] + " Research", details)
     sector_cards = "".join(
