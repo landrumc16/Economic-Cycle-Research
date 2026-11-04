@@ -174,3 +174,9 @@ Commits `209820ef` and `41140e89`: the eleven sector detail pages no longer stat
 Commits `bb1bf795` and `ca6bdbdc`: monthly change rendering now requires a valid prior assessment date strictly before the current comparison date and rejects future-dated current comparisons. This prevents displaying misleading deltas from invalid chronology. Repaired the preexisting positive-delta test to use a PASS release fixture instead of stale research, and added invalid-chronology regression cases.
 
 **Execution/verification blocker:** Connector can edit repository files but does not expose a dispatch or listing action for current push-triggered workflow runs; its commit-run lookup is restricted to PR-triggered runs. No passing CI logs or live Pages HTTP response were obtained. Resume by running existing monthly and daily workflows, checking regression suite and public Pages URL, and recording actual run IDs. Do not certify release until then.
+
+### V6 comparison-to-release consistency — 2026-11-04
+
+Commits `577b32c2` and `c0397d4f`: monthly change rendering now requires the descriptive dashboard's assessment date to match the official PASS release gate date, in addition to chronological ordering and no future data. Both overview and monthly research pages suppress mismatched comparisons. Regression test added.
+
+**Outstanding release blocker:** Repository edits are available but current Actions run discovery/dispatch and live Pages HTTP verification have not succeeded from this environment. No full test execution or deployment confirmation was obtained. To close V6, execute existing monthly and daily workflows, capture green run IDs and test logs, verify public index/overview, sector, historical, monthly and methodology pages and preserved V5 archive. Do not label V6 complete until this evidence exists.
