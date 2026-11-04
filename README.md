@@ -162,3 +162,9 @@ Commits `28d37496` and `3237f664`: public-site builder rejects a monthly release
 Commits `bb7874a1` and `4dc4fb98`: corrected the public overview's unconditional claim that sector outlooks are withheld, which conflicted with the implemented evidence-qualified PASS sector path. The overview now explains that sectors are rated only when research passes validation and otherwise show Insufficient Evidence. Removed a redundant unused sector-card generator; added a regression assertion.
 
 **Certification remains pending:** no verified current CI run or public GitHub Pages HTTP response was available in this session. Run existing monthly and daily workflows, collect run IDs, confirm all V6 regression tests, official dated research gates, live index/overview, monthly, historical and sector pages, and V5 preservation. Do not mark the release complete before verification.
+
+### V6 sector-detail evidence language — 2026-11-04
+
+Commits `209820ef` and `41140e89`: the eleven sector detail pages no longer state unconditionally that missing evidence prevents any rating. They now explain that an outlook is published only if dated earnings, valuation, and benchmarked returns satisfy the evidence gate, otherwise Insufficient Evidence is shown. Added a regression test.
+
+**Not release certified:** current monthly and daily workflow run IDs, passing regression logs, successful Pages deployment, and live URL response remain unavailable. The existing workflows must execute and their results be verified before V6 closeout.
