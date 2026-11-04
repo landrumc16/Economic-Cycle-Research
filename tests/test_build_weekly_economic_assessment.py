@@ -51,6 +51,25 @@ class WeeklyAssessmentTests(unittest.TestCase):
         self.assertEqual(result["sources"]["CSUSHPINSA"]["latest_used_month"], "2017-06-01")
         self.assertEqual(result["common_observation_month"], "2017-06-01")
 
+    def test_consumer_credit_release_lag_is_disclosed_and_bounded(self):
+        folder = self.root / "data/industry_observations"
+        for name in ("NASDAQCOM", "CSUSHPINSA", "TOTALSL", "BUSLOANS",
+                     "PI", "UNRATE", "CPIAUCSL", "INDPRO"):
+            path = folder / (name + "_monthly.csv")
+            with path.open("a") as handle:
+                for month in range(3, 11):
+                    if name == "TOTALSL" and month > 8:
+                        continue
+                    if name == "CSUSHPINSA" and month > 8:
+                        continue
+                    handle.write(f"2019-{month:02d}-01,150\\n")
+        result = snapshot(self.root, "2019-11-04")
+        self.assertFalse(result["stale"])
+        self.assertEqual(result["sources"]["TOTALSL"]["observation_lag_months"], 3)
+        self.assertTrue(result["historical_comparison_stale"])
+        result = snapshot(self.root, "2019-12-04")
+        self.assertTrue(result["stale"])
+
     def test_future_data_not_used(self):
         first = snapshot(self.root, "2018-01-15")
         path = self.root / "data/industry_observations/PI_monthly.csv"
