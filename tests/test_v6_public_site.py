@@ -52,6 +52,23 @@ class PublicSiteTests(unittest.TestCase):
             build(self.root,date(2026,11,4))
         self.assertEqual((self.root/"index.html").read_text(),"last good")
 
+    def test_future_dated_indicator_is_withheld_on_both_public_pages(self):
+        self.root.joinpath("weekly_economic_assessment.json").write_text(json.dumps({
+            "industrial_production_growth_12m_log_pct":9.5,
+            "sources":{"INDPRO":{"latest_used_month":"2027-01",
+                                 "source_url":"https://fred.stlouisfed.org/series/INDPRO"}}
+        }))
+        result=observation_summary(json.loads(
+            (self.root/"weekly_economic_assessment.json").read_text()),
+            as_of=date(2026,11,4))
+        self.assertEqual(result[0]["value"],"Unavailable")
+        self.assertEqual(result[0]["date"],"unavailable")
+        build(self.root,date(2026,11,4))
+        for page_name in ("overview.html","monthly-research.html"):
+            markup=(self.root/page_name).read_text()
+            self.assertNotIn("9.50%",markup)
+            self.assertIn("Unavailable",markup)
+
     def test_observation_values_and_source_dates(self):
         result=observation_summary({
             "industrial_production_growth_12m_log_pct":1.234,
