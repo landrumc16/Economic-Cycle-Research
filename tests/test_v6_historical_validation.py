@@ -36,6 +36,20 @@ class HistoricalValidationTests(unittest.TestCase):
         self.assertTrue(report["ready_for_holdout"])
         self.assertFalse(report["predictive_skill_certified"])
 
+    def test_expansion_and_recovery_are_not_counted_as_downturn_events(self):
+        episodes = [
+            {"id": "expansion", "outcome": "expansion", "signal_date": "1990-01-01",
+             "data_available_date": "1989-12-01", "outcome_date": "1990-12-01",
+             "point_in_time_verified": True},
+            {"id": "recovery", "outcome": "recovery", "signal_date": "1992-01-01",
+             "data_available_date": "1991-12-01", "outcome_date": "1992-12-01",
+             "point_in_time_verified": True},
+        ]
+        report = validate_episodes(episodes)
+        self.assertEqual(report["independent_events"], 0)
+        self.assertEqual(report["other_phases"], 2)
+        self.assertFalse(report["ready_for_holdout"])
+
     def test_overlapping_episodes_and_future_outcomes_rejected(self):
         first = {"id": "a", "outcome": "contraction",
                  "signal_date": "2007-01-01", "data_available_date": "2006-12-01",
