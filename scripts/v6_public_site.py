@@ -5,6 +5,7 @@ import json
 import math
 from datetime import date
 from pathlib import Path
+from urllib.parse import urlparse
 try:
     from .v6_sector_intelligence import build_sector_report
 except ImportError:
@@ -55,12 +56,17 @@ def observation_summary(assessment, definitions=INDICATORS, as_of=None):
                     valid_date = False
             except ValueError:
                 valid_date = False
+        url = source.get("source_url")
+        parsed = urlparse(url) if isinstance(url, str) else None
+        verified_source = (parsed is not None and parsed.scheme == "https"
+                           and bool(parsed.hostname)
+                           and parsed.hostname not in {"example.com", "example.org", "example.net"})
         valid_value = (isinstance(raw, (int, float)) and not isinstance(raw, bool)
-                       and math.isfinite(raw) and valid_date)
+                       and math.isfinite(raw) and valid_date and verified_source)
         value = f"{raw:.2f}%" if valid_value else "Unavailable"
         result.append({"label": label, "description": description, "value": value,
                        "date": observed if valid_date else "unavailable",
-                       "source_url": source.get("source_url", "") if valid_date else ""})
+                       "source_url": url if valid_date and verified_source else ""})
     return result
 
 def monthly_changes(folder, monthly_status="PASS", as_of=None, accepted_date=None):
