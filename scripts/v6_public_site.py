@@ -56,13 +56,16 @@ def monthly_changes(folder):
     if not source.is_file():
         return "<p>Previous comparable assessment unavailable.</p>"
     report = json.loads(source.read_text())
-    if report.get("status") != "DESCRIPTIVE_DASHBOARD":
+    if report.get("status") != "DESCRIPTIVE_DASHBOARD" or report.get("stale") is True:
         return "<p>Previous comparable assessment unavailable.</p>"
     previous = report.get("previous_assessment_date")
     if not previous:
         return "<p>No previous accepted assessment was supplied for comparison.</p>"
     items = []
-    for metric in report.get("metrics", []):
+    metrics = report.get("metrics")
+    if not isinstance(metrics, list):
+        return "<p>No comparable indicator series were supplied.</p>"
+    for metric in metrics:
         if not isinstance(metric, dict):
             continue
         delta = metric.get("delta")
@@ -92,6 +95,7 @@ def build(folder, as_of, evidence=None):
         if not (folder/name).is_file():
             raise ValueError("Missing research link target: "+name)
     sectors = build_sector_report(evidence or {}, as_of)
+    assessment_date = gate.get("assessment_date") or assessment.get("assessment_date") or "unavailable"
     notice = ("<strong>Historical research only:</strong> stale observations do not support a current assessment."
               if status == "STALE_RESEARCH_ONLY" else "Monthly descriptive release gate passed.")
     cards = []
@@ -106,7 +110,7 @@ def build(folder, as_of, evidence=None):
     if status == "PASS" and assessment.get("stale") is True:
         raise ValueError("PASS monthly gate contradicts stale assessment")
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
-                f'<p>Report date: {as_of.isoformat()}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
+                f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
                 '<a href="monthly-research.html">Monthly assessment</a></section>'
                 f'<section><h2>Growth, jobs, prices and vulnerabilities</h2><div class="grid">{"".join(cards)}</div></section>'
@@ -126,7 +130,7 @@ def build(folder, as_of, evidence=None):
         descriptions.append(f'<li><strong>{esc(metric["label"])}:</strong> {esc(metric["description"])} '
                             f'{esc(metric["value"])} (observed {esc(metric["date"])})</li>')
     monthly = (f'<section><h2>Official monthly gate: {esc(status)}</h2><p>{notice}</p>'
-               f'<p>Assessment date: {as_of.isoformat()}. Historical observation month: '
+               f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: '
                f'{esc(portal.get("observation_month","unavailable"))}.</p>'
                '<h3>Observed conditions</h3><ul>' + "".join(descriptions) + '</ul>'
                '<h3>What changed?</h3>' + monthly_changes(folder) +
