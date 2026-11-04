@@ -326,6 +326,16 @@ def build(folder, as_of, evidence=None):
     for name, content in pages.items():
         (folder/name).write_text(content)
     (folder/"v6_sector_report.json").write_text(json.dumps(sectors,indent=2)+"\n")
+    (folder/"v6_1_economic_outlook.json").write_text(json.dumps({
+        "schema_version": 1, "generated_as_of": as_of.isoformat(),
+        "official_assessment_date": assessment_date,
+        "monthly_gate": status, "observed_outlook": outlook,
+        "historical_phase_certified": False,
+        "numeric_forecasts_approved": False,
+        "sector_outlooks_qualified": qualified_count,
+        "sector_count": len(sectors["sectors"]),
+    }, indent=2) + "\n")
+
     return {"pages":list(pages),"monthly_status":status,"sector_count":len(sectors["sectors"])}
 
 def main():
