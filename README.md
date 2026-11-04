@@ -96,3 +96,9 @@ Commits `d9582dd7` and `66386f2e`: public indicator cards now withhold numeric v
 Commit `c830151e`: the monthly workflow now runs `validate_industry_deviation_release.py` **before** generating V6 public pages. Previously pages were built from a preliminary release state before the final acceptance gate, allowing the HTML's displayed status to disagree with the final artifact. The V6 regression tests still execute before generation. No competing workflow was added.
 
 **Release evidence outstanding:** Actual Actions test logs, final monthly gate output, deployed Pages run and live URL checks are not accessible through connected tools here. Run existing monthly workflow, inspect artifact gate and 11 sector files, then existing Pages workflow; record run IDs and verify URLs. Do not mark complete on code commits alone.
+
+### V6 minimal indicator extension example — 2026-11-04
+
+Commits `63098f2a`, `f384a1a6`: `scripts/v6_public_site.py` now registers headline indicators in one `INDICATORS` tuple with `(display label, source series ID, assessment metric key, plain-English definition)`. `observation_summary(assessment, definitions=...)` supports a separately supplied registry; the new test demonstrates a source-dated `HOUST` housing-starts metric without modifying acquisition, release gates, or the default dashboard. **For production** first ensure the existing acquisition and official monthly assessment actually supply the source series, numeric metric, and valid `YYYY-MM` observation month; only then append its definition to `INDICATORS`. Missing dates or values remain withheld. This is an extension interface, not a claim that housing starts are already acquired.
+
+**Unverified:** Actual CI tests, Pages publication and public-site checks remain blocked by absent workflow-dispatch/listing access. Existing monthly and Pages workflows should be run and inspected; do not declare Version 6 released without passing evidence.
