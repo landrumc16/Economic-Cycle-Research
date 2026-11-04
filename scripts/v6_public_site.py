@@ -48,11 +48,12 @@ def observation_summary(assessment, definitions=INDICATORS, as_of=None):
         source = sources.get(series)
         source = source if isinstance(source, dict) else {}
         observed = source.get("latest_used_month")
-        valid_date = isinstance(observed, str) and len(observed) == 7
+        valid_date = isinstance(observed, str) and len(observed) in (7, 10)
         if valid_date:
             try:
-                observation_month = date.fromisoformat(observed + "-01")
-                if as_of is not None and observation_month > as_of:
+                observation_date = date.fromisoformat(observed + "-01" if len(observed) == 7 else observed)
+                valid_date = (len(observed) == 7 or observation_date.isoformat() == observed)
+                if as_of is not None and observation_date > as_of:
                     valid_date = False
             except ValueError:
                 valid_date = False
