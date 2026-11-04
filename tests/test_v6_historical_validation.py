@@ -22,18 +22,30 @@ class HistoricalValidationTests(unittest.TestCase):
 
     def test_negative_controls_do_not_count_as_downturns(self):
         rows = []
-        for i in range(3):
-            for outcome in ("contraction", "non_downturn"):
-                rows.append({"id": f"{outcome}-{i}", "outcome": outcome,
-                             "signal_date": f"200{i}-01-01",
-                             "data_available_date": f"199{i}-12-01",
-                             "outcome_date": f"200{i}-12-01",
-                             "point_in_time_verified": True})
+        for i in range(6):
+            outcome = "contraction" if i % 2 == 0 else "non_downturn"
+            year = 1990 + 2 * i
+            rows.append({"id": f"{outcome}-{i}", "outcome": outcome,
+                         "signal_date": f"{year}-01-01",
+                         "data_available_date": f"{year-1}-12-01",
+                         "outcome_date": f"{year}-12-01",
+                         "point_in_time_verified": True})
         report = validate_episodes(rows)
         self.assertEqual(report["independent_events"], 3)
         self.assertEqual(report["negative_controls"], 3)
         self.assertTrue(report["ready_for_holdout"])
         self.assertFalse(report["predictive_skill_certified"])
+
+    def test_overlapping_episodes_and_future_outcomes_rejected(self):
+        first = {"id": "a", "outcome": "contraction",
+                 "signal_date": "2007-01-01", "data_available_date": "2006-12-01",
+                 "outcome_date": "2008-01-01", "point_in_time_verified": True}
+        second = dict(first, id="b", signal_date="2007-06-01",
+                      data_available_date="2007-05-01", outcome_date="2009-01-01")
+        with self.assertRaises(ValueError):
+            validate_episodes([first, second])
+        with self.assertRaises(ValueError):
+            validate_episodes([first], as_of=__import__("datetime").date(2007, 6, 1))
 
     def test_duplicate_episode_rejected(self):
         item = {"id": "same", "outcome": "non_downturn",
