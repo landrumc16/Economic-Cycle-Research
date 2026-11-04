@@ -34,8 +34,9 @@ def validate_episodes(episodes, as_of=None):
         intervals.append((signal, outcome))
         accepted.append({"id": name, "outcome": label, "signal_date": signal.isoformat()})
     controls = sum(x["outcome"] == "non_downturn" for x in accepted)
-    events = len(accepted) - controls
+    events = sum(x["outcome"] == "contraction" for x in accepted)
+    other_phases = len(accepted) - controls - events
     return {"episodes": accepted, "independent_events": events,
-            "negative_controls": controls, "ready_for_holdout": events >= 3 and controls >= 3,
+            "negative_controls": controls, "other_phases": other_phases, "ready_for_holdout": events >= 3 and controls >= 3,
             "predictive_skill_certified": False,
             "note": "Coverage alone does not establish forecasting skill; holdout calibration and embargo remain required."}
