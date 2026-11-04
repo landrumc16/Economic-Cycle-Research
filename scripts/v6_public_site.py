@@ -412,7 +412,8 @@ def main():
     p.add_argument("--as-of",type=date.fromisoformat,default=date.today())
     p.add_argument("--sector-evidence",type=Path)
     args=p.parse_args()
-    evidence=json.loads(args.sector_evidence.read_text()) if args.sector_evidence else None
+    evidence_path = args.sector_evidence or (args.directory / "v6_sector_evidence.json")
+    evidence = json.loads(evidence_path.read_text()) if evidence_path.is_file() else None
     print(json.dumps(build(args.directory,args.as_of,evidence)))
 
 if __name__=="__main__":
