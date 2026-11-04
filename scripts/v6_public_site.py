@@ -116,7 +116,7 @@ def build(folder, as_of, evidence=None):
             raise ValueError("Invalid public HTML: " + name)
     for name, content in pages.items():
         (folder/name).write_text(content)
-    (folder/"v6_sector_report.json").write_text(json.dumps(sectors,indent=2)+"\\n")
+    (folder/"v6_sector_report.json").write_text(json.dumps(sectors,indent=2)+"\n")
     return {"pages":list(pages),"monthly_status":status,"sector_count":len(sectors["sectors"])}
 
 def main():
