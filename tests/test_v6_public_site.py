@@ -81,6 +81,26 @@ class PublicSiteTests(unittest.TestCase):
         self.assertIn("Previous comparable assessment unavailable",
                       (self.root/"monthly-research.html").read_text())
 
+    def test_stale_comparison_is_not_presented_as_current(self):
+        (self.root/"economic_dashboard.json").write_text(json.dumps({
+            "status":"DESCRIPTIVE_DASHBOARD", "stale":True,
+            "previous_assessment_date":"2026-09-20",
+            "metrics":[{"title":"Unemployment","units":"points","delta":0.3}]
+        }))
+        build(self.root,date(2026,11,4))
+        markup=(self.root/"monthly-research.html").read_text()
+        self.assertNotIn("+0.30 points",markup)
+        self.assertIn("Previous comparable assessment unavailable",markup)
+
+    def test_page_generation_date_not_mislabeled_as_assessment(self):
+        (self.root/"weekly_release_acceptance.json").write_text(json.dumps({
+            "status":"STALE_RESEARCH_ONLY","assessment_date":"2026-10-20"
+        }))
+        build(self.root,date(2026,11,4))
+        markup=(self.root/"overview.html").read_text()
+        self.assertIn("Page generated: 2026-11-04",markup)
+        self.assertIn("Official assessment: 2026-10-20",markup)
+
     def test_v6_preserves_accepted_v5_index(self):
         (self.root/"index.html").write_text("V5 accepted landing")
         build(self.root,date(2026,11,4))
