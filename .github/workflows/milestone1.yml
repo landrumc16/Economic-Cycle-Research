@@ -4,8 +4,6 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  schedule:
-    - cron: '15 14 * * *'
   workflow_run:
     workflows: ['Monthly Economic Cycle Assessment']
     types: [completed]
@@ -428,8 +426,8 @@ jobs:
           if monthly.is_file():
               html = index.read_text()
               anchor = '<a href="weekly-v5.html">Latest weekly research assessment</a>'
-              assert anchor in html, "Expected weekly navigation anchor missing"
-              html = html.replace(anchor, anchor + ' · <a href="monthly.html">Latest approved monthly assessment</a>', 1)
+              assert anchor in html, "Expected legacy navigation anchor missing"
+              html = html.replace(anchor, '<a href="monthly.html">Latest approved monthly economic assessment</a> · <a href="weekly-v5.html">Historical weekly research archive</a>', 1)
               index.write_text(html)
           PY
       - name: Configure GitHub Pages
