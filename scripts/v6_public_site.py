@@ -50,6 +50,32 @@ def observation_summary(assessment):
                        "source_url": source.get("source_url", "")})
     return result
 
+def monthly_changes(folder):
+    """Reuse the accepted descriptive dashboard's prior-period comparison."""
+    source = folder / "economic_dashboard.json"
+    if not source.is_file():
+        return "<p>Previous comparable assessment unavailable.</p>"
+    report = json.loads(source.read_text())
+    if report.get("status") != "DESCRIPTIVE_DASHBOARD":
+        return "<p>Previous comparable assessment unavailable.</p>"
+    previous = report.get("previous_assessment_date")
+    if not previous:
+        return "<p>No previous accepted assessment was supplied for comparison.</p>"
+    items = []
+    for metric in report.get("metrics", []):
+        if not isinstance(metric, dict):
+            continue
+        delta = metric.get("delta")
+        if not isinstance(delta, (int, float)) or isinstance(delta, bool) or not math.isfinite(delta):
+            continue
+        title = metric.get("title", "Indicator")
+        units = metric.get("units", "")
+        items.append(f"<li>{esc(title)}: {delta:+.2f} {esc(units)} since {esc(previous)}</li>")
+    if not items:
+        return "<p>No comparable changes are available; revisions and missing observations may limit comparison.</p>"
+    return "<ul>" + "".join(items) + "</ul>"
+
+
 def build(folder, as_of, evidence=None):
     required = ("v5_integrated_acceptance.json","v5_unified_portal.json","weekly_release_acceptance.json","weekly_economic_assessment.json")
     if any(not (folder / n).is_file() for n in required):
@@ -103,9 +129,7 @@ def build(folder, as_of, evidence=None):
                f'<p>Assessment date: {as_of.isoformat()}. Historical observation month: '
                f'{esc(portal.get("observation_month","unavailable"))}.</p>'
                '<h3>Observed conditions</h3><ul>' + "".join(descriptions) + '</ul>'
-               '<h3>What changed?</h3><p>The existing indicator dashboard reports differences '
-               'against the prior accepted assessment when comparable data exist. '
-               'Missing or revised values do not establish a direction of change.</p>'
+               '<h3>What changed?</h3>' + monthly_changes(folder) +
                '<h3>What remains uncertain?</h3><p>Source publication lags, revisions, '
                'historical-vintage limitations and absent sector valuation evidence. '
                'No validated crash probability is available.</p>'
