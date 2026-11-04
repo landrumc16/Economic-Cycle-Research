@@ -372,6 +372,16 @@ class PublicSiteTests(unittest.TestCase):
             self.assertIn('href="sectors.html"',detail)
             self.assertIn("Insufficient Evidence",detail)
 
+    def test_monthly_cli_loads_sector_evidence_automatically(self):
+        from unittest.mock import patch
+        from scripts import v6_public_site
+        (self.root/"v6_sector_evidence.json").write_text(json.dumps({"Energy":{"outlook":"Favorable"}}))
+        with patch("sys.argv", ["v6_public_site", "--directory", str(self.root),
+                                "--as-of", "2026-11-04"]), \
+             patch.object(v6_public_site, "build", return_value={"ok": True}) as builder:
+            v6_public_site.main()
+        self.assertEqual(builder.call_args.args[2], {"Energy":{"outlook":"Favorable"}})
+
     def test_stale_release_cannot_publish_sector_evidence(self):
         from unittest.mock import patch
         from scripts.v6_sector_intelligence import build_sector_report
