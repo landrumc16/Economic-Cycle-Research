@@ -105,7 +105,9 @@ def build(folder, as_of, evidence=None):
     for name in ("economic_dashboard.html","v5_dashboard.html","v5_executive_brief.md"):
         if not (folder/name).is_file():
             raise ValueError("Missing research link target: "+name)
-    sectors = build_sector_report(evidence or {}, as_of)
+    # A stale research-only monthly release cannot certify current sector ratings.
+    # Preserve the sector inventory, but withhold investment outlooks entirely.
+    sectors = build_sector_report((evidence or {}) if status == "PASS" else {}, as_of)
     assessment_date = gate.get("assessment_date") or assessment.get("assessment_date") or "unavailable"
     notice = ("<strong>Historical research only:</strong> stale observations do not support a current assessment."
               if status == "STALE_RESEARCH_ONLY" else "Monthly descriptive release gate passed.")
