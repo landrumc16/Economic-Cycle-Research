@@ -192,6 +192,12 @@ def build(folder, as_of, evidence=None):
         raise ValueError("PASS monthly gate contradicts stale assessment")
     outlook = economic_outlook(assessment, status, as_of)
     reasons = "".join(f"<li>{esc(reason)}</li>" for reason in outlook["reasons"])
+    sector_order = {"Favorable": 0, "Mixed": 1, "Caution": 2, "Insufficient Evidence": 3}
+    ranked = sorted(sectors["sectors"], key=lambda s: (sector_order.get(s["outlook"], 4), s["sector"]))
+    sector_highlights = "".join(
+        f'<li><a href="sector-{next(i for i, original in enumerate(sectors["sectors"], 1) if original["sector"] == s["sector"]):02d}.html">{esc(s["sector"])}</a>: '
+        f'<strong>{esc(s["outlook"])}</strong></li>'
+        for s in ranked[:5])
     executive = ('<section><h2>Where We Are</h2>'
                  f'<h3>{esc(outlook["phase"])}</h3><p>{esc(outlook["summary"])}</p>'
                  '<h2>Where We Are Heading</h2>'
@@ -201,7 +207,8 @@ def build(folder, as_of, evidence=None):
                  '<section><h2>Where Investors Should Look</h2>'
                  '<p>We compare all 11 market sectors, but historical economic fit is not the same as an attractive investment today. '
                  'Only sectors with verified earnings, valuation and historical returns receive an outlook; the others remain Insufficient Evidence.</p>'
-                 '<a href="sectors.html">See sector research</a></section>')
+                 f'<ol>{sector_highlights}</ol>'
+                 '<a href="sectors.html">See all 11 sector assessments</a></section>')
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
