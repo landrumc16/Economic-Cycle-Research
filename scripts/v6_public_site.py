@@ -38,16 +38,23 @@ def observation_summary(assessment):
     result = []
     for label, series, metric, description in definitions:
         raw = assessment.get(metric)
-        value = (f"{raw:.2f}%" if isinstance(raw, (int, float))
-                 and not isinstance(raw, bool) and math.isfinite(raw)
-                 else "Unavailable")
         sources = assessment.get("sources")
         sources = sources if isinstance(sources, dict) else {}
         source = sources.get(series)
         source = source if isinstance(source, dict) else {}
+        observed = source.get("latest_used_month")
+        valid_date = isinstance(observed, str) and len(observed) == 7
+        if valid_date:
+            try:
+                date.fromisoformat(observed + "-01")
+            except ValueError:
+                valid_date = False
+        valid_value = (isinstance(raw, (int, float)) and not isinstance(raw, bool)
+                       and math.isfinite(raw) and valid_date)
+        value = f"{raw:.2f}%" if valid_value else "Unavailable"
         result.append({"label": label, "description": description, "value": value,
-                       "date": source.get("latest_used_month", "unavailable"),
-                       "source_url": source.get("source_url", "")})
+                       "date": observed if valid_date else "unavailable",
+                       "source_url": source.get("source_url", "") if valid_date else ""})
     return result
 
 def monthly_changes(folder):
