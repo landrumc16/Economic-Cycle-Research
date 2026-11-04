@@ -93,7 +93,13 @@ def economic_outlook(assessment, status, as_of):
         "Consumer prices are rising year over year; this does not indicate whether inflation is accelerating." if inflation > 0 else
         "Measured consumer price inflation is not positive year over year."
     ]
-    if isinstance(change, (int, float)) and not isinstance(change, bool) and math.isfinite(change):
+    # The trend is derived from the same monthly UNRATE series; its source date must
+    # be verified and no older than the accepted monthly research freshness window.
+    labor_date = verified["Jobs"]["date"]
+    labor_month = date.fromisoformat(labor_date + "-01" if len(labor_date) == 7 else labor_date)
+    labor_age = (as_of.year - labor_month.year) * 12 + as_of.month - labor_month.month
+    trend_qualified = 0 <= labor_age <= 2
+    if trend_qualified and isinstance(change, (int, float)) and not isinstance(change, bool) and math.isfinite(change):
         result["reasons"].append(
             "Unemployment increased over three months." if change > 0 else
             "Unemployment decreased over three months." if change < 0 else
@@ -197,8 +203,10 @@ def build(folder, as_of, evidence=None):
     qualified_count = sum(s["outlook"] != "Insufficient Evidence" for s in ranked)
     sector_note = (f"{qualified_count} of 11 sectors currently have evidence-qualified investment outlooks. "
                    "An unqualified sector is not automatically unattractive.")
+    # One pass over the sector inventory; keep ranking separate from original detail URLs.
+    sector_urls = {s["sector"]: f"sector-{i:02d}.html" for i, s in enumerate(sectors["sectors"], 1)}
     sector_highlights = "".join(
-        f'<li><a href="sector-{next(i for i, original in enumerate(sectors["sectors"], 1) if original["sector"] == s["sector"]):02d}.html">{esc(s["sector"])}</a>: '
+        f'<li><a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a>: '
         f'<strong>{esc(s["outlook"])}</strong></li>'
         for s in ranked[:5])
     executive = ('<section><h2>Where We Are</h2>'
