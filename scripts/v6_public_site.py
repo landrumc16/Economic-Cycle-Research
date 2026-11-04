@@ -23,6 +23,27 @@ def page(title, content):
             f'<header><h1>Economic Cycle Research</h1><p>Daily data. Monthly conclusions. One dashboard.</p><nav aria-label="Main navigation">{links}</nav></header>'
             f'<main><h1>{esc(title)}</h1>{content}</main><footer>Research-only · Not investment advice · Numeric crash forecasts are not certified.</footer></body></html>')
 
+def observation_summary(assessment):
+    """Explain observations without claiming an economic phase."""
+    definitions = (
+        ("Growth", "INDPRO", "industrial_production_growth_12m_log_pct",
+         "Industrial production, 12-month log change"),
+        ("Jobs", "UNRATE", "unemployment_rate_pct", "Unemployment rate"),
+        ("Inflation", "CPIAUCSL", "cpi_inflation_12m_log_pct",
+         "Consumer prices, 12-month log change"),
+        ("Financial stress", "BUSLOANS", "business_credit_growth_12m_log_pct",
+         "Business credit, 12-month log change"),
+    )
+    result = []
+    for label, series, metric, description in definitions:
+        raw = assessment.get(metric)
+        value = f"{raw:.2f}%" if isinstance(raw, (int, float)) and not isinstance(raw, bool) else "Unavailable"
+        source = assessment.get("sources", {}).get(series, {})
+        result.append({"label": label, "description": description, "value": value,
+                       "date": source.get("latest_used_month", "unavailable"),
+                       "source_url": source.get("source_url", "")})
+    return result
+
 def build(folder, as_of, evidence=None):
     required = ("v5_integrated_acceptance.json","v5_unified_portal.json","weekly_release_acceptance.json","weekly_economic_assessment.json")
     if any(not (folder / n).is_file() for n in required):
@@ -42,10 +63,14 @@ def build(folder, as_of, evidence=None):
     notice = ("<strong>Historical research only:</strong> stale observations do not support a current assessment."
               if status == "STALE_RESEARCH_ONLY" else "Monthly descriptive release gate passed.")
     cards = []
-    for label, keys in (("Growth",("INDPRO","PI")),("Jobs",("UNRATE",)),
-                        ("Inflation",("CPIAUCSL",)),("Financial stress",("TOTALSL","BUSLOANS"))):
-        dates = [f'{key}: {esc(assessment.get("sources",{}).get(key,{}).get("latest_used_month","unavailable"))}' for key in keys]
-        cards.append(f'<article><h2>{label}</h2><p>{"; ".join(dates)}</p><a href="economic_dashboard.html">View evidence</a></article>')
+    for metric in observation_summary(assessment):
+        url = metric["source_url"]
+        source_link = (f'<a href="{esc(url)}">Original source</a>' if
+                       isinstance(url, str) and url.startswith("https://") else "Source not verified")
+        cards.append(f'<article><h2>{esc(metric["label"])}</h2>'
+                     f'<p>{esc(metric["description"])}: <strong>{esc(metric["value"])}</strong></p>'
+                     f'<p>Observation: {esc(metric["date"])}</p>'
+                     f'<p>{source_link} · <a href="economic_dashboard.html">Historical context</a></p></article>')
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Report date: {as_of.isoformat()}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
