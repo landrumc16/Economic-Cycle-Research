@@ -11,7 +11,7 @@ except ImportError:
 
 NAV = (("Overview","overview.html"),("Indicators","economic_dashboard.html"),
        ("Sectors & Industries","sectors.html"),("Historical Comparisons","v5_dashboard.html"),
-       ("Monthly Reports","monthly.html"),("Research & Methodology","research.html"))
+       ("Monthly Reports","monthly-research.html"),("Research & Methodology","research.html"))
 STYLE = """<style>:root{font:16px system-ui,sans-serif;color:#19334c;background:#f2f6fa}body{max-width:1000px;margin:auto;padding:20px;line-height:1.6}header,section,article,details{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:20px;margin:14px 0}header{background:#17324c;color:white}header a{color:#e4f5ff}nav{display:flex;flex-wrap:wrap;gap:14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid article{margin:0}summary{cursor:pointer}a:focus-visible{outline:3px solid orange}@media(max-width:600px){body{padding:10px}header,section,article,details{padding:14px}nav{display:grid;grid-template-columns:1fr 1fr}}</style>"""
 
 def esc(value):
@@ -71,10 +71,12 @@ def build(folder, as_of, evidence=None):
                      f'<p>{esc(metric["description"])}: <strong>{esc(metric["value"])}</strong></p>'
                      f'<p>Observation: {esc(metric["date"])}</p>'
                      f'<p>{source_link} · <a href="economic_dashboard.html">Historical context</a></p></article>')
+    if status == "PASS" and assessment.get("stale") is True:
+        raise ValueError("PASS monthly gate contradicts stale assessment")
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Report date: {as_of.isoformat()}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
-                '<a href="monthly.html">Monthly assessment</a></section>'
+                '<a href="monthly-research.html">Monthly assessment</a></section>'
                 f'<section><h2>Growth, jobs, prices and vulnerabilities</h2><div class="grid">{"".join(cards)}</div></section>'
                 '<section><h2>Sector research</h2><p>Economic sensitivity and investment valuation are separate questions. '
                 'Outlooks remain withheld until dated and point-in-time evidence is verified.</p>'
@@ -95,10 +97,14 @@ def build(folder, as_of, evidence=None):
                 'point-in-time histories. Sector outlooks require sourced earnings, valuation and benchmark-relative total returns. '
                 'Missing values are not fabricated. No certified crash probabilities are published.</p></details>')
     pages = {"index.html":page("Overview",overview),"overview.html":page("Overview",overview),"sectors.html":page("Sectors & Industries",sector_cards),
-             "monthly.html":page("Monthly Reports",monthly),"research.html":page("Research & Methodology",research)}
+             "monthly-research.html":page("Monthly Reports",monthly),"research.html":page("Research & Methodology",research)}
+    # Stage all new output first; never replace accepted files on a validation failure.
+    for name, content in pages.items():
+        if not content.startswith("<!doctype html>"):
+            raise ValueError("Invalid public HTML: " + name)
     for name, content in pages.items():
         (folder/name).write_text(content)
-    (folder/"v6_sector_report.json").write_text(json.dumps(sectors,indent=2)+"\n")
+    (folder/"v6_sector_report.json").write_text(json.dumps(sectors,indent=2)+"\\n")
     return {"pages":list(pages),"monthly_status":status,"sector_count":len(sectors["sectors"])}
 
 def main():
