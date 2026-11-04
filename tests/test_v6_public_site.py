@@ -64,3 +64,12 @@ class PublicSiteTests(unittest.TestCase):
         (self.root/"weekly_economic_assessment.json").write_text('{"stale":true}')
         with self.assertRaises(ValueError):
             build(self.root,date(2026,11,4))
+
+    def test_sector_report_is_parseable_json_and_navigation_resolves(self):
+        build(self.root,date(2026,11,4))
+        report=json.loads((self.root/"v6_sector_report.json").read_text())
+        self.assertEqual(len(report["sectors"]),11)
+        overview=(self.root/"overview.html").read_text()
+        self.assertIn('href="monthly-research.html"',overview)
+        self.assertIn('href="sectors.html"',overview)
+        self.assertTrue((self.root/"monthly-research.html").exists())
