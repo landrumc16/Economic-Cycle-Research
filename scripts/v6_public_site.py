@@ -374,7 +374,7 @@ def build(folder, as_of, evidence=None):
     historical_evidence_file = folder / "v6_historical_episodes.json"
     if historical_evidence_file.is_file():
         episodes = json.loads(historical_evidence_file.read_text())
-        historical_validation = validate_episodes(episodes)
+        historical_validation = validate_episodes(episodes, as_of=as_of)
         outlook["historical_research"]["validation"] = historical_validation
         outlook["historical_research"]["independent_historical_episodes_validated"] = historical_validation["independent_events"]
         outlook["historical_research"]["negative_controls_validated"] = historical_validation["negative_controls"]
