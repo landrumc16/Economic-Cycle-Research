@@ -378,10 +378,16 @@ jobs:
           if not dashboard.is_file() or not html.is_file():
               raise SystemExit(1)
           report = json.loads(dashboard.read_text())
-          if gate.get("status") != "PASS" or report.get("stale") is not False:
+          status = gate.get("status")
+          if status not in ("PASS", "STALE_RESEARCH_ONLY"):
               raise SystemExit(1)
-          if gate.get("assessment_date") != report.get("assessment_date"):
+          if status == "PASS" and (report.get("stale") is not False
+                                   or gate.get("assessment_date") != report.get("assessment_date")):
               raise SystemExit(1)
+          if status == "STALE_RESEARCH_ONLY":
+              overview = root / "overview.html"
+              if not overview.is_file() or "Historical research only" not in overview.read_text():
+                  raise SystemExit(1)
           CHECK
             then
               echo "Found qualified monthly artifact from run $run_id" >> "$GITHUB_STEP_SUMMARY"
