@@ -23,13 +23,13 @@ class PublicSiteTests(unittest.TestCase):
     def test_build_preserves_stale_warning_and_research(self):
         report=build(self.root,date(2026,11,4))
         self.assertEqual(report["sector_count"],11)
-        self.assertIn("Historical research only",(self.root/"index.html").read_text())
+        self.assertIn("Historical research only",(self.root/"overview.html").read_text())
         self.assertIn("Insufficient Evidence",(self.root/"sectors.html").read_text())
         self.assertIn('name="viewport"',(self.root/"monthly-research.html").read_text())
         self.assertEqual((self.root/"v5_dashboard.html").read_text(),"Existing research")
 
     def test_rejected_candidate_preserves_last_good(self):
-        (self.root/"index.html").write_text("last good")
+        (self.root/"overview.html").write_text("last good")
         (self.root/"weekly_release_acceptance.json").write_text('{"status":"FAIL"}')
         with self.assertRaises(ValueError):
             build(self.root,date(2026,11,4))
@@ -52,6 +52,11 @@ class PublicSiteTests(unittest.TestCase):
         self.assertEqual(result[1]["value"],"Unavailable")
         build(self.root,date(2026,11,4))
         self.assertTrue((self.root/"overview.html").exists())
+
+    def test_v6_preserves_accepted_v5_index(self):
+        (self.root/"index.html").write_text("V5 accepted landing")
+        build(self.root,date(2026,11,4))
+        self.assertEqual((self.root/"index.html").read_text(),"V5 accepted landing")
 
     def test_v6_does_not_replace_accepted_monthly_html(self):
         (self.root/"monthly.html").write_text("previous accepted report")
