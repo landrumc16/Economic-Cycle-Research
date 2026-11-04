@@ -31,13 +31,18 @@ class SectorGateTests(unittest.TestCase):
 
     def test_qualified_inputs_may_publish(self):
         block = {"source_url": "https://example.org", "methodology": "documented",
-                 "observation_date": "2026-10-31"}
+                 "observation_date": "2026-10-31", "value": 1.2}
         evidence = {"Energy": {key: dict(block) for key in
                     ("economic_fit", "earnings", "valuation", "relative_total_return")}}
         evidence["Energy"]["outlook"] = "Mixed"
+        evidence["Energy"]["rationale"] = "Earnings and relative returns are conflicting"
         evidence["Energy"]["relative_total_return"].update(
-            benchmark="broad-market", sample_size=10, point_in_time_verified=True)
+            benchmark="broad-market", sample_size=10, point_in_time_verified=True,
+            transaction_cost_assumption="excluded", survivorship_bias_note="reviewed")
         self.assertEqual(build_sector_report(evidence, self.today)["sectors"][3]["outlook"], "Mixed")
+        del evidence["Energy"]["valuation"]["value"]
+        self.assertEqual(build_sector_report(evidence, self.today)["sectors"][3]["outlook"],
+                         "Insufficient Evidence")
 
     def test_unknown_sector_rejected(self):
         with self.assertRaises(ValueError):
