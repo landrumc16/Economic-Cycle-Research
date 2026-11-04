@@ -25,7 +25,7 @@ class PublicSiteTests(unittest.TestCase):
         self.assertEqual(report["sector_count"],11)
         self.assertIn("Historical research only",(self.root/"index.html").read_text())
         self.assertIn("Insufficient Evidence",(self.root/"sectors.html").read_text())
-        self.assertIn('name="viewport"',(self.root/"monthly.html").read_text())
+        self.assertIn('name="viewport"',(self.root/"monthly-research.html").read_text())
         self.assertEqual((self.root/"v5_dashboard.html").read_text(),"Existing research")
 
     def test_rejected_candidate_preserves_last_good(self):
@@ -52,3 +52,15 @@ class PublicSiteTests(unittest.TestCase):
         self.assertEqual(result[1]["value"],"Unavailable")
         build(self.root,date(2026,11,4))
         self.assertTrue((self.root/"overview.html").exists())
+
+    def test_v6_does_not_replace_accepted_monthly_html(self):
+        (self.root/"monthly.html").write_text("previous accepted report")
+        build(self.root,date(2026,11,4))
+        self.assertEqual((self.root/"monthly.html").read_text(),"previous accepted report")
+
+    def test_rejects_contradictory_freshness(self):
+        (self.root/"weekly_release_acceptance.json").write_text('{"status":"PASS"}')
+        (self.root/"v5_unified_portal.json").write_text('{"monthly_release":"PASS","numeric_forecasts_approved":false}')
+        (self.root/"weekly_economic_assessment.json").write_text('{"stale":true}')
+        with self.assertRaises(ValueError):
+            build(self.root,date(2026,11,4))
