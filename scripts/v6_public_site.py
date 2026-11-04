@@ -37,7 +37,7 @@ INDICATORS = (
 )
 
 
-def observation_summary(assessment, definitions=INDICATORS):
+def observation_summary(assessment, definitions=INDICATORS, as_of=None):
     """Explain source-dated observations without claiming an economic phase."""
     result = []
     for label, series, metric, description in definitions:
@@ -50,7 +50,9 @@ def observation_summary(assessment, definitions=INDICATORS):
         valid_date = isinstance(observed, str) and len(observed) == 7
         if valid_date:
             try:
-                date.fromisoformat(observed + "-01")
+                observation_month = date.fromisoformat(observed + "-01")
+                if as_of is not None and observation_month > as_of:
+                    valid_date = False
             except ValueError:
                 valid_date = False
         valid_value = (isinstance(raw, (int, float)) and not isinstance(raw, bool)
@@ -112,7 +114,7 @@ def build(folder, as_of, evidence=None):
     notice = ("<strong>Historical research only:</strong> stale observations do not support a current assessment."
               if status == "STALE_RESEARCH_ONLY" else "Monthly descriptive release gate passed.")
     cards = []
-    for metric in observation_summary(assessment):
+    for metric in observation_summary(assessment, as_of=as_of):
         url = metric["source_url"]
         source_link = (f'<a href="{esc(url)}">Original source</a>' if
                        isinstance(url, str) and url.startswith("https://") else "Source not verified")
@@ -167,7 +169,7 @@ def build(folder, as_of, evidence=None):
         f'<a href="sector-{i:02d}.html">Read sector and industry research</a></article>'
         for i, s in enumerate(sectors["sectors"], start=1))
     descriptions = []
-    for metric in observation_summary(assessment):
+    for metric in observation_summary(assessment, as_of=as_of):
         descriptions.append(f'<li><strong>{esc(metric["label"])}:</strong> {esc(metric["description"])} '
                             f'{esc(metric["value"])} (observed {esc(metric["date"])})</li>')
     monthly = (f'<section><h2>Official monthly gate: {esc(status)}</h2><p>{notice}</p>'
