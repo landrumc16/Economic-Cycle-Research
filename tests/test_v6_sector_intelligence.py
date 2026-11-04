@@ -30,7 +30,7 @@ class SectorGateTests(unittest.TestCase):
                          "Insufficient Evidence")
 
     def test_qualified_inputs_may_publish(self):
-        block = {"source_url": "https://example.org", "methodology": "documented",
+        block = {"source_url": "https://fred.stlouisfed.org/series/INDPRO", "methodology": "synthetic test fixture",
                  "observation_date": "2026-10-31", "value": 1.2}
         evidence = {"Energy": {key: dict(block) for key in
                     ("economic_fit", "earnings", "valuation", "relative_total_return")}}
@@ -42,6 +42,25 @@ class SectorGateTests(unittest.TestCase):
         self.assertEqual(build_sector_report(evidence, self.today)["sectors"][3]["outlook"], "Mixed")
         del evidence["Energy"]["valuation"]["value"]
         self.assertEqual(build_sector_report(evidence, self.today)["sectors"][3]["outlook"],
+                         "Insufficient Evidence")
+
+    def test_nonfinite_or_placeholder_evidence_cannot_publish(self):
+        block = {"source_url": "https://fred.stlouisfed.org/series/INDPRO",
+                 "methodology": "synthetic fixture", "observation_date": "2026-10-31",
+                 "value": 1.2}
+        item = {key: dict(block) for key in
+                ("economic_fit", "earnings", "valuation", "relative_total_return")}
+        item["outlook"] = "Favorable"
+        item["rationale"] = "Synthetic test, not a real recommendation"
+        item["relative_total_return"].update(
+            benchmark="broad-market", sample_size=10, point_in_time_verified=True,
+            transaction_cost_assumption="excluded", survivorship_bias_note="reviewed")
+        item["earnings"]["value"] = float("nan")
+        self.assertEqual(build_sector_report({"Energy": item}, self.today)["sectors"][3]["outlook"],
+                         "Insufficient Evidence")
+        item["earnings"]["value"] = 1.2
+        item["earnings"]["source_url"] = "https://example.org/fake"
+        self.assertEqual(build_sector_report({"Energy": item}, self.today)["sectors"][3]["outlook"],
                          "Insufficient Evidence")
 
     def test_unknown_sector_rejected(self):
