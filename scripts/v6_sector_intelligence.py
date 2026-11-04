@@ -12,6 +12,21 @@ SECTORS = (
 )
 ALLOWED = {"Favorable", "Mixed", "Caution"}
 
+# Qualitative exposure descriptions are structural hypotheses, not live ratings.
+EXPOSURES = {
+    "Communication Services": ("Advertising demand and financing costs", "Telecom networks; digital advertising"),
+    "Consumer Discretionary": ("Household income, borrowing costs and consumer confidence", "Automobiles; retail; leisure"),
+    "Consumer Staples": ("Input-cost inflation and consumer purchasing power", "Food and beverage; household goods"),
+    "Energy": ("Oil and gas demand, commodity prices and capital spending", "Exploration; refining; services"),
+    "Financials": ("Interest-rate spreads, credit quality and liquidity", "Banks; insurers; capital markets"),
+    "Health Care": ("Reimbursement policy, innovation and funding conditions", "Pharmaceuticals; medical devices; providers"),
+    "Industrials": ("Capital expenditure, industrial production and public investment", "Machinery; transportation; aerospace"),
+    "Information Technology": ("Enterprise spending, financing rates and hardware cycles", "Semiconductors; software; hardware"),
+    "Materials": ("Industrial demand, construction and commodity input prices", "Chemicals; metals; construction materials"),
+    "Real Estate": ("Financing rates, vacancy, rents and property-specific credit", "Residential; offices; logistics"),
+    "Utilities": ("Regulated rates, financing costs and electricity demand", "Electric power; gas; water"),
+}
+
 
 def _qualified(item: dict, as_of: date) -> bool:
     """A sector rating requires dated, attributable investment AND economic evidence."""
@@ -55,6 +70,8 @@ def build_sector_report(evidence: dict, as_of: date) -> dict:
         qualified = _qualified(item, as_of)
         sectors.append({
             "sector": name,
+            "economic_exposure_hypothesis": EXPOSURES[name][0],
+            "industry_examples": EXPOSURES[name][1],
             "outlook": item["outlook"] if qualified else "Insufficient Evidence",
             "economic_fit": item.get("economic_fit") if qualified else None,
             "investment_fit": {
