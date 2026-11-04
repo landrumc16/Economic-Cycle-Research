@@ -49,6 +49,21 @@ class PublicSiteTests(unittest.TestCase):
         self.assertIn("Where Investors Should Look", content)
         self.assertIn("Insufficient Evidence", content)
 
+    def test_v61_sector_shortlist_discloses_coverage_not_fake_recommendations(self):
+        build(self.root, date(2026,11,4))
+        overview = (self.root/"overview.html").read_text()
+        self.assertIn("0 of 11 sectors currently have evidence-qualified", overview)
+        self.assertIn("An unqualified sector is not automatically unattractive", overview)
+        self.assertIn('href="sector-01.html"', overview)
+
+    def test_v61_research_library_has_collapsible_evidence_sections(self):
+        build(self.root, date(2026,11,4))
+        library = (self.root/"research.html").read_text()
+        self.assertIn("Research Library", library)
+        self.assertGreaterEqual(library.count("<details>"), 5)
+        self.assertIn('href="historical.html"', library)
+        self.assertIn('href="sectors.html"', library)
+
     def test_sector_detail_discloses_conditional_rating(self):
         build(self.root,date(2026,11,4))
         detail=(self.root/"sector-01.html").read_text()
