@@ -208,10 +208,16 @@ def build(folder, as_of, evidence=None):
                    "An unqualified sector is not automatically unattractive.")
     # One pass over the sector inventory; keep ranking separate from original detail URLs.
     sector_urls = {s["sector"]: f"sector-{i:02d}.html" for i, s in enumerate(sectors["sectors"], 1)}
+    # Do not present an alphabetical sample as a ranked investment shortlist.
+    qualified_sectors = [s for s in ranked if s["outlook"] != "Insufficient Evidence"]
+    if qualified_sectors:
+        featured = qualified_sectors
+    else:
+        featured = []
     sector_highlights = "".join(
         f'<li><a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a>: '
         f'<strong>{esc(s["outlook"])}</strong></li>'
-        for s in ranked[:5])
+        for s in featured[:5])
     executive = ('<section><h2>Where We Are</h2>'
                  f'<h3>{esc(outlook["phase"])}</h3><p>{esc(outlook["summary"])}</p>'
                  '<h2>Where We Are Heading</h2>'
@@ -221,7 +227,10 @@ def build(folder, as_of, evidence=None):
                  '<section><h2>Where Investors Should Look</h2>'
                  '<p>We compare all 11 market sectors, but historical economic fit is not the same as an attractive investment today. '
                  'Only sectors with verified earnings, valuation and historical returns receive an outlook; the others remain Insufficient Evidence.</p>'
-                 f'<p>{esc(sector_note)}</p><ol>{sector_highlights}</ol>'
+                 f'<p>{esc(sector_note)}</p>'
+                 + (f'<ol>{sector_highlights}</ol>' if featured else
+                    '<p><strong>No sector currently qualifies for a buy-oriented ranking.</strong> '
+                    'All 11 remain available for historical economic-sensitivity research.</p>') +
                  '<a href="sectors.html">See all 11 sector assessments</a></section>')
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
