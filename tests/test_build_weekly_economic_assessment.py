@@ -62,7 +62,7 @@ class WeeklyAssessmentTests(unittest.TestCase):
                         continue
                     if name == "CSUSHPINSA" and month > 8:
                         continue
-                    handle.write(f"2019-{month:02d}-01,150\\n")
+                    handle.write(f"2019-{month:02d}-01,150\n")
         result = snapshot(self.root, "2019-11-04")
         self.assertFalse(result["stale"])
         self.assertEqual(result["sources"]["TOTALSL"]["observation_lag_months"], 3)
