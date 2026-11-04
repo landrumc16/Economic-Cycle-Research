@@ -24,17 +24,21 @@ def page(title, content):
             f'<header><h1>Economic Cycle Research</h1><p>Daily data. Monthly conclusions. One dashboard.</p><nav aria-label="Main navigation">{links}</nav></header>'
             f'<main><h1>{esc(title)}</h1>{content}</main><footer>Research-only · Not investment advice · Numeric crash forecasts are not certified.</footer></body></html>')
 
-def observation_summary(assessment):
-    """Explain observations without claiming an economic phase."""
-    definitions = (
-        ("Growth", "INDPRO", "industrial_production_growth_12m_log_pct",
-         "Industrial production, 12-month log change"),
-        ("Jobs", "UNRATE", "unemployment_rate_pct", "Unemployment rate"),
-        ("Inflation", "CPIAUCSL", "cpi_inflation_12m_log_pct",
-         "Consumer prices, 12-month log change"),
-        ("Business credit", "BUSLOANS", "business_credit_growth_12m_log_pct",
-         "Business credit growth, 12-month log change (not a direct financial-stress measure)"),
-    )
+# Add a sourced indicator by appending (label, source-series, metric-key, definition).
+# Existing acquisition/assessment pipelines must supply the metric and source date.
+INDICATORS = (
+    ("Growth", "INDPRO", "industrial_production_growth_12m_log_pct",
+     "Industrial production, 12-month log change"),
+    ("Jobs", "UNRATE", "unemployment_rate_pct", "Unemployment rate"),
+    ("Inflation", "CPIAUCSL", "cpi_inflation_12m_log_pct",
+     "Consumer prices, 12-month log change"),
+    ("Business credit", "BUSLOANS", "business_credit_growth_12m_log_pct",
+     "Business credit growth, 12-month log change (not a direct financial-stress measure)"),
+)
+
+
+def observation_summary(assessment, definitions=INDICATORS):
+    """Explain source-dated observations without claiming an economic phase."""
     result = []
     for label, series, metric, description in definitions:
         raw = assessment.get(metric)
