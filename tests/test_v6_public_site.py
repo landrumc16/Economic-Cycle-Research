@@ -20,6 +20,16 @@ class PublicSiteTests(unittest.TestCase):
         for name in ("economic_dashboard.html","v5_dashboard.html","v5_executive_brief.md"):
             (self.root/name).write_text("Existing research")
 
+    def test_daily_acquisition_and_monthly_assessment_have_distinct_schedules(self):
+        repository=Path(__file__).resolve().parents[1]
+        daily=(repository/".github/workflows/milestone1.yml").read_text()
+        monthly=(repository/".github/workflows/industry-deviation-descriptive.yml").read_text()
+        self.assertIn("    - cron: '15 12 * * *'",daily)
+        self.assertIn("    - cron: '20 13 20 * *'",monthly)
+        self.assertIn("workflows: ['Monthly Economic Cycle Assessment']",daily)
+        self.assertIn("actions/deploy-pages@v4",daily)
+        self.assertNotIn("actions/deploy-pages@v4",monthly)
+
     def test_build_preserves_stale_warning_and_research(self):
         report=build(self.root,date(2026,11,4))
         self.assertEqual(report["sector_count"],11)
