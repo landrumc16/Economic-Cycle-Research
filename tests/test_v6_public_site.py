@@ -87,6 +87,11 @@ class PublicSiteTests(unittest.TestCase):
         self.assertFalse(report["numeric_forecasts_approved"])
         self.assertEqual(report["sector_outlooks_qualified"], 0)
         self.assertEqual(len(report["observed_outlook"]["evidence"]), 4)
+        historical = report["observed_outlook"]["historical_research"]
+        self.assertEqual(historical["candidate_phase"], "Unclassified")
+        self.assertIsNone(historical["certified_phase"])
+        self.assertEqual(historical["negative_controls_validated"], 0)
+        self.assertIn("Independent holdout tests", historical["missing_evidence"][1])
 
     def test_v61_publication_promotes_and_verifies_structured_outlook(self):
         workflow = (Path(__file__).resolve().parents[1] /
