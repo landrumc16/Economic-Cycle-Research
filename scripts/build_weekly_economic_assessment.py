@@ -87,8 +87,11 @@ def snapshot(root, as_of):
         "assessment_date": as_of,
         "common_observation_month": common_date,
         "months_since_common_observation": age_months(common_date),
-        "stale": any(age_months(sources[name][-1]["date"]) > 2 for name in
-                     ("UNRATE", "CPIAUCSL", "INDPRO", "TOTALSL", "BUSLOANS")),
+        # Consumer credit (TOTALSL) normally publishes later than labor and prices.
+        # Allow up to three calendar months, but disclose its exact observation date.
+        "stale": (any(age_months(sources[name][-1]["date"]) > 2 for name in
+                      ("UNRATE", "CPIAUCSL", "INDPRO", "BUSLOANS")) or
+                  age_months(sources["TOTALSL"][-1]["date"]) > 3),
         "historical_comparison_stale": (age_months(common_date) > 2 or
                                         any(rows[-1]["date"] != common_date
                                             for rows in sources.values())),
@@ -110,7 +113,8 @@ def snapshot(root, as_of):
         "limitations": [
             "Monthly assessment; indicators use individually dated observations",
             "Historical comparisons use the common month and may lag current indicators",
-            "This is a common-month retrospective snapshot, not a point-in-time reconstruction",
+            "Historical alignment is a common-month retrospective snapshot, not a point-in-time reconstruction",
+            "Consumer credit uses a three-calendar-month freshness allowance; other core monthly indicators use two",
             "Current-vintage observations may have been revised",
             "Publication dates and release lags are not certified",
             "Credit and income measures are broad national proxies",
