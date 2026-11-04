@@ -390,7 +390,7 @@ jobs:
                   raise SystemExit(1)
           CHECK
             then
-              echo "Found qualified monthly artifact from run $run_id" >> "$GITHUB_STEP_SUMMARY"
+              echo "Recovered monthly research artifact (current-qualified or explicitly stale) from run $run_id" >> "$GITHUB_STEP_SUMMARY"
               break
             fi
             rm -rf /tmp/economic-monthly/*
