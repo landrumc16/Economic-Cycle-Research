@@ -502,7 +502,12 @@ jobs:
                   if (outlook.get("schema_version") != 1
                           or outlook.get("monthly_gate") != gate["status"]
                           or outlook.get("numeric_forecasts_approved") is not False
-                          or outlook.get("sector_count") != 11):
+                          or outlook.get("sector_count") != 11
+                          or outlook.get("historical_phase_certified") is not False
+                          or not isinstance(outlook.get("observed_outlook"), dict)
+                          or not isinstance(outlook["observed_outlook"].get("evidence"), list)
+                          or not isinstance(outlook.get("historical_validation"), dict)
+                          or outlook["historical_validation"].get("predictive_skill_certified") is not False):
                       raise ValueError("Invalid V6.1 economic outlook evidence")
                   (target / outlook_path.name).write_bytes(outlook_path.read_bytes())
               print("Published evidence-gated V6 bundle; current gate:", gate["status"])
