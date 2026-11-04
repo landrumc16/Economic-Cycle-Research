@@ -85,9 +85,21 @@ def build(folder, as_of, evidence=None):
                            f'<p>{esc(s["reason"])}</p><details><summary>Research evidence</summary>'
                            f'<pre style="white-space:pre-wrap;overflow-wrap:anywhere">{esc(json.dumps({"economic_fit":s["economic_fit"],"investment_fit":s["investment_fit"]},indent=2))}</pre></details></article>'
                            for s in sectors["sectors"])
+    descriptions = []
+    for metric in observation_summary(assessment):
+        descriptions.append(f'<li><strong>{esc(metric["label"])}:</strong> {esc(metric["description"])} '
+                            f'{esc(metric["value"])} (observed {esc(metric["date"])})</li>')
     monthly = (f'<section><h2>Official monthly gate: {esc(status)}</h2><p>{notice}</p>'
-               '<p>Observed strengths, weaknesses and changes require individually dated source evidence; '
-               'revisions can alter historical comparisons.</p><a href="economic_dashboard.html">Indicator details</a> · '
+               f'<p>Assessment date: {as_of.isoformat()}. Historical observation month: '
+               f'{esc(portal.get("observation_month","unavailable"))}.</p>'
+               '<h3>Observed conditions</h3><ul>' + "".join(descriptions) + '</ul>'
+               '<h3>What changed?</h3><p>The existing indicator dashboard reports differences '
+               'against the prior accepted assessment when comparable data exist. '
+               'Missing or revised values do not establish a direction of change.</p>'
+               '<h3>What remains uncertain?</h3><p>Source publication lags, revisions, '
+               'historical-vintage limitations and absent sector valuation evidence. '
+               'No validated crash probability is available.</p>'
+               '<a href="economic_dashboard.html">Changes and indicator details</a> · '
                '<a href="v5_executive_brief.md">Historical research brief</a></section>')
     research = ('<section><h2>Historical research and methodology</h2><p>Accepted Version 5 studies remain available.</p>'
                 '<a href="v5_dashboard.html">Historical mechanisms</a> · '
