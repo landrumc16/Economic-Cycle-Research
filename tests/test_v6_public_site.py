@@ -67,7 +67,8 @@ class PublicSiteTests(unittest.TestCase):
         overview = (self.root/"overview.html").read_text()
         self.assertIn("0 of 11 sectors currently have evidence-qualified", overview)
         self.assertIn("An unqualified sector is not automatically unattractive", overview)
-        self.assertIn('href="sector-01.html"', overview)
+        self.assertIn("No sector currently qualifies for a buy-oriented ranking", overview)
+        self.assertNotIn('<ol><li><a href="sector-01.html"', overview)
 
     def test_v61_research_library_has_collapsible_evidence_sections(self):
         build(self.root, date(2026,11,4))
