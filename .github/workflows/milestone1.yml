@@ -326,7 +326,7 @@ jobs:
           print("- Dashboard: dashboard/weekly-v5.html in milestone1-audit-evidence")
           PY
       - name: Verify dashboard is eligible for public publication
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
         run: |
           python - <<'PY'
           import json
