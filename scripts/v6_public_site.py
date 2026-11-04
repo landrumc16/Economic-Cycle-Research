@@ -113,6 +113,13 @@ def build(folder, as_of, evidence=None):
     # Preserve the sector inventory, but withhold investment outlooks entirely.
     sectors = build_sector_report((evidence or {}) if status == "PASS" else {}, as_of)
     assessment_date = gate.get("assessment_date") or assessment.get("assessment_date") or "unavailable"
+    if status == "PASS":
+        try:
+            accepted_date = date.fromisoformat(assessment_date)
+        except (TypeError, ValueError):
+            raise ValueError("PASS monthly release requires a valid assessment date")
+        if accepted_date > as_of:
+            raise ValueError("Future-dated monthly assessment cannot be published as current")
     notice = ("<strong>Historical research only:</strong> stale observations do not support a current assessment."
               if status == "STALE_RESEARCH_ONLY" else "Monthly descriptive release gate passed.")
     cards = []
