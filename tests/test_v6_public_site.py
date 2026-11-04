@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
-from scripts.v6_public_site import build, observation_summary
+from scripts.v6_public_site import build, observation_summary, economic_outlook
 
 class PublicSiteTests(unittest.TestCase):
     def setUp(self):
@@ -19,6 +19,35 @@ class PublicSiteTests(unittest.TestCase):
             (self.root/name).write_text(json.dumps(data))
         for name in ("economic_dashboard.html","v5_dashboard.html","v5_executive_brief.md"):
             (self.root/name).write_text("Existing research")
+
+    def test_v61_inconclusive_when_stale_or_missing(self):
+        self.assertEqual(economic_outlook({}, "STALE_RESEARCH_ONLY", date(2026,11,4))["direction"], "Not established")
+        self.assertEqual(economic_outlook({"stale": False}, "PASS", date(2026,11,4))["direction"], "Not established")
+
+    def test_v61_observed_direction_does_not_infer_cycle_phase(self):
+        base = {"stale": False, "industrial_production_growth_12m_log_pct": 2.0,
+                "cpi_inflation_12m_log_pct": 2.5, "unemployment_rate_pct": 4.0,
+                "unemployment_change_3m_pp": -0.2,
+                "sources": {name: {"latest_used_month": "2026-09",
+                                     "source_url": "https://fred.stlouisfed.org/series/" + name}
+                            for name in ("INDPRO", "CPIAUCSL", "UNRATE")}}
+        result = economic_outlook(base, "PASS", date(2026,11,4))
+        self.assertEqual(result["direction"], "Growth and employment improving")
+        self.assertEqual(result["phase"], "Not established")
+        base["industrial_production_growth_12m_log_pct"] = -2.0
+        base["unemployment_change_3m_pp"] = 0.4
+        self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"],
+                         "Growth and employment weakening")
+        base["sources"]["INDPRO"]["latest_used_month"] = "2027-01"
+        self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"], "Not established")
+
+    def test_v61_homepage_leads_with_three_plain_english_questions(self):
+        build(self.root, date(2026,11,4))
+        content = (self.root/"overview.html").read_text()
+        self.assertLess(content.index("Where We Are"), content.index("Where is the economy now?"))
+        self.assertIn("Where We Are Heading", content)
+        self.assertIn("Where Investors Should Look", content)
+        self.assertIn("Insufficient Evidence", content)
 
     def test_sector_detail_discloses_conditional_rating(self):
         build(self.root,date(2026,11,4))
