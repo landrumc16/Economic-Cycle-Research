@@ -37,7 +37,12 @@ def _qualified(item: dict, as_of: date) -> bool:
         return False
     for key in required:
         entry = item[key]
-        if not entry.get("source_url") or not entry.get("methodology"):
+        if (not isinstance(entry.get("source_url"), str)
+                or not entry["source_url"].startswith("https://")
+                or not isinstance(entry.get("methodology"), str)
+                or not entry["methodology"].strip()
+                or not isinstance(entry.get("value"), (int, float))
+                or isinstance(entry.get("value"), bool)):
             return False
         try:
             observed = date.fromisoformat(entry["observation_date"])
@@ -47,7 +52,14 @@ def _qualified(item: dict, as_of: date) -> bool:
             return False
     history = item["relative_total_return"]
     return (
-        history.get("benchmark") is not None
+        isinstance(history.get("benchmark"), str)
+        and bool(history["benchmark"].strip())
+        and isinstance(item.get("rationale"), str)
+        and bool(item["rationale"].strip())
+        and isinstance(history.get("transaction_cost_assumption"), str)
+        and bool(history["transaction_cost_assumption"].strip())
+        and isinstance(history.get("survivorship_bias_note"), str)
+        and bool(history["survivorship_bias_note"].strip())
         and isinstance(history.get("sample_size"), int)
         and not isinstance(history.get("sample_size"), bool)
         and history["sample_size"] >= 1
