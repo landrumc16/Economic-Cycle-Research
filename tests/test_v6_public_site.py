@@ -64,6 +64,23 @@ class PublicSiteTests(unittest.TestCase):
         self.assertEqual(metrics[0]["date"],"unavailable")
         self.assertEqual(metrics[1]["date"],"unavailable")
 
+    def test_monthly_page_uses_dated_prior_comparison_when_available(self):
+        (self.root/"economic_dashboard.json").write_text(json.dumps({
+            "status":"DESCRIPTIVE_DASHBOARD",
+            "previous_assessment_date":"2026-09-20",
+            "metrics":[{"title":"Unemployment rate","units":"percentage points","delta":0.2},
+                       {"title":"Unqualified metric","units":"percent","delta":None}]
+        }))
+        build(self.root,date(2026,11,4))
+        markup=(self.root/"monthly-research.html").read_text()
+        self.assertIn("+0.20 percentage points since 2026-09-20",markup)
+        self.assertNotIn("Unqualified metric",markup)
+
+    def test_monthly_page_discloses_missing_prior_assessment(self):
+        build(self.root,date(2026,11,4))
+        self.assertIn("Previous comparable assessment unavailable",
+                      (self.root/"monthly-research.html").read_text())
+
     def test_v6_preserves_accepted_v5_index(self):
         (self.root/"index.html").write_text("V5 accepted landing")
         build(self.root,date(2026,11,4))
