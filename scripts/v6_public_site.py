@@ -63,7 +63,7 @@ def observation_summary(assessment, definitions=INDICATORS, as_of=None):
                        "source_url": source.get("source_url", "") if valid_date else ""})
     return result
 
-def monthly_changes(folder, monthly_status="PASS", as_of=None):
+def monthly_changes(folder, monthly_status="PASS", as_of=None, accepted_date=None):
     """Reuse qualified comparisons, never stale research as a current change."""
     if monthly_status != "PASS":
         return "<p>Previous comparable assessment unavailable: monthly data are stale.</p>"
@@ -81,7 +81,8 @@ def monthly_changes(folder, monthly_status="PASS", as_of=None):
         current_date = date.fromisoformat(report["assessment_date"])
     except (TypeError, ValueError, KeyError):
         return "<p>Previous comparison dates are missing or invalid.</p>"
-    if previous_date >= current_date or (as_of is not None and current_date > as_of):
+    if (previous_date >= current_date or (as_of is not None and current_date > as_of)
+            or (accepted_date is not None and current_date != accepted_date)):
         return "<p>Previous comparison chronology is invalid; changes withheld.</p>"
     items = []
     metrics = report.get("metrics")
@@ -145,7 +146,7 @@ def build(folder, as_of, evidence=None):
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
                 '<p><strong>Interpretation:</strong> These are dated observations, not a validated economic-cycle classification. '
                 'A change in business lending alone cannot establish financial stress.</p>'
-                '<h3>What changed?</h3>' + monthly_changes(folder, status, as_of) +
+                '<h3>What changed?</h3>' + monthly_changes(folder, status, as_of, accepted_date if status == "PASS" else None) +
                 '<h3>What is uncertain?</h3><p>Release lags, revisions, historical-vintage limitations, '
                 'and missing sector investment evidence prevent stronger conclusions.</p>'
                 '<a href="monthly-research.html">Monthly assessment</a></section>'
@@ -185,7 +186,7 @@ def build(folder, as_of, evidence=None):
                f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: '
                f'{esc(portal.get("observation_month","unavailable"))}.</p>'
                '<h3>Observed conditions</h3><ul>' + "".join(descriptions) + '</ul>'
-               '<h3>What changed?</h3>' + monthly_changes(folder, status, as_of) +
+               '<h3>What changed?</h3>' + monthly_changes(folder, status, as_of, accepted_date if status == "PASS" else None) +
                '<h3>What remains uncertain?</h3><p>Source publication lags, revisions, '
                'historical-vintage limitations and absent sector valuation evidence. '
                'No validated crash probability is available.</p>'
