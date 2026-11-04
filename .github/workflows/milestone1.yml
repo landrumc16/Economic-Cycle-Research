@@ -409,9 +409,10 @@ jobs:
           else
             # A previously published report must never disappear because a refresh
             # could not retrieve it. Distinguish genuine absence from network failure.
-            status="$(curl --silent --show-error --location --max-time 15 -o /dev/null -w '%{http_code}' "$base/monthly.json" || echo 000)"
-            if [ "$status" != "404" ]; then
-              echo "::error::Cannot verify previous monthly publication (HTTP $status); refusing deployment to protect last valid assessment."
+            html_status="$(curl --silent --show-error --location --max-time 15 -o /dev/null -w '%{http_code}' "$base/monthly.html" || true)"
+            json_status="$(curl --silent --show-error --location --max-time 15 -o /dev/null -w '%{http_code}' "$base/monthly.json" || true)"
+            if [ "$html_status" != "404" ] || [ "$json_status" != "404" ]; then
+              echo "::error::Cannot recover or verify previous monthly publication (HTML HTTP $html_status; JSON HTTP $json_status); refusing deployment."
               exit 1
             fi
             echo 'No qualifying current monthly assessment; none published. Inspect monthly workflow.' >> "$GITHUB_STEP_SUMMARY"
