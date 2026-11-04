@@ -234,6 +234,21 @@ class PublicSiteTests(unittest.TestCase):
         build(self.root,date(2026,11,4))
         self.assertEqual((self.root/"monthly.html").read_text(),"previous accepted report")
 
+    def test_pass_monthly_release_rejects_future_or_missing_assessment_date(self):
+        (self.root/"v5_unified_portal.json").write_text(json.dumps({
+            "monthly_release":"PASS","numeric_forecasts_approved":False
+        }))
+        (self.root/"weekly_economic_assessment.json").write_text(json.dumps({"stale":False}))
+        gate=self.root/"weekly_release_acceptance.json"
+        for assessment_date in ("2026-12-01", "not-a-date", None):
+            gate.write_text(json.dumps({"status":"PASS","assessment_date":assessment_date}))
+            with self.subTest(assessment_date=assessment_date):
+                with self.assertRaises(ValueError):
+                    build(self.root,date(2026,11,4))
+        gate.write_text(json.dumps({"status":"PASS","assessment_date":"2026-11-04"}))
+        report=build(self.root,date(2026,11,4))
+        self.assertEqual(report["monthly_status"],"PASS")
+
     def test_rejects_contradictory_freshness(self):
         (self.root/"weekly_release_acceptance.json").write_text('{"status":"PASS"}')
         (self.root/"v5_unified_portal.json").write_text('{"monthly_release":"PASS","numeric_forecasts_approved":false}')
