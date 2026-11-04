@@ -109,6 +109,17 @@ class PublicSiteTests(unittest.TestCase):
         self.assertIn("What changed?",overview)
         self.assertIn("What is uncertain?",overview)
 
+    def test_eleven_sector_detail_pages_link_from_sector_index(self):
+        build(self.root,date(2026,11,4))
+        listing=(self.root/"sectors.html").read_text()
+        for i in range(1,12):
+            name=f"sector-{i:02d}.html"
+            self.assertIn(f'href="{name}"',listing)
+            detail=(self.root/name).read_text()
+            self.assertIn('name="viewport"',detail)
+            self.assertIn('href="sectors.html"',detail)
+            self.assertIn("Insufficient Evidence",detail)
+
     def test_v6_preserves_accepted_v5_index(self):
         (self.root/"index.html").write_text("V5 accepted landing")
         build(self.root,date(2026,11,4))
