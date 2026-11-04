@@ -221,7 +221,7 @@ jobs:
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
       - name: Verify V6 publication and sector evidence gates
-        run: python -m unittest tests.test_v6_public_site tests.test_v6_sector_intelligence -v
+        run: python -m unittest discover -s tests -p 'test_v6_*.py' -v
       - name: Build V6 evidence-gated public research pages
         run: python scripts/v6_public_site.py --as-of "$(date -u +%F)"
       - name: Persist assessment history
