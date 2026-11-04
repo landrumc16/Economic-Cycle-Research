@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
-from scripts.v6_public_site import build
+from scripts.v6_public_site import build, observation_summary
 
 class PublicSiteTests(unittest.TestCase):
     def setUp(self):
@@ -41,3 +41,14 @@ class PublicSiteTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build(self.root,date(2026,11,4))
         self.assertEqual((self.root/"index.html").read_text(),"last good")
+
+    def test_observation_values_and_source_dates(self):
+        result=observation_summary({
+            "industrial_production_growth_12m_log_pct":1.234,
+            "sources":{"INDPRO":{"latest_used_month":"2026-09","source_url":"https://fred.stlouisfed.org/series/INDPRO"}}
+        })
+        self.assertEqual(result[0]["value"],"1.23%")
+        self.assertEqual(result[0]["date"],"2026-09")
+        self.assertEqual(result[1]["value"],"Unavailable")
+        build(self.root,date(2026,11,4))
+        self.assertTrue((self.root/"overview.html").exists())
