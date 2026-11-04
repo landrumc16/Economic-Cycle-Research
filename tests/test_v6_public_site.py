@@ -64,6 +64,15 @@ class PublicSiteTests(unittest.TestCase):
         self.assertEqual(metrics[0]["date"],"unavailable")
         self.assertEqual(metrics[1]["date"],"unavailable")
 
+    def test_indicator_value_without_valid_observation_month_is_withheld(self):
+        assessment = {"unemployment_rate_pct": 4.2,
+                      "sources": {"UNRATE": {"source_url": "https://fred.stlouisfed.org/series/UNRATE"}}}
+        self.assertEqual(observation_summary(assessment)[1]["value"], "Unavailable")
+        assessment["sources"]["UNRATE"]["latest_used_month"] = "2026-99"
+        self.assertEqual(observation_summary(assessment)[1]["date"], "unavailable")
+        assessment["sources"]["UNRATE"]["latest_used_month"] = "2026-09"
+        self.assertEqual(observation_summary(assessment)[1]["value"], "4.20%")
+
     def test_monthly_page_uses_dated_prior_comparison_when_available(self):
         (self.root/"economic_dashboard.json").write_text(json.dumps({
             "status":"DESCRIPTIVE_DASHBOARD",
