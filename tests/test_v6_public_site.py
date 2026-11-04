@@ -42,6 +42,15 @@ class PublicSiteTests(unittest.TestCase):
         self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"],
                          "Not established")
         base["sources"]["UNRATE"]["latest_used_month"] = "2026-09"
+        base["sources"]["INDPRO"]["latest_used_month"] = "2026-05"
+        self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"],
+                         "Not established")
+        base["sources"]["INDPRO"]["latest_used_month"] = "2026-09"
+        base["sources"]["CPIAUCSL"]["latest_used_month"] = "2026-05"
+        self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"],
+                         "Not established")
+        base["sources"]["CPIAUCSL"]["latest_used_month"] = "2026-09"
+
         base["sources"]["INDPRO"]["latest_used_month"] = "2027-01"
         self.assertEqual(economic_outlook(base, "PASS", date(2026,11,4))["direction"], "Not established")
 
@@ -76,6 +85,7 @@ class PublicSiteTests(unittest.TestCase):
         self.assertFalse(report["historical_phase_certified"])
         self.assertFalse(report["numeric_forecasts_approved"])
         self.assertEqual(report["sector_outlooks_qualified"], 0)
+        self.assertEqual(len(report["observed_outlook"]["evidence"]), 4)
 
     def test_v61_publication_promotes_and_verifies_structured_outlook(self):
         workflow = (Path(__file__).resolve().parents[1] /
