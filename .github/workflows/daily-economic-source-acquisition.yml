@@ -8,7 +8,7 @@ on:
       - '.github/workflows/daily-economic-source-acquisition.yml'
   workflow_dispatch:
   schedule:
-    - cron: '35 13 * * 1-5'
+    - cron: '35 13 * * *'
 permissions:
   contents: read
 concurrency:
