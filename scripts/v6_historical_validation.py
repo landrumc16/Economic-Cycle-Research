@@ -3,11 +3,12 @@ from datetime import date
 
 ALLOWED = {"expansion", "slowing_expansion", "contraction", "recovery", "non_downturn"}
 
-def validate_episodes(episodes):
+def validate_episodes(episodes, as_of=None):
     """Return transparent coverage, not a probability or an accuracy claim."""
     if not isinstance(episodes, list):
         raise ValueError("Episodes must be a list")
     seen = set()
+    intervals = []
     accepted = []
     for item in episodes:
         if not isinstance(item, dict):
@@ -23,10 +24,14 @@ def validate_episodes(episodes):
             outcome = date.fromisoformat(item["outcome_date"])
         except (KeyError, TypeError, ValueError) as exc:
             raise ValueError("Invalid historical chronology") from exc
-        if cutoff > signal or outcome <= signal:
+        if cutoff > signal or outcome <= signal or (as_of is not None and outcome > as_of):
             raise ValueError("Lookahead or invalid outcome chronology")
         if item.get("point_in_time_verified") is not True:
             raise ValueError("Historical episode lacks point-in-time verification")
+        # Overlapping signal/outcome windows are not independent episodes.
+        if any(signal <= end and start <= outcome for start, end in intervals):
+            raise ValueError("Overlapping historical episodes cannot count independently")
+        intervals.append((signal, outcome))
         accepted.append({"id": name, "outcome": label, "signal_date": signal.isoformat()})
     controls = sum(x["outcome"] == "non_downturn" for x in accepted)
     events = len(accepted) - controls
