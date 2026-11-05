@@ -19,6 +19,9 @@ concurrency:
   cancel-in-progress: true
 jobs:
   audit:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -578,9 +581,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: audit-output/dashboard
-      # Keep the deployment environment gate on deployment only, not the
-      # entire data acquisition and regression job. The job itself remains
-      # read-only on pull requests and never deploys outside main.
       - name: Deploy approved dashboard to GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
         id: deployment
