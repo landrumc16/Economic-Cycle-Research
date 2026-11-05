@@ -62,6 +62,32 @@ class PublicSiteTests(unittest.TestCase):
         self.assertIn("3. Where should investors look?", content)
         self.assertIn("Insufficient Evidence", content)
 
+    def test_v62_editorial_judgment_is_qualified_and_conditional(self):
+        gate = {"status": "PASS", "assessment_date": "2026-11-01"}
+        (self.root/"weekly_release_acceptance.json").write_text(json.dumps(gate))
+        portal = {"monthly_release": "PASS", "observation_month": "2026-09",
+                  "numeric_forecasts_approved": False}
+        (self.root/"v5_unified_portal.json").write_text(json.dumps(portal))
+        assessment = {"stale": False, "industrial_production_growth_12m_log_pct": 2.0,
+                      "cpi_inflation_12m_log_pct": 3.7, "unemployment_rate_pct": 4.0,
+                      "unemployment_change_3m_pp": 0.0,
+                      "sources": {series: {"latest_used_month": "2026-09",
+                                          "source_url": "https://fred.stlouisfed.org/series/" + series}
+                                  for series in ("INDPRO", "UNRATE", "CPIAUCSL")}}
+        (self.root/"weekly_economic_assessment.json").write_text(json.dumps(assessment))
+        build(self.root, date(2026, 11, 5))
+        page = (self.root/"overview.html").read_text()
+        self.assertIn("Our assessment: economic activity is expanding", page)
+        self.assertIn("Working outlook: continued expansion", page)
+        self.assertIn("We would turn more cautious", page)
+        self.assertNotIn("crash probability: 70%", page)
+        assessment["sources"]["INDPRO"]["latest_used_month"] = "2026-05"
+        (self.root/"weekly_economic_assessment.json").write_text(json.dumps(assessment))
+        build(self.root, date(2026, 11, 5))
+        stale_page = (self.root/"overview.html").read_text()
+        self.assertIn("Insufficient current evidence for a defensible economic call", stale_page)
+        self.assertNotIn("Working outlook: continued expansion", stale_page)
+
     def test_v61_sector_shortlist_discloses_coverage_not_fake_recommendations(self):
         build(self.root, date(2026,11,4))
         overview = (self.root/"overview.html").read_text()
