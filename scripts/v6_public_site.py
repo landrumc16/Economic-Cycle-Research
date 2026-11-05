@@ -306,6 +306,24 @@ def build(folder, as_of, evidence=None):
     if status == "PASS" and assessment.get("stale") is True:
         raise ValueError("PASS monthly gate contradicts stale assessment")
     outlook = economic_outlook(assessment, status, as_of)
+    practical = {
+        "Growth and employment improving": (
+            "Current reading: growth and labor conditions are improving together.",
+            "Research implication: monitor whether improvement broadens and persists; this is not a signal to buy stocks or increase risk."
+        ),
+        "Growth and employment weakening": (
+            "Current reading: production and employment are deteriorating together.",
+            "Research implication: pay closer attention to credit conditions and downside risks; this is not a certified recession or market-timing signal."
+        ),
+        "Mixed signals": (
+            "Current reading: the major indicators disagree.",
+            "Research implication: avoid a single confident economic narrative; wait for corroborating monthly observations."
+        ),
+        "Not established": (
+            "Current reading: the available evidence does not support a reliable directional conclusion.",
+            "Research implication: do not make a current-cycle call from stale or incomplete indicators."
+        ),
+    }[outlook["direction"]]
     reasons = "".join(f"<li>{esc(reason)}</li>" for reason in outlook["reasons"])
     sector_order = {"Favorable": 0, "Mixed": 1, "Caution": 2, "Insufficient Evidence": 3}
     ranked = sorted(sectors["sectors"], key=lambda s: (sector_order.get(s["outlook"], 4), s["sector"]))
@@ -328,6 +346,8 @@ def build(folder, as_of, evidence=None):
                  f'<h3>{esc(outlook["phase"])}</h3><p>{esc(outlook["summary"])}</p>'
                  '<h2>Where We Are Heading</h2>'
                  f'<p><strong>{esc(outlook["direction"])}</strong></p>'
+                 f'<h3>What this means right now</h3><p><strong>{esc(practical[0])}</strong></p>'
+                 f'<p>{esc(practical[1])}</p>'
                  f'<ul>{reasons}</ul><p>{esc(outlook["limitations"])}</p>'
                  '<p><a href="historical.html">Explore historical comparisons</a></p></section>'
                  '<section><h2>Where Investors Should Look</h2>'
