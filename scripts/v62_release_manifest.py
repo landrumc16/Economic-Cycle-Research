@@ -31,17 +31,22 @@ def validate_manifest(manifest: dict) -> dict:
         raise ValueError("source_status must be an object")
     if not isinstance(manifest["research_gate"], dict):
         raise ValueError("research_gate must be an object")
+    if not isinstance(manifest["research_gate"].get("qualified"), bool):
+        raise ValueError("research_gate.qualified must be boolean")
     return manifest
 
 
 def decide_publication(candidate: dict, previous: dict | None) -> dict:
     """Return the actual publishable manifest; fail closed on unqualified input."""
-    qualified = candidate.get("research_gate", {}).get("qualified") is True
+    validate_manifest({**candidate, "promotion_outcome": "FAILED"})
+    qualified = candidate["research_gate"]["qualified"] is True
     if qualified:
         result = dict(validate_manifest({**candidate, "promotion_outcome": "NEW_QUALIFIED"}))
         return result
     if previous is not None:
         preserved = dict(validate_manifest(previous))
+        if preserved["research_gate"]["qualified"] is not True or preserved["promotion_outcome"] == "FAILED":
+            raise ValueError("Previous release was not accepted; refusing preservation")
         # Keep the original accepted bundle's commit and assessment date.
         preserved["promotion_outcome"] = "PRESERVED_PREVIOUS"
         return preserved
