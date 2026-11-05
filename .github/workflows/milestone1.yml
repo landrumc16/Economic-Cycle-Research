@@ -483,7 +483,7 @@ jobs:
           qualified = False
           if root:
               gate = json.loads(gates[0].read_text())
-              qualified = gate.get("status") in ("PASS", "STALE_RESEARCH_ONLY") and all(
+              qualified = gate.get("status") == "PASS" and all(
                   (root / name).is_file() for name in names)
               if qualified:
                   overview = (root / "overview.html").read_text()
