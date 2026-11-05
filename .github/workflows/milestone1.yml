@@ -548,7 +548,7 @@ jobs:
                           raise RuntimeError("Previous V6.2 manifest was not qualified")
                       previous_manifest["promotion_outcome"] = "PRESERVED_PREVIOUS"
                       (target / "v62_release_manifest.json").write_text(
-                          json.dumps(previous_manifest, indent=2, sort_keys=True) + "\\n")
+                          json.dumps(previous_manifest, indent=2, sort_keys=True) + "\n")
                   except urllib.error.HTTPError as exc:
                       if exc.code != 404:
                           raise
