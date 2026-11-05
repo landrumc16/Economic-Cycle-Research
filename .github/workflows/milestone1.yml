@@ -591,6 +591,8 @@ jobs:
               required += ["overview.html", "historical.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md"]
               required += [f"sector-{i:02d}.html" for i in range(1, 12)]
               required += ["v5_legacy_index.html"]
+          if Path("audit-output/dashboard/v62_release_manifest.json").exists():
+              required += ["v62_release_manifest.json"]
           if Path("audit-output/dashboard/v6_1_economic_outlook.json").exists():
               required += ["v6_1_economic_outlook.json"]
           if Path("audit-output/dashboard/monthly.html").exists():
@@ -628,6 +630,19 @@ jobs:
               if published["v5_legacy_index.html"] == published["index.html"]:
                   raise RuntimeError("Legacy V5 archive was replaced by the V6 homepage")
               print("PUBLIC VERIFIED: one V6 homepage and distinct V5 archive")
+          if "v62_release_manifest.json" in published:
+              import json
+              from scripts.v62_release_manifest import validate_manifest
+              expected = validate_manifest(json.loads(Path("audit-output/dashboard/v62_release_manifest.json").read_text()))
+              actual = validate_manifest(json.loads(published["v62_release_manifest.json"]))
+              if actual != expected or actual["version"] != "6.2":
+                  raise RuntimeError("Live V6.2 manifest does not match accepted publication")
+              if actual["promotion_outcome"] != "NEW_QUALIFIED":
+                  raise RuntimeError("Preserved prior bundle is not a new V6.2 release")
+              if published["index.html"] != published["overview.html"]:
+                  raise RuntimeError("Live V6.2 home page mismatch")
+              print("PUBLIC VERIFIED: V6.2 source commit", actual["build_commit"])
+
           PY
       - name: Preserve source evidence even on failure
         if: always()
