@@ -354,24 +354,60 @@ def build(folder, as_of, evidence=None):
         f'<li><a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a>: '
         f'<strong>{esc(s["outlook"])}</strong></li>'
         for s in featured[:5])
-    executive = ('<section><h2>Where We Are</h2>'
-                 f'<h3>{esc(outlook["phase"])}</h3><p>{esc(outlook["summary"])}</p>'
-                 '<h2>Where We Are Heading</h2>'
-                 f'<p><strong>{esc(trend_label)}</strong></p>'
-                 f'<p>{esc(market_message)}</p>'
-                 f'<h3>What this means right now</h3><p><strong>{esc(practical[0])}</strong></p>'
-                 f'<p>{esc(practical[1])}</p>'
-                 f'<ul>{reasons}</ul><p>{esc(outlook["limitations"])}</p>'
-                 '<p><a href="historical.html">Explore historical comparisons</a></p></section>'
-                 '<section><h2>Where Investors Should Look</h2>'
-                 '<p><strong>Where to focus your research:</strong> Start with the economic risks shown above, then compare sector earnings, valuations and performance. ' 
-                 'We compare all 11 market sectors, but historical economic fit is not the same as an attractive investment today. '
-                 'Only sectors with verified earnings, valuation and historical returns receive an outlook; the others remain Insufficient Evidence.</p>'
-                 f'<p>{esc(sector_note)}</p>'
-                 + (f'<ol>{sector_highlights}</ol>' if featured else
-                    '<p><strong>No sector currently qualifies for a buy-oriented ranking.</strong> '
-                    'All 11 remain available for historical economic-sensitivity research.</p>') +
-                 '<a href="sectors.html">See all 11 sector assessments</a></section>')
+    # Plain-language front page: conclusions first; technical material stays on linked pages.
+    sector_context = {
+        "Growth and employment improving": (
+            "Historically, investors often study cyclical businesses when growth strengthens.",
+            ("Industrials", "Consumer Discretionary", "Information Technology"),
+            "Stronger economic activity can support demand, but expensive valuations can still make an investment unattractive."
+        ),
+        "Growth and employment weakening": (
+            "Historically, investors often study more defensive businesses when growth weakens.",
+            ("Consumer Staples", "Health Care", "Utilities"),
+            "Essential services can be more resilient, but no sector is protected from losses."
+        ),
+        "Mixed signals": (
+            "Mixed economic conditions do not support a clear sector rotation.",
+            ("Consumer Staples", "Industrials", "Financials"),
+            "Compare defensive demand, industrial activity and credit sensitivity rather than assuming one winner."
+        ),
+        "Not established": (
+            "The data are not strong enough to choose a current economic-cycle sector theme.",
+            (),
+            "Wait for a qualified monthly assessment before making a cycle-based sector comparison."
+        ),
+    }[outlook["direction"]]
+    context_links = ", ".join(
+        f'<a href="{sector_urls[name]}">{esc(name)}</a>'
+        for name in sector_context[1]
+    )
+    investor_focus = (
+        f'<p>{esc(sector_context[0])}</p>'
+        + (f'<p><strong>Historical sectors to examine:</strong> {context_links}.</p>'
+           if context_links else '<p><strong>No cycle-based sector shortlist is justified.</strong></p>')
+        + f'<p>{esc(sector_context[2])}</p>'
+        + '<p><strong>Current investment rating:</strong> '
+        + (f'{qualified_count} of 11 sectors have qualified investment evidence.'
+           if qualified_count else
+           'No sector has enough verified valuation, earnings and return evidence for a current investment recommendation.')
+        + '</p>'
+    )
+    executive = (
+        '<section><h2>1. Where is the economy right now?</h2>'
+        f'<p><strong>{esc(trend_label)}</strong></p>'
+        f'<p>{esc(outlook["summary"])}</p>'
+        f'<p><small>Official monthly assessment: {esc(assessment_date)}.</small></p>'
+        '<p><a href="economic_dashboard.html">See the economic indicators</a></p></section>'
+        '<section><h2>2. Where do we think it is going?</h2>'
+        f'<p><strong>{esc(practical[0])}</strong></p>'
+        f'<p>{esc(practical[1])}</p>'
+        '<p><strong>Stock market:</strong> Economic direction alone does not establish where stock prices will go. '
+        'A market forecast requires independently tested market evidence.</p>'
+        '<p><a href="historical.html">Explore historical comparisons</a></p></section>'
+        '<section><h2>3. Where should investors look?</h2>'
+        + investor_focus
+        + '<p><a href="sectors.html">Explore all 11 sectors and the supporting research</a></p></section>'
+    )
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
