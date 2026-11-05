@@ -46,5 +46,27 @@ class ReleaseManifestTests(unittest.TestCase):
             validate_manifest(candidate)
 
 
+    def test_rejects_unqualified_previous_release(self):
+        with self.assertRaises(ValueError):
+            decide_publication(sample("new", False), sample("old", False))
+
+    def test_rejects_failed_previous_release(self):
+        previous = sample("old")
+        previous["promotion_outcome"] = "FAILED"
+        with self.assertRaises(ValueError):
+            decide_publication(sample("new", False), previous)
+
+    def test_rejects_missing_gate_boolean(self):
+        candidate = sample()
+        candidate["research_gate"] = {"qualified": "yes"}
+        with self.assertRaises(ValueError):
+            decide_publication(candidate, sample("old"))
+
+    def test_rejects_missing_candidate_provenance_even_when_preserving(self):
+        candidate = sample("new", False)
+        del candidate["assessment_date"]
+        with self.assertRaises(ValueError):
+            decide_publication(candidate, sample("old"))
+
 if __name__ == "__main__":
     unittest.main()
