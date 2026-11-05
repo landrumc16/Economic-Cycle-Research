@@ -392,15 +392,55 @@ def build(folder, as_of, evidence=None):
            'No sector has enough verified valuation, earnings and return evidence for a current investment recommendation.')
         + '</p>'
     )
+    # An editorial interpretation is useful only when all underlying observations
+    # are source-dated, accepted and recent. Keep it separate from forecasts.
+    opinion = None
+    observations = {item["label"]: item for item in observation_summary(assessment, as_of=as_of)}
+    if status == "PASS" and assessment.get("stale") is False and all(
+            observations[name]["value"] != "Unavailable" for name in ("Growth", "Jobs", "Inflation")):
+        dates = [date.fromisoformat(observations[name]["date"] + "-01"
+                 if len(observations[name]["date"]) == 7 else observations[name]["date"])
+                 for name in ("Growth", "Jobs", "Inflation")]
+        if all(0 <= (as_of.year - d.year) * 12 + as_of.month - d.month <= 2 for d in dates):
+            growth = assessment["industrial_production_growth_12m_log_pct"]
+            inflation = assessment["cpi_inflation_12m_log_pct"]
+            labor_change = assessment.get("unemployment_change_3m_pp")
+            if isinstance(labor_change, (int, float)) and not isinstance(labor_change, bool) and math.isfinite(labor_change):
+                if growth > 0 and labor_change <= 0:
+                    opinion = ("Our assessment: economic activity is expanding and the labor trend is holding up. "
+                               "Inflation remains a risk to monitor." if inflation > 0 else
+                               "Our assessment: economic activity is expanding and the labor trend is holding up.")
+                    outlook_view = ("Working outlook: continued expansion is more consistent with these observations "
+                                    "than an ongoing broad contraction. This is a conditional research judgment, "
+                                    "not a calibrated 3–6 month forecast.")
+                    reversal = "We would turn more cautious if production contracted while unemployment rose."
+                elif growth < 0 and labor_change > 0:
+                    opinion = ("Our assessment: the economy is showing simultaneous production weakness and "
+                               "labor-market deterioration. Downside economic risk deserves priority.")
+                    outlook_view = ("Working outlook: further weakness is a serious scenario, but a recession "
+                                    "or market crash is not established by these indicators.")
+                    reversal = "We would become less cautious if production recovered and unemployment stopped rising."
+                else:
+                    opinion = ("Our assessment: the economy is not sending a unified signal. "
+                               "The evidence favors a selective, cautious interpretation over a sweeping call.")
+                    outlook_view = ("Working outlook: continued growth and deterioration both remain plausible; "
+                                    "the current evidence does not justify choosing a single future path.")
+                    reversal = "A sustained alignment of production and employment trends would change this assessment."
+    opinion_html = (f'<p><strong>{esc(opinion)}</strong></p>' if opinion else
+                    '<p><strong>Our assessment: Insufficient current evidence for a defensible economic call.</strong></p>')
+    outlook_html = (f'<p><strong>{esc(outlook_view)}</strong></p><p>{esc(reversal)}</p>' if opinion else
+                    '<p>No directional outlook is published from stale or incomplete observations.</p>')
     executive = (
         '<section><h2>1. Where is the economy right now?</h2>'
         f'<p><strong>{esc(trend_label)}</strong></p>'
         f'<p>{esc(outlook["summary"])}</p>'
+        + opinion_html
         f'<p><small>Official monthly assessment: {esc(assessment_date)}.</small></p>'
         '<p><a href="economic_dashboard.html">See the economic indicators</a></p></section>'
         '<section><h2>2. Where do we think it is going?</h2>'
         f'<p><strong>{esc(practical[0])}</strong></p>'
         f'<p>{esc(practical[1])}</p>'
+        + outlook_html
         '<p><strong>Stock market:</strong> Economic direction alone does not establish where stock prices will go. '
         'A market forecast requires independently tested market evidence.</p>'
         '<p><a href="historical.html">Explore historical comparisons</a></p></section>'
