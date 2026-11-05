@@ -13,8 +13,8 @@ def fixture(root):
         content = ('<!doctype html><html><main><h1>Research</h1>'
                    '<p>Educational research — not personalized financial advice.</p>')
         if name == "overview.html":
-            content += ("Where We Are | Where We Are Heading | "
-                        "Where Investors Should Look")
+            content += ("1. Where is the economy right now? | 2. Where do we think it is going? | "
+                        "3. Where should investors look?")
         if name == "research.html":
             content += "<details><summary>Evidence</summary>Sources</details>"
         if name.startswith("sector-"):
