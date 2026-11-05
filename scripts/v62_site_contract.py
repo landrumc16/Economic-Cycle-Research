@@ -59,10 +59,17 @@ def validate(directory: Path) -> dict:
             if url.path.startswith("/"):
                 raise ValueError(f"Absolute local link cannot be checked: {name}: {href}")
             destination = url.path or name
+            if ".." in Path(destination).parts:
+                raise ValueError(f"Unsafe internal link: {name}: {href}")
             if not (root / destination).is_file():
                 raise ValueError(f"Broken internal link: {name}: {href}")
-            if url.fragment and destination in parsed and url.fragment not in parsed[destination].ids:
-                raise ValueError(f"Broken internal anchor: {name}: {href}")
+            if url.fragment:
+                target = parsed.get(destination)
+                if target is None and destination.endswith(".html"):
+                    target = PageLinks()
+                    target.feed((root / destination).read_text(encoding="utf-8"))
+                if target is not None and url.fragment not in target.ids:
+                    raise ValueError(f"Broken internal anchor: {name}: {href}")
     overview = (root / "overview.html").read_text()
     for heading in ("Where We Are", "Where We Are Heading", "Where Investors Should Look"):
         if heading not in overview:
