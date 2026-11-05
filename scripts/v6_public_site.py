@@ -78,6 +78,66 @@ def observation_summary(assessment, definitions=INDICATORS, as_of=None):
                        "source_url": url if valid_date and verified_source else ""})
     return result
 
+
+def indicator_guidance(assessment, status, as_of):
+    """Plain-language indicator readings; describe evidence, not trading signals."""
+    summaries = observation_summary(assessment, as_of=as_of)
+    valid = {item["label"]: item for item in summaries if item["value"] != "Unavailable"}
+    guidance = {}
+    for item in summaries:
+        label = item["label"]
+        if status != "PASS" or assessment.get("stale") is not False or label not in valid:
+            guidance[label] = (
+                "Reading: Insufficient current evidence.",
+                "What to do with this: Wait for a qualified, source-dated observation before drawing a current conclusion.",
+                "What to watch: The next accepted monthly update and any revisions."
+            )
+            continue
+        metric = {"Growth": "industrial_production_growth_12m_log_pct",
+                  "Jobs": "unemployment_rate_pct",
+                  "Inflation": "cpi_inflation_12m_log_pct",
+                  "Business credit": "business_credit_growth_12m_log_pct"}[label]
+        value = assessment[metric]
+        if label == "Growth":
+            reading = ("Production increased from a year earlier." if value > 0 else
+                       "Production decreased from a year earlier." if value < 0 else
+                       "Production was flat compared with a year earlier.")
+            action = ("Monitor whether the expansion in production continues; one positive reading does not confirm broad economic strength." if value > 0 else
+                      "Watch for sustained production weakness alongside employment deterioration; this alone does not establish a recession." if value < 0 else
+                      "Watch for a sustained move above or below zero before inferring direction.")
+            watch = "Next year-over-year production reading, employment trend, and revisions."
+        elif label == "Jobs":
+            change = assessment.get("unemployment_change_3m_pp")
+            month = item["date"]
+            observed = date.fromisoformat(month + "-01" if len(month) == 7 else month)
+            age = (as_of.year - observed.year) * 12 + as_of.month - observed.month
+            if 0 <= age <= 2 and isinstance(change, (int, float)) and not isinstance(change, bool) and math.isfinite(change):
+                reading = ("Unemployment rose over three months." if change > 0 else
+                           "Unemployment fell over three months." if change < 0 else
+                           "Unemployment was unchanged over three months.")
+                action = ("Treat the rising unemployment trend as a labor-market caution, not proof of recession." if change > 0 else
+                          "Employment conditions are not showing a rising unemployment trend in this measure; continue monitoring." if change < 0 else
+                          "The short-term unemployment trend is flat; do not infer acceleration from the level alone.")
+            else:
+                reading = "The unemployment level is available, but a qualified recent trend is not."
+                action = "Do not label the labor market improving or weakening from the unemployment level alone."
+            watch = "Three-month unemployment change and consistency with production."
+        elif label == "Inflation":
+            reading = ("Consumer prices are higher than a year earlier." if value > 0 else
+                       "Consumer prices are lower than a year earlier." if value < 0 else
+                       "Consumer prices are unchanged from a year earlier.")
+            action = "Use this to assess price pressure, not whether inflation is accelerating; that requires comparable consecutive readings."
+            watch = "Changes in the inflation rate across qualified monthly observations."
+        else:
+            reading = ("Business lending grew from a year earlier." if value > 0 else
+                       "Business lending contracted from a year earlier." if value < 0 else
+                       "Business lending was flat from a year earlier.")
+            action = "Treat lending as credit-activity context, not a standalone measure of financial stress or credit availability."
+            watch = "Lending trend alongside bank lending standards, defaults and broader financial conditions."
+        guidance[label] = (f"Reading: {reading}", f"Interpretation: {action}", f"What to watch: {watch}")
+    return guidance
+
+
 def economic_outlook(assessment, status, as_of):
     """Describe observed growth and employment direction without predicting a cycle phase."""
     result = {"phase": "Not established", "direction": "Not established",
@@ -233,6 +293,7 @@ def build(folder, as_of, evidence=None):
     notice = ("<strong>Historical research only:</strong> stale observations do not support a current assessment."
               if status == "STALE_RESEARCH_ONLY" else "Monthly descriptive release gate passed.")
     cards = []
+    guidance = indicator_guidance(assessment, status, as_of)
     for metric in observation_summary(assessment, as_of=as_of):
         url = metric["source_url"]
         source_link = (f'<a href="{esc(url)}">Original source</a>' if
@@ -240,6 +301,7 @@ def build(folder, as_of, evidence=None):
         cards.append(f'<article><h2>{esc(metric["label"])}</h2>'
                      f'<p>{esc(metric["description"])}: <strong>{esc(metric["value"])}</strong></p>'
                      f'<p>Observation: {esc(metric["date"])}</p>'
+                     + "".join(f'<p>{esc(line)}</p>' for line in guidance[metric["label"]])
                      f'<p>{source_link} · <a href="economic_dashboard.html">Historical context</a></p></article>')
     if status == "PASS" and assessment.get("stale") is True:
         raise ValueError("PASS monthly gate contradicts stale assessment")
