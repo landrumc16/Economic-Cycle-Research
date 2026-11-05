@@ -18,7 +18,24 @@ concurrency:
   group: milestone1-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  pull-request-validation:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile all Python modules
+        run: python -m compileall -q scripts tests
+      - name: Run full repository regression suite
+        run: python -m unittest discover -s tests -v
   audit:
+    # The full data pipeline is a scheduled/main release job, not a PR test.
+    # Running its fail-closed, always() acquisition-dependent stages on PRs
+    # creates false red builds without any production publication benefit.
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -483,13 +500,21 @@ jobs:
           qualified = False
           if root:
               gate = json.loads(gates[0].read_text())
-              qualified = gate.get("status") in ("PASS", "STALE_RESEARCH_ONLY") and all(
-                  (root / name).is_file() for name in names)
+              qualified = gate.get("status") == "PASS" and all(
+                  (root / name).is_file() for name in names) and (root / "v62_release_manifest.json").is_file()
               if qualified:
                   overview = (root / "overview.html").read_text()
                   if gate["status"] == "STALE_RESEARCH_ONLY" and "Historical research only" not in overview:
                       raise ValueError("Stale monthly evidence lacks mandatory public warning")
           if qualified:
+              from scripts.v62_site_contract import validate as validate_v62
+              validate_v62(root)
+              from scripts.v62_release_manifest import validate_manifest
+              manifest = validate_manifest(json.loads((root / "v62_release_manifest.json").read_text()))
+              if (manifest["version"] != "6.2" or manifest["research_gate"]["qualified"] is not True
+                      or manifest["promotion_outcome"] != "NEW_QUALIFIED"
+                      or manifest["assessment_date"] != (gate.get("assessment_date") or json.loads((root / "weekly_economic_assessment.json").read_text()).get("assessment_date"))):
+                  raise ValueError("V6.2 provenance does not match approved monthly report")
               sector_report = json.loads((root / "v6_sector_report.json").read_text())
               if len(sector_report.get("sectors", [])) != 11:
                   raise ValueError("Invalid monthly V6 sector report; refusing publication")
@@ -510,7 +535,8 @@ jobs:
                           or outlook["historical_validation"].get("predictive_skill_certified") is not False):
                       raise ValueError("Invalid V6.1 economic outlook evidence")
                   (target / outlook_path.name).write_bytes(outlook_path.read_bytes())
-              print("Published evidence-gated V6 bundle; current gate:", gate["status"])
+              (target / "v62_release_manifest.json").write_bytes((root / "v62_release_manifest.json").read_bytes())
+              print("Published evidence-gated V6.2 bundle; source commit:", manifest["build_commit"])
           else:
               # The absence of a new qualified artifact must never silently erase
               # an accepted previous V6 publication on a Pages redeployment.
@@ -530,6 +556,19 @@ jobs:
                   except (urllib.error.URLError, TimeoutError) as exc:
                       raise RuntimeError("Unable to verify previous V6 publication; refusing deployment") from exc
               if fetched:
+                  try:
+                      with urllib.request.urlopen(base + "v62_release_manifest.json", timeout=15) as response:
+                          previous_manifest = json.loads(response.read())
+                      from scripts.v62_release_manifest import validate_manifest
+                      validate_manifest(previous_manifest)
+                      if previous_manifest["version"] != "6.2" or previous_manifest["research_gate"]["qualified"] is not True:
+                          raise RuntimeError("Previous V6.2 manifest was not qualified")
+                      previous_manifest["promotion_outcome"] = "PRESERVED_PREVIOUS"
+                      (target / "v62_release_manifest.json").write_text(
+                          json.dumps(previous_manifest, indent=2, sort_keys=True) + "\n")
+                  except urllib.error.HTTPError as exc:
+                      if exc.code != 404:
+                          raise
                   if len(fetched) != len(names):
                       raise RuntimeError("Incomplete recovered V6 bundle")
                   report = json.loads(fetched["v6_sector_report.json"])
@@ -582,6 +621,8 @@ jobs:
               required += ["overview.html", "historical.html", "sectors.html", "monthly-research.html", "research.html", "v6_sector_report.json", "v5_dashboard.html", "economic_dashboard.html", "v5_executive_brief.md"]
               required += [f"sector-{i:02d}.html" for i in range(1, 12)]
               required += ["v5_legacy_index.html"]
+          if Path("audit-output/dashboard/v62_release_manifest.json").exists():
+              required += ["v62_release_manifest.json"]
           if Path("audit-output/dashboard/v6_1_economic_outlook.json").exists():
               required += ["v6_1_economic_outlook.json"]
           if Path("audit-output/dashboard/monthly.html").exists():
@@ -619,6 +660,19 @@ jobs:
               if published["v5_legacy_index.html"] == published["index.html"]:
                   raise RuntimeError("Legacy V5 archive was replaced by the V6 homepage")
               print("PUBLIC VERIFIED: one V6 homepage and distinct V5 archive")
+          if "v62_release_manifest.json" in published:
+              import json
+              from scripts.v62_release_manifest import validate_manifest
+              expected = validate_manifest(json.loads(Path("audit-output/dashboard/v62_release_manifest.json").read_text()))
+              actual = validate_manifest(json.loads(published["v62_release_manifest.json"]))
+              if actual != expected or actual["version"] != "6.2":
+                  raise RuntimeError("Live V6.2 manifest does not match accepted publication")
+              if actual["promotion_outcome"] not in ("NEW_QUALIFIED", "PRESERVED_PREVIOUS"):
+                  raise RuntimeError("Live V6.2 manifest is not an accepted release")
+              if published["index.html"] != published["overview.html"]:
+                  raise RuntimeError("Live V6.2 home page mismatch")
+              print("PUBLIC VERIFIED: V6.2 source commit", actual["build_commit"])
+
           PY
       - name: Preserve source evidence even on failure
         if: always()

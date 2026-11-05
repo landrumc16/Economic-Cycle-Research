@@ -224,6 +224,17 @@ jobs:
         run: python scripts/v6_public_site.py --as-of "$(date -u +%F)"
       - name: Validate Version 6.1 release artifacts
         run: python scripts/v6_1_release_gate.py --directory audit-output
+      - name: Validate Version 6.2 public site and evidence links
+        run: python -m scripts.v62_site_contract --directory audit-output
+      - name: Stamp qualified V6.2 research provenance
+        shell: bash
+        run: |
+          status="$(python -c 'import json; print(json.load(open("audit-output/weekly_release_acceptance.json")).get("status", ""))')"
+          if [ "$status" = "PASS" ]; then
+            python -m scripts.v62_stamp_release --directory audit-output --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          else
+            echo "Stale research only; no new V6.2 release manifest stamped."
+          fi
       - name: Persist assessment history
         uses: actions/cache/save@v4
         with:

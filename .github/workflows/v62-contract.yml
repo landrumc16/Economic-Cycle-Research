@@ -1,0 +1,36 @@
+name: Version 6.2 Release Contracts
+on:
+  pull_request:
+  push:
+    branches: [v6.2-development, main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile V6.2 release modules
+        run: python -m compileall -q scripts/v62_release_manifest.py scripts/v62_site_contract.py scripts/v62_stamp_release.py tests/test_v62_release_manifest.py tests/test_v62_site_contract.py tests/test_v62_stamp_release.py
+      - name: Validate workflow YAML structure
+        run: |
+          python -m pip install --quiet pyyaml
+          python - <<'PY'
+          import yaml
+          from pathlib import Path
+          for name in ("milestone1.yml", "industry-deviation-descriptive.yml", "v62-contract.yml"):
+              path = Path(".github/workflows") / name
+              document = yaml.safe_load(path.read_text())
+              assert isinstance(document.get("jobs"), dict) and document["jobs"], name
+              for job in document["jobs"].values():
+                  assert job.get("steps"), name
+          PY
+      - name: Run complete repository regression suite
+        run: python -m unittest discover -s tests -v
+      - name: Run V6.2 regression contracts
+        run: python -m unittest discover -s tests -p 'test_v62_*.py' -v
