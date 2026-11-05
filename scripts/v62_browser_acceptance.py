@@ -14,11 +14,7 @@ from playwright.sync_api import sync_playwright
 
 WIDTHS = (360, 768, 1440)
 PAGES = ("", "research.html", "sectors.html", "monthly-research.html")
-SECTORS = (
-    "communication-services", "consumer-discretionary", "consumer-staples",
-    "energy", "financials", "health-care", "industrials",
-    "information-technology", "materials", "real-estate", "utilities",
-)
+SECTOR_PAGES = tuple(f"sector-{index:02d}.html" for index in range(1, 12))
 
 
 def inspect(base_url: str, output: Path) -> None:
@@ -54,7 +50,7 @@ def inspect(base_url: str, output: Path) -> None:
         response = page.goto(urljoin(base_url, "sectors.html"), wait_until="networkidle")
         assert response and response.status == 200
         links = page.locator("a[href]").evaluate_all("(items) => items.map(a => a.getAttribute('href'))")
-        for sector in SECTORS:
+        for sector in SECTOR_PAGES:
             assert any(sector in href for href in links), f"Missing sector navigation: {sector}"
         browser.close()
     assert not errors, f"Uncaught browser errors: {errors}"
