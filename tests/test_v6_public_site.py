@@ -57,17 +57,17 @@ class PublicSiteTests(unittest.TestCase):
     def test_v61_homepage_leads_with_three_plain_english_questions(self):
         build(self.root, date(2026,11,4))
         content = (self.root/"overview.html").read_text()
-        self.assertLess(content.index("Where We Are"), content.index("Where is the economy now?"))
-        self.assertIn("Where We Are Heading", content)
-        self.assertIn("Where Investors Should Look", content)
+        self.assertLess(content.index("1. Where is the economy right now?"), content.index("Where is the economy now?"))
+        self.assertIn("2. Where do we think it is going?", content)
+        self.assertIn("3. Where should investors look?", content)
         self.assertIn("Insufficient Evidence", content)
 
     def test_v61_sector_shortlist_discloses_coverage_not_fake_recommendations(self):
         build(self.root, date(2026,11,4))
         overview = (self.root/"overview.html").read_text()
-        self.assertIn("0 of 11 sectors currently have evidence-qualified", overview)
-        self.assertIn("An unqualified sector is not automatically unattractive", overview)
-        self.assertIn("No sector currently qualifies for a buy-oriented ranking", overview)
+        self.assertIn("No sector has enough verified valuation", overview)
+        self.assertIn("No cycle-based sector shortlist is justified", overview)
+        self.assertIn("Current investment rating:", overview)
         self.assertNotIn('<ol><li><a href="sector-01.html"', overview)
 
     def test_v61_research_library_has_collapsible_evidence_sections(self):
