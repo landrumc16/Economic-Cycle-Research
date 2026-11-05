@@ -20,7 +20,7 @@ def create(directory: Path, commit: str, built_at: str) -> dict:
     if not commit or len(commit) != 40 or any(c not in "0123456789abcdef" for c in commit.lower()):
         raise ValueError("Expected full 40-character source commit")
     datetime.fromisoformat(built_at.replace("Z", "+00:00"))
-    assessment_date = gate.get("assessment_date")
+    assessment_date = gate.get("assessment_date") or report.get("assessment_date")
     if not isinstance(assessment_date, str) or not assessment_date:
         raise ValueError("Missing official assessment date")
     manifest = {
