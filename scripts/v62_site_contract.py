@@ -8,6 +8,7 @@ import argparse
 import json
 from html.parser import HTMLParser
 from pathlib import Path
+from posixpath import normpath
 from urllib.parse import urlsplit
 
 from scripts.v6_1_release_gate import validate as validate_v61
