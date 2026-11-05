@@ -430,24 +430,24 @@ def build(folder, as_of, evidence=None):
                     '<p><strong>Our assessment: Insufficient current evidence for a defensible economic call.</strong></p>')
     outlook_html = (f'<p><strong>{esc(outlook_view)}</strong></p><p>{esc(reversal)}</p>' if opinion else
                     '<p>No directional outlook is published from stale or incomplete observations.</p>')
-    executive = (
-        '<section><h2>1. Where is the economy right now?</h2>'
-        f'<p><strong>{esc(trend_label)}</strong></p>'
-        f'<p>{esc(outlook["summary"])}</p>'
-        + opinion_html
-        + f'<p><small>Official monthly assessment: {esc(assessment_date)}.</small></p>'
-        '<p><a href="economic_dashboard.html">See the economic indicators</a></p></section>'
-        '<section><h2>2. Where do we think it is going?</h2>'
-        f'<p><strong>{esc(practical[0])}</strong></p>'
-        f'<p>{esc(practical[1])}</p>'
-        + outlook_html
-        + '<p><strong>Stock market:</strong> Economic direction alone does not establish where stock prices will go. '
-        'A market forecast requires independently tested market evidence.</p>'
-        '<p><a href="historical.html">Explore historical comparisons</a></p></section>'
-        '<section><h2>3. Where should investors look?</h2>'
-        + investor_focus
-        + '<p><a href="sectors.html">Explore all 11 sectors and the supporting research</a></p></section>'
-    )
+    executive = "".join((
+        '<section><h2>1. Where is the economy right now?</h2>',
+        f'<p><strong>{esc(trend_label)}</strong></p>',
+        f'<p>{esc(outlook["summary"])}</p>',
+        opinion_html,
+        f'<p><small>Official monthly assessment: {esc(assessment_date)}.</small></p>',
+        '<p><a href="economic_dashboard.html">See the economic indicators</a></p></section>',
+        '<section><h2>2. Where do we think it is going?</h2>',
+        f'<p><strong>{esc(practical[0])}</strong></p>',
+        f'<p>{esc(practical[1])}</p>',
+        outlook_html,
+        '<p><strong>Stock market:</strong> Economic direction alone does not establish where stock prices will go. '
+        'A market forecast requires independently tested market evidence.</p>',
+        '<p><a href="historical.html">Explore historical comparisons</a></p></section>',
+        '<section><h2>3. Where should investors look?</h2>',
+        investor_focus,
+        '<p><a href="sectors.html">Explore all 11 sectors and the supporting research</a></p></section>',
+    ))
     overview = (f'<section><h2>Where is the economy now?</h2><p>{notice}</p>'
                 f'<p>Page generated: {as_of.isoformat()}. Official assessment: {esc(assessment_date)}. Historical observation month: {esc(portal.get("observation_month","unavailable"))}. '
                 'Each indicator has its own observation date. Historical analogies are not crash probabilities.</p>'
