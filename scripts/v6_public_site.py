@@ -354,8 +354,25 @@ def build(folder, as_of, evidence=None):
                 historical_note = (
                     f"<p>{matches} matching historical months out of {examined} months examined."
                     " Months are not independent economic episodes; this is not a crash probability.</p>")
+    outlook["historical_research"] = cycle_research_contract(outlook, assessment, as_of)
+    historical_evidence_file = folder / "v6_historical_episodes.json"
+    if historical_evidence_file.is_file():
+        episodes = json.loads(historical_evidence_file.read_text())
+        historical_validation = validate_episodes(episodes, as_of=as_of)
+        outlook["historical_research"]["validation"] = historical_validation
+        outlook["historical_research"]["independent_historical_episodes_validated"] = historical_validation["independent_events"]
+        outlook["historical_research"]["negative_controls_validated"] = historical_validation["negative_controls"]
+        # Coverage alone never promotes an observed candidate to a certified phase.
+    else:
+        outlook["historical_research"]["validation"] = validate_episodes([])
+    history_validation = outlook["historical_research"]["validation"]
+    history_counts = (
+        f'<p>Independently checked contraction episodes: {history_validation["independent_events"]}; '
+        f'non-downturn controls: {history_validation["negative_controls"]}; '
+        f'other historical phases: {history_validation["other_phases"]}. '
+        'These counts do not certify forecasting skill.</p>')
     history = (
-        "<section><h2>Historical comparison research</h2>" + historical_note +
+        "<section><h2>Historical comparison research</h2>" + historical_note + history_counts +
         "<p>Different market declines can reflect credit contraction, speculative valuation, "
         "industry overinvestment, or external shocks. A matching observation alone does not "
         "identify a crash mechanism or establish inevitability.</p>"
@@ -370,17 +387,6 @@ def build(folder, as_of, evidence=None):
              "historical.html":page("Historical Comparisons",history)}
     pages.update(sector_pages)
     # Keep the headline and its evidence together for auditing and future expansion.
-    outlook["historical_research"] = cycle_research_contract(outlook, assessment, as_of)
-    historical_evidence_file = folder / "v6_historical_episodes.json"
-    if historical_evidence_file.is_file():
-        episodes = json.loads(historical_evidence_file.read_text())
-        historical_validation = validate_episodes(episodes, as_of=as_of)
-        outlook["historical_research"]["validation"] = historical_validation
-        outlook["historical_research"]["independent_historical_episodes_validated"] = historical_validation["independent_events"]
-        outlook["historical_research"]["negative_controls_validated"] = historical_validation["negative_controls"]
-        # Coverage alone never promotes an observed candidate to a certified phase.
-    else:
-        outlook["historical_research"]["validation"] = validate_episodes([])
     outlook["evidence"] = [
         {"indicator": m["label"], "value": m["value"], "observation_date": m["date"],
          "source_url": m["source_url"]}
