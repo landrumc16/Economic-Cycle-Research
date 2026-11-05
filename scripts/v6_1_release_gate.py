@@ -40,7 +40,7 @@ def validate(directory: Path) -> dict:
         if not html.lower().startswith("<!doctype html>") or 'name="viewport"' not in html:
             raise ValueError("Invalid mobile public page: " + name)
     overview = (root / "overview.html").read_text()
-    for headline in ("Where We Are", "Where We Are Heading", "Where Investors Should Look"):
+    for headline in ("1. Where is the economy right now?", "2. Where do we think it is going?", "3. Where should investors look?"):
         if headline not in overview:
             raise ValueError("Missing executive headline: " + headline)
     for page in PAGES[1:] + SECTOR_PAGES:
