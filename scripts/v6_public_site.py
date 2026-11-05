@@ -25,7 +25,13 @@ def page(title, content):
     links = "".join(f'<a href="{url}">{esc(label)}</a>' for label,url in NAV)
     return (f'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(title)} — Economic Cycle Research</title>{STYLE}</head><body>'
             f'<header><h1>Economic Cycle Research</h1><p>Daily data. Monthly conclusions. One dashboard.</p><nav aria-label="Main navigation">{links}</nav></header>'
-            f'<main><h1>{esc(title)}</h1>{content}</main><footer>Research-only · Not investment advice · Numeric crash forecasts are not certified.</footer></body></html>')
+            f'<main><h1>{esc(title)}</h1>{content}</main>'
+            '<footer><strong>Educational research — not personalized financial advice.</strong> '
+            'This site provides general economic and investment research, not recommendations tailored to any individual. '
+            'Historical trends and models can be wrong; past performance does not guarantee future results. '
+            'Investing involves risk, including loss of principal. '
+            'Consult an appropriately qualified professional about individual circumstances. '
+            'Numeric crash forecasts are not certified.</footer></body></html>')
 
 # Add a sourced indicator by appending (label, source-series, metric-key, definition).
 # Existing acquisition/assessment pipelines must supply the metric and source date.
