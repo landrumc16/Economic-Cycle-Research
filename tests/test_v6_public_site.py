@@ -102,6 +102,9 @@ class PublicSiteTests(unittest.TestCase):
         report = json.loads((self.root/"v6_1_economic_outlook.json").read_text())
         validation = report["historical_validation"]
         self.assertEqual(validation["negative_controls"], 1)
+        historical_page = (self.root/"historical.html").read_text()
+        self.assertIn("non-downturn controls: 1", historical_page)
+        self.assertIn("These counts do not certify forecasting skill", historical_page)
         self.assertEqual(validation["independent_events"], 0)
         self.assertFalse(validation["predictive_skill_certified"])
         self.assertFalse(report["historical_phase_certified"])
