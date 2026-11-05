@@ -72,7 +72,7 @@ def validate(directory: Path) -> dict:
                 if target is not None and url.fragment not in target.ids:
                     raise ValueError(f"Broken internal anchor: {name}: {href}")
     overview = (root / "overview.html").read_text()
-    for heading in ("Where We Are", "Where We Are Heading", "Where Investors Should Look"):
+    for heading in ("1. Where is the economy right now?", "2. Where do we think it is going?", "3. Where should investors look?"):
         if heading not in overview:
             raise ValueError(f"Missing executive answer: {heading}")
     research = (root / "research.html").read_text()
