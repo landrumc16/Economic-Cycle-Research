@@ -51,6 +51,12 @@ class SiteContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Broken internal link"):
             validate(self.root)
 
+    def test_rejects_path_traversal(self):
+        p = self.root / "overview.html"
+        p.write_text(p.read_text().replace('href="overview.html"', 'href="../secret.html"'))
+        with self.assertRaisesRegex(ValueError, "escapes site root"):
+            validate(self.root)
+
     def test_broken_anchor(self):
         p = self.root / "overview.html"
         p.write_text(p.read_text().replace('href="overview.html"', 'href="overview.html#absent"'))
