@@ -16,6 +16,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile V6.2 release modules
-        run: python -m compileall -q scripts/v62_release_manifest.py scripts/v62_site_contract.py tests/test_v62_release_manifest.py tests/test_v62_site_contract.py
+        run: python -m compileall -q scripts/v62_release_manifest.py scripts/v62_site_contract.py scripts/v62_stamp_release.py tests/test_v62_release_manifest.py tests/test_v62_site_contract.py tests/test_v62_stamp_release.py
       - name: Run V6.2 regression contracts
         run: python -m unittest discover -s tests -p 'test_v62_*.py' -v
