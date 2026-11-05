@@ -302,7 +302,7 @@ def build(folder, as_of, evidence=None):
                      f'<p>{esc(metric["description"])}: <strong>{esc(metric["value"])}</strong></p>'
                      f'<p>Observation: {esc(metric["date"])}</p>'
                      + "".join(f'<p>{esc(line)}</p>' for line in guidance[metric["label"]])
-                     f'<p>{source_link} · <a href="economic_dashboard.html">Historical context</a></p></article>')
+                     + f'<p>{source_link} · <a href="economic_dashboard.html">Historical context</a></p></article>')
     if status == "PASS" and assessment.get("stale") is True:
         raise ValueError("PASS monthly gate contradicts stale assessment")
     outlook = economic_outlook(assessment, status, as_of)
@@ -324,6 +324,18 @@ def build(folder, as_of, evidence=None):
             "Research implication: do not make a current-cycle call from stale or incomplete indicators."
         ),
     }[outlook["direction"]]
+    # Show the direction of the observed economy, not a fabricated equity forecast.
+    trend_label = {
+        "Growth and employment improving": "Economic trend: improving",
+        "Growth and employment weakening": "Economic trend: weakening",
+        "Mixed signals": "Economic trend: mixed",
+        "Not established": "Economic trend: not enough reliable data",
+    }[outlook["direction"]]
+    market_message = (
+        "Stock-market direction: not established by these economic indicators. "
+        "Share prices also depend on earnings, valuations, interest rates and investor expectations. "
+        "A market forecast needs separately tested market evidence."
+    )
     reasons = "".join(f"<li>{esc(reason)}</li>" for reason in outlook["reasons"])
     sector_order = {"Favorable": 0, "Mixed": 1, "Caution": 2, "Insufficient Evidence": 3}
     ranked = sorted(sectors["sectors"], key=lambda s: (sector_order.get(s["outlook"], 4), s["sector"]))
@@ -345,13 +357,15 @@ def build(folder, as_of, evidence=None):
     executive = ('<section><h2>Where We Are</h2>'
                  f'<h3>{esc(outlook["phase"])}</h3><p>{esc(outlook["summary"])}</p>'
                  '<h2>Where We Are Heading</h2>'
-                 f'<p><strong>{esc(outlook["direction"])}</strong></p>'
+                 f'<p><strong>{esc(trend_label)}</strong></p>'
+                 f'<p>{esc(market_message)}</p>'
                  f'<h3>What this means right now</h3><p><strong>{esc(practical[0])}</strong></p>'
                  f'<p>{esc(practical[1])}</p>'
                  f'<ul>{reasons}</ul><p>{esc(outlook["limitations"])}</p>'
                  '<p><a href="historical.html">Explore historical comparisons</a></p></section>'
                  '<section><h2>Where Investors Should Look</h2>'
-                 '<p>We compare all 11 market sectors, but historical economic fit is not the same as an attractive investment today. '
+                 '<p><strong>Where to focus your research:</strong> Start with the economic risks shown above, then compare sector earnings, valuations and performance. ' 
+                 'We compare all 11 market sectors, but historical economic fit is not the same as an attractive investment today. '
                  'Only sectors with verified earnings, valuation and historical returns receive an outlook; the others remain Insufficient Evidence.</p>'
                  f'<p>{esc(sector_note)}</p>'
                  + (f'<ol>{sector_highlights}</ol>' if featured else
