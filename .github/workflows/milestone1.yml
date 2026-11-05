@@ -18,7 +18,24 @@ concurrency:
   group: milestone1-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  pull-request-validation:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile all Python modules
+        run: python -m compileall -q scripts tests
+      - name: Run full repository regression suite
+        run: python -m unittest discover -s tests -v
   audit:
+    # The full data pipeline is a scheduled/main release job, not a PR test.
+    # Running its fail-closed, always() acquisition-dependent stages on PRs
+    # creates false red builds without any production publication benefit.
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
