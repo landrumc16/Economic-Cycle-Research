@@ -539,6 +539,19 @@ jobs:
                   except (urllib.error.URLError, TimeoutError) as exc:
                       raise RuntimeError("Unable to verify previous V6 publication; refusing deployment") from exc
               if fetched:
+                  try:
+                      with urllib.request.urlopen(base + "v62_release_manifest.json", timeout=15) as response:
+                          previous_manifest = json.loads(response.read())
+                      from scripts.v62_release_manifest import validate_manifest
+                      validate_manifest(previous_manifest)
+                      if previous_manifest["version"] != "6.2" or previous_manifest["research_gate"]["qualified"] is not True:
+                          raise RuntimeError("Previous V6.2 manifest was not qualified")
+                      previous_manifest["promotion_outcome"] = "PRESERVED_PREVIOUS"
+                      (target / "v62_release_manifest.json").write_text(
+                          json.dumps(previous_manifest, indent=2, sort_keys=True) + "\\n")
+                  except urllib.error.HTTPError as exc:
+                      if exc.code != 404:
+                          raise
                   if len(fetched) != len(names):
                       raise RuntimeError("Incomplete recovered V6 bundle")
                   report = json.loads(fetched["v6_sector_report.json"])
@@ -637,8 +650,8 @@ jobs:
               actual = validate_manifest(json.loads(published["v62_release_manifest.json"]))
               if actual != expected or actual["version"] != "6.2":
                   raise RuntimeError("Live V6.2 manifest does not match accepted publication")
-              if actual["promotion_outcome"] != "NEW_QUALIFIED":
-                  raise RuntimeError("Preserved prior bundle is not a new V6.2 release")
+              if actual["promotion_outcome"] not in ("NEW_QUALIFIED", "PRESERVED_PREVIOUS"):
+                  raise RuntimeError("Live V6.2 manifest is not an accepted release")
               if published["index.html"] != published["overview.html"]:
                   raise RuntimeError("Live V6.2 home page mismatch")
               print("PUBLIC VERIFIED: V6.2 source commit", actual["build_commit"])
