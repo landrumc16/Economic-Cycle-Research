@@ -71,7 +71,7 @@ class SiteContractTests(unittest.TestCase):
 
     def test_missing_research_library(self):
         p = self.root / "research.html"
-        p.write_text(p.read_text().replace("<details>", "<div>"))
+        p.write_text(p.read_text().replace("<details>", "<div>").replace("<summary>", "<p>"))
         with self.assertRaisesRegex(ValueError, "collapsible"):
             validate(self.root)
 
