@@ -490,6 +490,8 @@ jobs:
                   if gate["status"] == "STALE_RESEARCH_ONLY" and "Historical research only" not in overview:
                       raise ValueError("Stale monthly evidence lacks mandatory public warning")
           if qualified:
+              from scripts.v62_site_contract import validate as validate_v62
+              validate_v62(root)
               sector_report = json.loads((root / "v6_sector_report.json").read_text())
               if len(sector_report.get("sectors", [])) != 11:
                   raise ValueError("Invalid monthly V6 sector report; refusing publication")
