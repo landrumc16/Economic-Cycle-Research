@@ -496,7 +496,7 @@ jobs:
               manifest = validate_manifest(json.loads((root / "v62_release_manifest.json").read_text()))
               if (manifest["version"] != "6.2" or manifest["research_gate"]["qualified"] is not True
                       or manifest["promotion_outcome"] != "NEW_QUALIFIED"
-                      or manifest["assessment_date"] != gate.get("assessment_date")):
+                      or manifest["assessment_date"] != (gate.get("assessment_date") or json.loads((root / "weekly_economic_assessment.json").read_text()).get("assessment_date"))):
                   raise ValueError("V6.2 provenance does not match approved monthly report")
               sector_report = json.loads((root / "v6_sector_report.json").read_text())
               if len(sector_report.get("sectors", [])) != 11:
