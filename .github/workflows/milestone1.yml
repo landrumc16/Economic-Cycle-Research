@@ -484,7 +484,7 @@ jobs:
           if root:
               gate = json.loads(gates[0].read_text())
               qualified = gate.get("status") == "PASS" and all(
-                  (root / name).is_file() for name in names)
+                  (root / name).is_file() for name in names) and (root / "v62_release_manifest.json").is_file()
               if qualified:
                   overview = (root / "overview.html").read_text()
                   if gate["status"] == "STALE_RESEARCH_ONLY" and "Historical research only" not in overview:
@@ -492,6 +492,12 @@ jobs:
           if qualified:
               from scripts.v62_site_contract import validate as validate_v62
               validate_v62(root)
+              from scripts.v62_release_manifest import validate_manifest
+              manifest = validate_manifest(json.loads((root / "v62_release_manifest.json").read_text()))
+              if (manifest["version"] != "6.2" or manifest["research_gate"]["qualified"] is not True
+                      or manifest["promotion_outcome"] != "NEW_QUALIFIED"
+                      or manifest["assessment_date"] != gate.get("assessment_date")):
+                  raise ValueError("V6.2 provenance does not match approved monthly report")
               sector_report = json.loads((root / "v6_sector_report.json").read_text())
               if len(sector_report.get("sectors", [])) != 11:
                   raise ValueError("Invalid monthly V6 sector report; refusing publication")
@@ -512,7 +518,8 @@ jobs:
                           or outlook["historical_validation"].get("predictive_skill_certified") is not False):
                       raise ValueError("Invalid V6.1 economic outlook evidence")
                   (target / outlook_path.name).write_bytes(outlook_path.read_bytes())
-              print("Published evidence-gated V6 bundle; current gate:", gate["status"])
+              (target / "v62_release_manifest.json").write_bytes((root / "v62_release_manifest.json").read_bytes())
+              print("Published evidence-gated V6.2 bundle; source commit:", manifest["build_commit"])
           else:
               # The absence of a new qualified artifact must never silently erase
               # an accepted previous V6 publication on a Pages redeployment.
