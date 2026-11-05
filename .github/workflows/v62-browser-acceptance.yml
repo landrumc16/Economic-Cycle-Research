@@ -1,0 +1,32 @@
+name: V6.2 Live Browser Acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/v62_browser_acceptance.py'
+      - '.github/workflows/v62-browser-acceptance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  live-browser-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install headless Chromium browser
+        run: |
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Inspect deployed V6.2 site at three viewport sizes
+        run: python scripts/v62_browser_acceptance.py --url https://landrumc16.github.io/Economic-Cycle-Research/ --output v62-browser-evidence
+      - name: Upload browser screenshots and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v62-browser-evidence
+          path: v62-browser-evidence/
+          if-no-files-found: warn
