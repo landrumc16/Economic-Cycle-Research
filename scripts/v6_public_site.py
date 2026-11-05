@@ -435,13 +435,13 @@ def build(folder, as_of, evidence=None):
         f'<p><strong>{esc(trend_label)}</strong></p>'
         f'<p>{esc(outlook["summary"])}</p>'
         + opinion_html
-        f'<p><small>Official monthly assessment: {esc(assessment_date)}.</small></p>'
+        + f'<p><small>Official monthly assessment: {esc(assessment_date)}.</small></p>'
         '<p><a href="economic_dashboard.html">See the economic indicators</a></p></section>'
         '<section><h2>2. Where do we think it is going?</h2>'
         f'<p><strong>{esc(practical[0])}</strong></p>'
         f'<p>{esc(practical[1])}</p>'
         + outlook_html
-        '<p><strong>Stock market:</strong> Economic direction alone does not establish where stock prices will go. '
+        + '<p><strong>Stock market:</strong> Economic direction alone does not establish where stock prices will go. '
         'A market forecast requires independently tested market evidence.</p>'
         '<p><a href="historical.html">Explore historical comparisons</a></p></section>'
         '<section><h2>3. Where should investors look?</h2>'
