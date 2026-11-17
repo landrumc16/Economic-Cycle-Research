@@ -9,14 +9,16 @@ from urllib.parse import urlparse
 try:
     from .v6_sector_intelligence import build_sector_report
     from .v6_historical_validation import validate_episodes
+    from .v63_interpretation import interpret, THRESHOLDS
 except ImportError:
     from v6_sector_intelligence import build_sector_report
     from v6_historical_validation import validate_episodes
+    from v63_interpretation import interpret, THRESHOLDS
 
 NAV = (("Overview","overview.html"),("Indicators","economic_dashboard.html"),
        ("Sectors & Industries","sectors.html"),("Historical Comparisons","historical.html"),
        ("Monthly Reports","monthly-research.html"),("Research & Methodology","research.html"))
-STYLE = """<style>:root{font:16px system-ui,sans-serif;color:#19334c;background:#f2f6fa}*{box-sizing:border-box}body{max-width:1000px;margin:auto;padding:20px;line-height:1.65}header,section,article,details{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:20px;margin:14px 0;overflow-wrap:anywhere}header{background:#17324c;color:white}header a{color:#e4f5ff}nav{display:flex;flex-wrap:wrap;gap:14px}nav a{padding:4px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid article{margin:0}main>section:first-of-type{border-top:5px solid #397ba3}h1,h2,h3{line-height:1.25}h2{margin-top:0}li{margin:7px 0}summary{cursor:pointer;font-weight:600}a:focus-visible{outline:3px solid orange}footer{padding:16px;color:#526579;font-size:.85rem}@media(max-width:600px){body{padding:10px}header,section,article,details{padding:14px}nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}h1{font-size:1.65rem}h2{font-size:1.3rem}}</style>"""
+STYLE = """<style>:root{font:16px system-ui,sans-serif;color:#19334c;background:#f2f6fa}*{box-sizing:border-box}body{max-width:1000px;margin:auto;padding:20px;line-height:1.65}header,section,article,details{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:20px;margin:14px 0;overflow-wrap:anywhere}header{background:#17324c;color:white}header a{color:#e4f5ff}nav{display:flex;flex-wrap:wrap;gap:14px}nav a{padding:4px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid article{margin:0}main>section:first-of-type{border-top:5px solid #397ba3}h1,h2,h3{line-height:1.25}h2{margin-top:0}li{margin:7px 0}summary{cursor:pointer;font-weight:600}a:focus-visible,[tabindex]:focus-visible{outline:3px solid orange}section>a,article>a{display:inline-block;min-height:24px;padding:2px 0}footer{padding:16px;color:#526579;font-size:.85rem}@media(max-width:600px){body{padding:10px}header,section,article,details{padding:14px}nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}h1{font-size:1.65rem}h2{font-size:1.3rem}}</style>"""
 
 def esc(value):
     return html.escape(str(value), quote=True)
@@ -264,6 +266,85 @@ def monthly_changes(folder, monthly_status="PASS", as_of=None, accepted_date=Non
     return "<ul>" + "".join(items) + "</ul>"
 
 
+OUTCOME_LABELS = {
+    "early warning": "flagged before the peak",
+    "confirmation after peak": "confirmed after the peak",
+    "missed": "missed",
+}
+
+
+def scorecard_section(card):
+    """Readable M2 scorecard; refuses any card that claims skill or probabilities."""
+    if (not isinstance(card, dict) or card.get("status") != "RETROSPECTIVE_REPLAY_NOT_POINT_IN_TIME"
+            or card.get("predictive_skill_certified") is not False
+            or card.get("probabilities_published") is not False):
+        raise ValueError("Historical scorecard is not an approved retrospective replay")
+    rows = []
+    for item in card.get("recessions", []):
+        lead = item.get("warning_months_before_peak")
+        timing = ("no warning before the trough" if item.get("first_warning") is None else
+                  f"first warning {item['first_warning']}, "
+                  + (f"{lead} month{'' if lead == 1 else 's'} before the peak" if lead > 0 else
+                     f"{-lead} month{'' if lead == -1 else 's'} after the peak" if lead < 0 else "at the peak"))
+        label = " — pandemic shock, reported separately" if item.get("pandemic_shock") else ""
+        rows.append(f"<li>Recession beginning {esc(item['peak'])}{esc(label)}: "
+                    f"<strong>{esc(OUTCOME_LABELS.get(item['outcome'], item['outcome']))}</strong> ({esc(timing)})</li>")
+    alarms = card.get("false_alarm_episodes", [])
+    alarm_list = "".join(f"<li>{esc(a['first_month'])} to {esc(a['last_month'])} ({a['months']} months)</li>"
+                         for a in alarms)
+    tests = card.get("directional_outcome_tests") or {}
+    def rows_for(group, title):
+        items = [(label, v) for label, v in card.get("directional_agreement_excluding_pandemic", {}).items()
+                 if v.get("months") and v.get("base_rate") is not None and v.get("outcome_test") == group]
+        if not items:
+            return ""
+        return (f'<tr><th scope="rowgroup" colspan="4">{esc(title)}</th></tr>' + "".join(
+            f'<tr><th scope="row">{esc(label)}</th><td style="white-space:nowrap">{v["agreed"]} of {v["months"]}</td>'
+            f'<td>{v["base_rate"]:.0%}</td>'
+            f'<td>{v["lift_pp"]:+.1f}{"" if v.get("informative") else " (not informative)"}</td></tr>'
+            for label, v in items))
+    body = rows_for("cautious", "Cautious calls") + rows_for("constructive", "Constructive calls")
+    agreement = ""
+    if body:
+        agreement = ("<p>Cautious calls (Weakening, Softening) count as right if "
+                     f"{esc(tests.get('cautious', '').lower())}. Constructive calls (Steady, Firming, Strengthening) "
+                     f"count as right if {esc(tests.get('constructive', '').lower())}. The two tests overlap, so compare "
+                     "each share with its own base rate (how often that outcome happened in all months), "
+                     "not with the other group.</p>"
+                     '<div style="overflow-x:auto" tabindex="0" role="region" '
+                     'aria-label="Direction calls versus the next six months, scrollable table">'
+                     '<table style="overflow-wrap:normal;border-collapse:collapse;'
+                     'text-align:left;width:100%"><caption>Direction calls versus the next six months, excluding 2020'
+                     '</caption><thead><tr><th scope="col">Direction</th><th scope="col">Right</th>'
+                     '<th scope="col">Base rate</th><th scope="col">Points above base rate</th></tr></thead><tbody>'
+                     + body + "</tbody></table></div>")
+    not_evaluable = card.get("recessions_not_evaluable") or []
+    changes = [c for c in card.get("condition_changes", []) if c.get("contradicted_by_subsequent_labor_rise")]
+    contradicted = "".join(f"<li>{esc(c['month'])}: turned {esc(c['to'])}, then unemployment rose</li>"
+                           for c in changes)
+    return ("<section><h2>How our interpretation rules performed historically</h2>"
+            f"<p>We replayed today's rules on {card['months_replayed']} months "
+            f"({esc(card['first_month'])} to {esc(card['last_month'])}), using only data that would have been "
+            "available a month later. This is a retrospective check on revised data — "
+            "<strong>not a measure of forecasting accuracy and not a probability</strong>.</p>"
+            "<h3>Did the rules flag recessions?</h3><ul>" + "".join(rows) + "</ul>"
+            f"<p>{card['recessions_missed']} of {card['recessions_evaluated_excluding_pandemic']} "
+            "non-pandemic recessions were missed entirely. A warning after the peak confirms, it does not anticipate. "
+            "A warning before a peak in a single case is not proof that the rules predict recessions.</p>"
+            + (f"<p>Not evaluated because the data begin too late: recessions beginning {esc(', '.join(not_evaluable))}.</p>"
+               if not_evaluable else "")
+            + f"<h3>False alarms</h3><p>{len(alarms)} of {card['warning_episodes']} warning episodes were not "
+            "followed by a recession or a meaningful rise in unemployment.</p>"
+            + (f"<ul>{alarm_list}</ul>" if alarm_list else "")
+            + "<h3>Direction calls versus what happened next</h3>"
+            "<p>A direction call is only informative if it agrees more often than the base rate.</p>"
+            + (agreement or "<p>No evaluable months.</p>")
+            + ("<h3>Recent views later contradicted</h3><ul>" + contradicted + "</ul>" if contradicted else "")
+            + "<details><summary>Scorecard limitations</summary><ul>"
+            + "".join(f"<li>{esc(x)}</li>" for x in card.get("limitations", []))
+            + "</ul></details></section>")
+
+
 def build(folder, as_of, evidence=None):
     required = ("v5_integrated_acceptance.json","v5_unified_portal.json","weekly_release_acceptance.json","weekly_economic_assessment.json")
     if any(not (folder / n).is_file() for n in required):
@@ -281,7 +362,15 @@ def build(folder, as_of, evidence=None):
             raise ValueError("Missing research link target: "+name)
     # A stale research-only monthly release cannot certify current sector ratings.
     # Preserve the sector inventory, but withhold investment outlooks entirely.
-    sectors = build_sector_report((evidence or {}) if status == "PASS" else {}, as_of)
+    previous_file = folder / "previous_weekly_assessment.json"
+    previous = None
+    if previous_file.is_file():
+        try:
+            previous = json.loads(previous_file.read_text())
+        except ValueError:
+            previous = None
+    judgment = interpret(assessment, status, as_of, previous)
+    sectors = build_sector_report((evidence or {}) if status == "PASS" else {}, as_of, judgment)
     assessment_date = gate.get("assessment_date") or assessment.get("assessment_date") or "unavailable"
     if status == "PASS":
         try:
@@ -354,92 +443,97 @@ def build(folder, as_of, evidence=None):
         f'<li><a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a>: '
         f'<strong>{esc(s["outlook"])}</strong></li>'
         for s in featured[:5])
-    # Plain-language front page: conclusions first; technical material stays on linked pages.
-    sector_context = {
-        "Growth and employment improving": (
-            "Historically, investors often study cyclical businesses when growth strengthens.",
-            ("Industrials", "Consumer Discretionary", "Information Technology"),
-            "Stronger economic activity can support demand, but expensive valuations can still make an investment unattractive."
-        ),
-        "Growth and employment weakening": (
-            "Historically, investors often study more defensive businesses when growth weakens.",
-            ("Consumer Staples", "Health Care", "Utilities"),
-            "Essential services can be more resilient, but no sector is protected from losses."
-        ),
-        "Mixed signals": (
-            "Mixed economic conditions do not support a clear sector rotation.",
-            ("Consumer Staples", "Industrials", "Financials"),
-            "Compare defensive demand, industrial activity and credit sensitivity rather than assuming one winner."
-        ),
-        "Not established": (
-            "The data are not strong enough to choose a current economic-cycle sector theme.",
-            (),
-            "Wait for a qualified monthly assessment before making a cycle-based sector comparison."
-        ),
-    }[outlook["direction"]]
-    context_links = ", ".join(
-        f'<a href="{sector_urls[name]}">{esc(name)}</a>'
-        for name in sector_context[1]
-    )
-    investor_focus = (
-        f'<p>{esc(sector_context[0])}</p>'
-        + (f'<p><strong>Historical sectors to examine:</strong> {context_links}.</p>'
-           if context_links else '<p><strong>No cycle-based sector shortlist is justified.</strong></p>')
-        + f'<p>{esc(sector_context[2])}</p>'
-        + '<p><strong>Current investment rating:</strong> '
+    # V6.3 M3: sectors worth investigating follow from the qualified rubric
+    # reading and each sector's economic exposure. This is economic context,
+    # never an investment rating; investment fit stays separately gated.
+    condition = judgment["condition"]
+    preferred = {"Expanding": ("Supportive",), "Slowing": ("Relatively resilient",),
+                 "Deteriorating": ("Relatively resilient",)}.get(condition, ())
+    candidates = [s for s in sectors["sectors"] if s["economic_backdrop"]["backdrop"] in preferred]
+    headwinds = [s for s in sectors["sectors"] if s["economic_backdrop"]["backdrop"] == "Headwind"]
+    intro = {
+        "Expanding": "With activity expanding, sectors most tied to the growth-and-jobs cycle have the most supportive economic backdrop.",
+        "Slowing": "With growth stalled but jobs holding, less cyclical sectors have the steadier economic backdrop.",
+        "Deteriorating": "With activity and jobs weakening, less cyclical sectors have historically held up better economically — though none is protected from losses.",
+        "Mixed": "Mixed economic conditions do not support a clear sector rotation; compare each sector's specific exposure instead.",
+    }.get(condition, "The data are not strong enough to choose a current economic-cycle sector theme.")
+    def sector_item(s):
+        b = s["economic_backdrop"]
+        risk = b.get("inflation_note") or b["contrary_case"]
+        return (f'<li><a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a> — '
+                f'<strong>{esc(b["backdrop"])} backdrop.</strong> {esc(b["why"])}'
+                f'<details><summary>Key risk and what would change this</summary>'
+                f'<p>Key risk: {esc(risk)}</p><p>What would change this: {esc(b["reverse"])}</p></details></li>')
+    investor_focus = f'<p>{esc(intro)}</p>'
+    if candidates:
+        investor_focus += ('<h3>Sectors worth investigating</h3><ul>'
+                           + "".join(sector_item(s) for s in candidates) + '</ul>')
+        if headwinds:
+            investor_focus += ('<p><strong>Facing an economic headwind:</strong> '
+                               + ", ".join(f'<a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a>'
+                                           for s in headwinds) + '.</p>')
+    elif condition == "Mixed":
+        investor_focus += '<p><strong>No cycle-based sector shortlist is justified while indicators conflict.</strong></p>'
+    else:
+        investor_focus += '<p><strong>No cycle-based sector shortlist is justified.</strong></p>'
+    investor_focus += (
+        '<p>A good economic backdrop does not make a sector a good investment: prices may already reflect it, '
+        'and valuations, earnings and interest rates matter.</p>'
+        '<p><strong>Current investment rating:</strong> '
         + (f'{qualified_count} of 11 sectors have qualified investment evidence.'
            if qualified_count else
            'No sector has enough verified valuation, earnings and return evidence for a current investment recommendation.')
-        + '</p>'
-    )
-    # An editorial interpretation is useful only when all underlying observations
-    # are source-dated, accepted and recent. Keep it separate from forecasts.
-    opinion = None
-    observations = {item["label"]: item for item in observation_summary(assessment, as_of=as_of)}
-    if status == "PASS" and assessment.get("stale") is False and all(
-            observations[name]["value"] != "Unavailable" for name in ("Growth", "Jobs", "Inflation")):
-        dates = [date.fromisoformat(observations[name]["date"] + "-01"
-                 if len(observations[name]["date"]) == 7 else observations[name]["date"])
-                 for name in ("Growth", "Jobs", "Inflation")]
-        if all(0 <= (as_of.year - d.year) * 12 + as_of.month - d.month <= 2 for d in dates):
-            growth = assessment["industrial_production_growth_12m_log_pct"]
-            inflation = assessment["cpi_inflation_12m_log_pct"]
-            labor_change = assessment.get("unemployment_change_3m_pp")
-            if isinstance(labor_change, (int, float)) and not isinstance(labor_change, bool) and math.isfinite(labor_change):
-                if growth > 0 and labor_change <= 0:
-                    opinion = ("Our assessment: economic activity is expanding and the labor trend is holding up. "
-                               "Inflation remains a risk to monitor." if inflation > 0 else
-                               "Our assessment: economic activity is expanding and the labor trend is holding up.")
-                    outlook_view = ("Working outlook: continued expansion is more consistent with these observations "
-                                    "than an ongoing broad contraction. This is a conditional research judgment, "
-                                    "not a calibrated 3–6 month forecast.")
-                    reversal = "We would turn more cautious if production contracted while unemployment rose."
-                elif growth < 0 and labor_change > 0:
-                    opinion = ("Our assessment: the economy is showing simultaneous production weakness and "
-                               "labor-market deterioration. Downside economic risk deserves priority.")
-                    outlook_view = ("Working outlook: further weakness is a serious scenario, but a recession "
-                                    "or market crash is not established by these indicators.")
-                    reversal = "We would become less cautious if production recovered and unemployment stopped rising."
-                else:
-                    opinion = ("Our assessment: the economy is not sending a unified signal. "
-                               "The evidence favors a selective, cautious interpretation over a sweeping call.")
-                    outlook_view = ("Working outlook: continued growth and deterioration both remain plausible; "
-                                    "the current evidence does not justify choosing a single future path.")
-                    reversal = "A sustained alignment of production and employment trends would change this assessment."
-    opinion_html = (f'<p><strong>{esc(opinion)}</strong></p>' if opinion else
-                    '<p><strong>Our assessment: Insufficient current evidence for a defensible economic call.</strong></p>')
-    outlook_html = (f'<p><strong>{esc(outlook_view)}</strong></p><p>{esc(reversal)}</p>' if opinion else
-                    '<p>No directional outlook is published from stale or incomplete observations.</p>')
+        + '</p>')
+    # V6.3: one shared, published rubric drives the editorial judgment. It is
+    # withheld unless every growth, jobs and inflation observation is current.
+    opinion = judgment["condition"] != "Insufficient evidence"
+    def bullet_list(items):
+        return "<ul>" + "".join(f"<li>{esc(item)}</li>" for item in items) + "</ul>"
+    opinion_html = f'<p><strong>{esc(judgment["headline"])}</strong></p>'
+    if opinion:
+        opinion_html += (
+            f'<p>Current condition: <strong>{esc(judgment["condition"])}</strong> · '
+            f'Confidence in evidence coverage: <strong>{esc(judgment["evidence_confidence"])}</strong> '
+            '<small>(how complete and consistent the evidence is — not the odds of any event)</small></p>'
+            '<h3>Why we think this</h3>' + bullet_list(judgment["drivers"])
+            + '<h3>What argues against it</h3>'
+            + (bullet_list(judgment["counterevidence"]) if judgment["counterevidence"]
+               else '<p>No material contrary evidence among the core indicators.</p>')
+            + ('<h3>Evidence gaps</h3>' + bullet_list(judgment["evidence_gaps"])
+               if judgment["evidence_gaps"] else ''))
+        changes = judgment["changes_since_previous"] + judgment["revisions"]
+        opinion_html += ('<h3>What changed since the last accepted assessment</h3>'
+                         + (bullet_list(changes) if changes else
+                            '<p>No prior accepted assessment is available for comparison.</p>'))
+    else:
+        opinion_html += f'<p>{esc(judgment.get("withheld_reason", ""))}</p>'
+    direction_text = {
+        "Strengthening": "Direction: strengthening — production momentum and jobs are both improving.",
+        "Firming": ("Direction: firming — production momentum is improving while jobs hold steady. "
+                    "Historically this label has said little about the next six months beyond the base rate, "
+                    "so treat it as a description, not a signal."),
+        "Steady": "Direction: steady — no material change in momentum.",
+        "Softening": "Direction: softening — production momentum is fading while jobs hold.",
+        "Weakening": "Direction: weakening — the labor market is deteriorating.",
+        "Unconfirmed": "Direction: unconfirmed — three-month momentum data are incomplete.",
+        "Not established": "Direction: not established.",
+    }[judgment["direction"]]
+    outlook_html = (f'<p><strong>{esc(direction_text)}</strong></p>'
+                    f'<p><strong>{esc(judgment["outlook"])}</strong></p>'
+                    '<h3>What would change our view</h3>' + bullet_list(judgment["reversal_conditions"])
+                    if opinion else f'<p>{esc(judgment["outlook"])}</p>')
+    # The homepage speaks with one voice: the V6.3 rubric. The legacy
+    # observed-direction summary remains in the structured outlook JSON only.
+    rubric_trend = ("Economic condition: " + judgment["condition"].lower()
+                    if opinion else "Economic condition: not enough reliable data")
     executive = "".join((
         '<section><h2>1. Where is the economy right now?</h2>',
-        f'<p><strong>{esc(trend_label)}</strong></p>',
-        f'<p>{esc(outlook["summary"])}</p>',
+        f'<p><strong>{esc(rubric_trend)}</strong></p>',
         opinion_html,
         f'<p><small>Official monthly assessment: {esc(assessment_date)}.</small></p>',
-        '<p><a href="economic_dashboard.html">See the economic indicators</a></p></section>',
+        '<p><a href="economic_dashboard.html">See the economic indicators</a> · '
+        '<a href="research.html#rubric">How we reach this judgment</a></p></section>',
         '<section><h2>2. Where do we think it is going?</h2>',
-        f'<p><strong>{esc(practical[0])}</strong></p>',
-        f'<p>{esc(practical[1])}</p>',
         outlook_html,
         '<p><strong>Stock market:</strong> Economic direction alone does not establish where stock prices will go. '
         'A market forecast requires independently tested market evidence.</p>',
@@ -466,23 +560,48 @@ def build(folder, as_of, evidence=None):
     sector_pages = {}
     for index, sector in enumerate(sectors["sectors"], start=1):
         filename = f"sector-{index:02d}.html"
+        b = sector["economic_backdrop"]
+        if sector["investment_fit"]:
+            evidence_items = "".join(
+                f'<li>{esc(key.replace("_", " ").capitalize())}: {esc(entry["value"])} '
+                f'(observed {esc(entry["observation_date"])}; {esc(entry["methodology"])}) '
+                f'<a href="{esc(entry["source_url"])}">source</a></li>'
+                for key, entry in sector["investment_fit"].items())
+            evidence_html = f'<ul>{evidence_items}</ul>'
+        else:
+            evidence_html = ('<p><strong>Insufficient Evidence.</strong> Missing qualified, dated sources for: '
+                             'sector earnings, valuation, and benchmark-relative total returns.</p>')
+        macro_links = " · ".join(
+            f'<a href="{esc(m["source_url"])}">{esc(m["label"])} source ({esc(m["date"])})</a>'
+            for m in observation_summary(assessment, as_of=as_of) if m["source_url"])
         details = (f'<section><h2>{esc(sector["sector"])}</h2>'
                    f'<p>Research outlook: <strong>{esc(sector["outlook"])}</strong></p>'
                    f'<p>{esc(sector["reason"])}</p>'
-                   f'<h3>Economic sensitivity</h3><p>{esc(sector["economic_exposure_hypothesis"])}</p>'
+                   '<h3>Economic backdrop now</h3>'
+                   f'<p><strong>{esc(b["backdrop"])}</strong> — {esc(b["why"])}</p>'
+                   + (f'<p>{esc(b["inflation_note"])}</p>' if b.get("inflation_note") else "")
+                   + f'<p>What would change this: {esc(b["reverse"])}</p>'
+                   '<p><small>Economic backdrop describes exposure to current conditions; it is not an investment rating.</small></p>'
+                   f'<h3>Economic sensitivity</h3><p>{esc(sector["economic_exposure_hypothesis"])}. '
+                   f'Sensitivity to the growth-and-jobs cycle: {esc(b["growth_sensitivity"])}.</p>'
+                   f'<p>What to watch: {esc(b["watch"])}</p>'
+                   f'<h3>When the usual pattern failed</h3><p>{esc(b["contrary_case"])}</p>'
                    f'<h3>Industry distinctions to research</h3><p>{esc(sector["industry_examples"])}</p>'
                    '<p>These industries have different risks; no company-specific conclusion is implied.</p>'
-                   '<h3>Investment evidence</h3>'
-                   f'<pre style="white-space:pre-wrap;overflow-wrap:anywhere">{esc(json.dumps({"economic_fit":sector["economic_fit"],"investment_fit":sector["investment_fit"]},indent=2))}</pre>'
+                   '<h3>Investment evidence</h3>' + evidence_html +
                    '<p>Historical analogies are not forward-return forecasts. An investment outlook is '
                    'published only when dated earnings, valuation and benchmarked returns pass '
                    'the evidence gate; otherwise the rating is Insufficient Evidence.</p>'
+                   + (f'<p>Economic data sources: {macro_links}</p>' if macro_links else "")
+                   + '<p>Sensitivities summarize commonly cited sector research and have not been validated '
+                   'with sector return data by this project.</p>'
                    '<a href="sectors.html">Back to all sectors</a></section>')
         sector_pages[filename] = page(sector["sector"] + " Research", details)
     sector_cards = "".join(
         f'<article><h2>{esc(s["sector"])}</h2><p><strong>{esc(s["outlook"])}</strong></p>'
         f'<p>{esc(s["reason"])}</p>'
         f'<p>{esc(s["economic_exposure_hypothesis"])}</p>'
+        f'<p>Economic backdrop: <strong>{esc(s["economic_backdrop"]["backdrop"])}</strong></p>'
         f'<a href="sector-{i:02d}.html">Read sector and industry research</a></article>'
         for i, s in enumerate(sectors["sectors"], start=1))
     descriptions = []
@@ -512,6 +631,25 @@ def build(folder, as_of, evidence=None):
                 '<details><summary>Monthly research and earlier reports</summary>'
                 '<p><a href="monthly-research.html">Official monthly research</a> and '
                 '<a href="v5_executive_brief.md">research archive</a>.</p></details>'
+                '<details id="rubric"><summary>How we reach the monthly judgment</summary>'
+                '<p>One published rubric classifies the latest source-dated observations. All three core '
+                'indicators must be no more than two months old, from a verified source; otherwise no call is made.</p><ul>'
+                f'<li>Growth: industrial production 12-month change is expanding at or above +{THRESHOLDS["growth_flat_band_pct"]}%, '
+                f'contracting at or below -{THRESHOLDS["growth_flat_band_pct"]}%, otherwise flat. Momentum compares it with three months earlier '
+                f'(±{THRESHOLDS["growth_momentum_band_pp"]} points).</li>'
+                f'<li>Jobs: unemployment rising {THRESHOLDS["labor_deteriorating_3m_pp"]} points or more over three months, or its three-month '
+                f'average rising {THRESHOLDS["labor_rise_from_12m_low_pp"]} points above the prior-year low, is deterioration; '
+                f'falling {abs(THRESHOLDS["labor_improving_3m_pp"])} points or more is improvement.</li>'
+                f'<li>Inflation: consumer prices up {THRESHOLDS["inflation_near_goal_pct"]}% or less is near the goal range; above '
+                f'{THRESHOLDS["inflation_high_pct"]}% is high; between is elevated. A {THRESHOLDS["inflation_trend_band_pp"]}-point move over three months is firming or easing.</li>'
+                '<li>Condition: expanding growth with steady or improving jobs is Expanding; flat growth with steady jobs is Slowing; '
+                'flat or contracting growth with deteriorating jobs is Deteriorating; anything else is Mixed.</li>'
+                '<li>Confidence describes evidence coverage and consistency (contrary signals, revisions, missing momentum), '
+                'never the probability of an outcome.</li></ul>'
+                '<p>Deteriorating has mostly confirmed recessions after they began rather than anticipating them, and it has produced false alarms. '
+                'Direction labels differ in usefulness: Firming has historically added little beyond the base rate. '
+                'The thresholds double as the published reversal conditions. See the historical replay on the '
+                '<a href="historical.html">Historical Comparisons</a> page for false alarms and misses.</p></details>'
                 '<details><summary>Methods and limitations</summary><p>Retrospective revised observations are not certified '
                 'point-in-time histories. Sector outlooks require sourced earnings, valuation and benchmark-relative total returns. '
                 'Missing values are not fabricated. No certified crash probabilities are published.</p></details>')
@@ -533,6 +671,7 @@ def build(folder, as_of, evidence=None):
                     f"<p>{matches} matching historical months out of {examined} months examined."
                     " Months are not independent economic episodes; this is not a crash probability.</p>")
     outlook["historical_research"] = cycle_research_contract(outlook, assessment, as_of)
+    outlook["interpretation"] = judgment
     historical_evidence_file = folder / "v6_historical_episodes.json"
     if historical_evidence_file.is_file():
         episodes = json.loads(historical_evidence_file.read_text())
@@ -549,7 +688,13 @@ def build(folder, as_of, evidence=None):
         f'non-downturn controls: {history_validation["negative_controls"]}; '
         f'other historical phases: {history_validation["other_phases"]}. '
         'These counts do not certify forecasting skill.</p>')
+    scorecard_html = ("<section><h2>How our interpretation rules performed historically</h2>"
+                      "<p>The V6.3 scorecard has not been generated for this release.</p></section>")
+    scorecard_file = folder / "v63_historical_scorecard.json"
+    if scorecard_file.is_file():
+        scorecard_html = scorecard_section(json.loads(scorecard_file.read_text()))
     history = (
+        scorecard_html +
         "<section><h2>Historical comparison research</h2>" + historical_note + history_counts +
         "<p>Different market declines can reflect credit contraction, speculative valuation, "
         "industry overinvestment, or external shocks. A matching observation alone does not "
@@ -588,7 +733,10 @@ def build(folder, as_of, evidence=None):
         "historical_validation": outlook["historical_research"]["validation"],
     }, indent=2) + "\n")
 
-    return {"pages":list(pages),"monthly_status":status,"sector_count":len(sectors["sectors"])}
+    return {"pages":list(pages),"monthly_status":status,"sector_count":len(sectors["sectors"]),
+            "interpretation": {key: judgment.get(key) for key in
+                               ("condition", "direction", "evidence_confidence", "classification",
+                                "counterevidence", "evidence_gaps", "withheld_reason")}}
 
 def main():
     p=argparse.ArgumentParser()

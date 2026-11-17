@@ -11,8 +11,10 @@ from pathlib import Path
 
 try:
     from .industry_deviation_metrics import calculate
+    from .v63_interpretation import derive_metrics
 except ImportError:
     from industry_deviation_metrics import calculate
+    from v63_interpretation import derive_metrics
 
 
 def read(path):
@@ -42,8 +44,8 @@ def snapshot(root, as_of):
     # Align historical comparisons, but use each series latest date for current indicators.
     trimmed = {name: [r for r in rows if r["date"] <= common_date]
                for name, rows in sources.items()}
-    def growth(name, months=12):
-        rows = sources[name]
+    def growth(name, months=12, rows=None):
+        rows = sources[name] if rows is None else rows
         by_date = {r["date"][:7]: float(r["value"]) for r in rows}
         year, month = map(int, rows[-1]["date"][:7].split("-"))
         index = year * 12 + month - months
@@ -82,7 +84,24 @@ def snapshot(root, as_of):
         prior = f"{(index - 1) // 12:04d}-{(index - 1) % 12 + 1:02d}"
         current, earlier = by_month.get(sources[name][-1]["date"][:7]), by_month.get(prior)
         return round(current - earlier, 4) if current is not None and earlier is not None else None
-    return {
+    monthly = {name: {r["date"][:7]: float(r["value"]) for r in sources[name]}
+               for name in ("INDPRO", "UNRATE", "CPIAUCSL")}
+    # A 12-month change needs the year-earlier observation. When that month was
+    # never published (e.g. October 2025 CPI during the federal shutdown), use
+    # the immediately preceding month if its change is computable, and date the
+    # reading by that month. Nothing is imputed; freshness rules still apply.
+    pillar, used_month, notes = {}, {}, {}
+    for name in ("INDPRO", "CPIAUCSL"):
+        rows = sources[name]
+        pillar[name], used_month[name] = growth(name), rows[-1]["date"]
+        if pillar[name] is None and len(rows) > 1 and age_months(rows[-2]["date"]) == age_months(rows[-1]["date"]) + 1:
+            earlier = growth(name, rows=rows[:-1])
+            if earlier is not None:
+                pillar[name], used_month[name] = earlier, rows[-2]["date"]
+                notes[name] = (f"12-month change for {rows[-1]['date'][:7]} is not computable because the "
+                               f"year-earlier observation was not published; {rows[-2]['date'][:7]} is used")
+                monthly[name] = {k: v for k, v in monthly[name].items() if k <= rows[-2]["date"][:7]}
+    result = {
         "status": "RESEARCH_SNAPSHOT_NOT_FORECAST",
         "assessment_date": as_of,
         "common_observation_month": common_date,
@@ -102,12 +121,13 @@ def snapshot(root, as_of):
         "housing_price_income_growth_gap_12m_log_pp": divergence,
         "unemployment_rate_pct": float(sources["UNRATE"][-1]["value"]),
         "unemployment_change_3m_pp": change("UNRATE", 3),
-        "cpi_inflation_12m_log_pct": growth("CPIAUCSL"),
-        "industrial_production_growth_12m_log_pct": growth("INDPRO"),
+        "cpi_inflation_12m_log_pct": pillar["CPIAUCSL"],
+        "industrial_production_growth_12m_log_pct": pillar["INDPRO"],
+        "observation_notes": notes,
         "sources": {name: {"latest_available_month": sources[name][-1]["date"],
-                           "latest_used_month": sources[name][-1]["date"],
+                           "latest_used_month": used_month.get(name, sources[name][-1]["date"]),
                            "historical_alignment_month": trimmed[name][-1]["date"],
-                           "observation_lag_months": age_months(sources[name][-1]["date"]),
+                           "observation_lag_months": age_months(used_month.get(name, sources[name][-1]["date"])),
                            "source_url": json.loads((directory / (name + "_metadata.json")).read_text())["source_url"]}
                     for name in series},
         "limitations": [
@@ -121,6 +141,9 @@ def snapshot(root, as_of):
             "No crash probability, investment recommendation or validated economic phase classification",
         ],
     }
+    # V6.3 momentum and labor-trend fields (additive; None when history is short).
+    result.update(derive_metrics(monthly["INDPRO"], monthly["UNRATE"], monthly["CPIAUCSL"]))
+    return result
 
 
 def markdown(result):
@@ -147,6 +170,8 @@ def markdown(result):
     lines += ["", "## Source observation dates", ""]
     lines.extend("- {}: {} ({} months lag)".format(name, source["latest_used_month"], source["observation_lag_months"])
                  for name, source in result["sources"].items())
+    for name, note in result.get("observation_notes", {}).items():
+        lines.append(f"- Note ({name}): {note}")
     lines += ["", "## Interpretation", "",
               "These are observed conditions, not an estimated recession phase or crash forecast.",
               "Changes since the previous assessment may reflect new observations or revisions.",

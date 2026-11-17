@@ -30,6 +30,101 @@ EXPOSURES = {
 }
 
 
+# V6.3 M3: structural economic sensitivities. These describe how each sector's
+# revenues and costs are commonly linked to the economy in published sector
+# research; this project has NOT validated them with sector return data. They
+# describe economic exposure only and never imply investment attractiveness.
+# growth: high/moderate/low sensitivity to the growth-and-jobs cycle.
+# inflation: "beneficiary" (pricing tied to commodities), "pressure" (costs or
+# purchasing power squeezed) or "rates" (valuation/financing tied to interest rates).
+SENSITIVITY = {
+    "Communication Services": {"growth": "moderate", "inflation": "rates",
+        "contrary": "Advertising-driven companies fell sharply in the 2022 rate shock even though the economy kept growing.",
+        "watch": "Advertising spending, subscriber growth and borrowing costs."},
+    "Consumer Discretionary": {"growth": "high", "inflation": "pressure",
+        "contrary": "In 2008 household spending collapsed faster than production data showed; in 2020 online retail grew during a recession.",
+        "watch": "Real household income, consumer credit growth and unemployment."},
+    "Consumer Staples": {"growth": "low", "inflation": "pressure",
+        "contrary": "In 2021–2022 input-cost inflation squeezed margins despite stable demand.",
+        "watch": "Input costs, pricing power and volume trends."},
+    "Energy": {"growth": "high", "inflation": "beneficiary",
+        "contrary": "Energy outperformed in 2022 while growth slowed, and collapsed in 2014–2016 during a global expansion, because supply decisions dominate.",
+        "watch": "Oil and gas prices, production discipline and global demand."},
+    "Financials": {"growth": "high", "inflation": "rates",
+        "contrary": "Rising rates helped lending margins in 2022 but exposed bank balance-sheet losses in 2023.",
+        "watch": "Loan growth, credit losses, yield-curve shape and deposit costs."},
+    "Health Care": {"growth": "low", "inflation": None,
+        "contrary": "Policy and drug-pricing risk can dominate the economic cycle, as in 2015–2016.",
+        "watch": "Reimbursement policy, innovation pipelines and funding conditions."},
+    "Industrials": {"growth": "high", "inflation": None,
+        "contrary": "Supply bottlenecks in 2021 limited output despite strong orders.",
+        "watch": "Industrial production, new orders, business lending and capital spending."},
+    "Information Technology": {"growth": "moderate", "inflation": "rates",
+        "contrary": "Technology valuations fell steeply in 2000–2002 and 2022 for valuation and rate reasons, not only economic ones.",
+        "watch": "Enterprise spending, semiconductor cycles and interest rates."},
+    "Materials": {"growth": "high", "inflation": "beneficiary",
+        "contrary": "Commodity prices can be driven by global (especially Chinese) demand more than U.S. conditions.",
+        "watch": "Industrial production, construction activity and commodity prices."},
+    "Real Estate": {"growth": "moderate", "inflation": "rates",
+        "contrary": "Office property weakened after 2020 for structural reasons while the broader economy recovered.",
+        "watch": "Mortgage and financing rates, vacancies, rents and property credit."},
+    "Utilities": {"growth": "low", "inflation": "rates",
+        "contrary": "Utilities fell with bonds when interest rates jumped in 2022 despite stable demand.",
+        "watch": "Interest rates, regulated rate decisions and electricity demand."},
+}
+BACKDROP = {
+    # condition -> growth sensitivity -> backdrop label
+    "Expanding": {"high": "Supportive", "moderate": "Supportive", "low": "Neutral"},
+    "Slowing": {"high": "Mixed", "moderate": "Mixed", "low": "Relatively resilient"},
+    "Deteriorating": {"high": "Headwind", "moderate": "Headwind", "low": "Relatively resilient"},
+    "Mixed": {"high": "Mixed", "moderate": "Mixed", "low": "Mixed"},
+}
+
+
+def economic_backdrop(name: str, judgment: dict | None) -> dict:
+    """How the current qualified macro reading relates to a sector's exposure.
+
+    This is economic context, not an investment rating or recommendation.
+    """
+    profile = SENSITIVITY[name]
+    condition = (judgment or {}).get("condition")
+    base = {"growth_sensitivity": profile["growth"], "inflation_channel": profile["inflation"],
+            "contrary_case": profile["contrary"], "watch": profile["watch"],
+            "is_investment_rating": False}
+    if condition not in BACKDROP:
+        return dict(base, backdrop="Not assessed",
+                    why="No qualified current economic reading is available.",
+                    reverse="A qualified monthly assessment is required first.")
+    label = BACKDROP[condition][profile["growth"]]
+    why = {
+        "Supportive": f"Growth is {condition.lower()} and this sector's demand is closely tied to the growth-and-jobs cycle.",
+        "Neutral": "Demand here is relatively insensitive to the cycle, so expansion adds little.",
+        "Mixed": f"Conditions are {condition.lower()}, and this sector is exposed to the cycle.",
+        "Relatively resilient": f"Conditions are {condition.lower()}, and demand here has typically been less cyclical.",
+        "Headwind": "Activity and jobs are weakening, and this sector's demand is cyclical.",
+    }[label]
+    if condition == "Mixed" and profile["growth"] == "low":
+        why = "Indicators disagree; this sector's lower cyclical sensitivity does not settle the question."
+    reverse = {
+        "Supportive": "A turn to Deteriorating or Mixed conditions (production contracting or unemployment rising) would remove this support.",
+        "Neutral": "A deterioration in jobs would make this sector's lower sensitivity more relevant.",
+        "Mixed": "Production and employment moving together, in either direction, would clarify the backdrop.",
+        "Relatively resilient": "A return to broad expansion would reduce the relative advantage of lower sensitivity.",
+        "Headwind": "Production recovering and unemployment stabilizing would ease this headwind.",
+    }[label]
+    notes = []
+    classification = (judgment or {}).get("classification", {})
+    if classification.get("inflation") in ("elevated", "high"):
+        channel = profile["inflation"]
+        if channel == "beneficiary":
+            notes.append("Above-goal inflation can support pricing tied to commodities.")
+        elif channel == "pressure":
+            notes.append("Above-goal inflation can squeeze costs or customers' purchasing power.")
+        elif channel == "rates":
+            notes.append("Above-goal inflation can keep interest rates high, pressuring valuations or financing.")
+    return dict(base, backdrop=label, why=why, reverse=reverse, inflation_note=" ".join(notes) or None)
+
+
 def _qualified(item: dict, as_of: date) -> bool:
     """A sector rating requires dated, attributable investment AND economic evidence."""
     if not isinstance(item, dict):
@@ -79,7 +174,7 @@ def _qualified(item: dict, as_of: date) -> bool:
     )
 
 
-def build_sector_report(evidence: dict, as_of: date) -> dict:
+def build_sector_report(evidence: dict, as_of: date, judgment: dict | None = None) -> dict:
     if not isinstance(evidence, dict):
         raise ValueError("Evidence must be an object")
     unknown = set(evidence) - set(SECTORS)
@@ -102,6 +197,7 @@ def build_sector_report(evidence: dict, as_of: date) -> dict:
             } if qualified else None,
             "reason": item.get("rationale") if qualified else
                 "Source-qualified, dated economic, earnings, valuation and point-in-time relative-return evidence is incomplete.",
+            "economic_backdrop": economic_backdrop(name, judgment),
             "as_of": as_of.isoformat(),
         })
     return {"schema_version": 1, "as_of": as_of.isoformat(), "sectors": sectors,
