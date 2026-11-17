@@ -199,6 +199,16 @@ class HomepageIntegrationTests(unittest.TestCase):
         self.assertNotIn("the major indicators disagree", page)
         self.assertNotIn("Economic trend: mixed", page)
 
+    def test_firming_is_shown_with_its_documented_limitation(self):
+        (self.root / "weekly_economic_assessment.json").write_text(json.dumps(
+            assessment(growth=2.0, labor=0.0, industrial_production_momentum_3m_pp=0.8)))
+        build(self.root, AS_OF)
+        page = (self.root / "overview.html").read_text()
+        self.assertIn("Direction: firming", page)
+        self.assertIn("treat it as a description, not a signal", page)
+        research = (self.root / "research.html").read_text()
+        self.assertIn("mostly confirmed recessions after they began", research)
+
     def test_stale_release_shows_no_rubric_sections(self):
         (self.root / "weekly_release_acceptance.json").write_text(json.dumps({"status": "STALE_RESEARCH_ONLY"}))
         (self.root / "v5_unified_portal.json").write_text(json.dumps(

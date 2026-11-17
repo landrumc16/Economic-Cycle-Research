@@ -18,7 +18,7 @@ except ImportError:
 NAV = (("Overview","overview.html"),("Indicators","economic_dashboard.html"),
        ("Sectors & Industries","sectors.html"),("Historical Comparisons","historical.html"),
        ("Monthly Reports","monthly-research.html"),("Research & Methodology","research.html"))
-STYLE = """<style>:root{font:16px system-ui,sans-serif;color:#19334c;background:#f2f6fa}*{box-sizing:border-box}body{max-width:1000px;margin:auto;padding:20px;line-height:1.65}header,section,article,details{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:20px;margin:14px 0;overflow-wrap:anywhere}header{background:#17324c;color:white}header a{color:#e4f5ff}nav{display:flex;flex-wrap:wrap;gap:14px}nav a{padding:4px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid article{margin:0}main>section:first-of-type{border-top:5px solid #397ba3}h1,h2,h3{line-height:1.25}h2{margin-top:0}li{margin:7px 0}summary{cursor:pointer;font-weight:600}a:focus-visible{outline:3px solid orange}footer{padding:16px;color:#526579;font-size:.85rem}@media(max-width:600px){body{padding:10px}header,section,article,details{padding:14px}nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}h1{font-size:1.65rem}h2{font-size:1.3rem}}</style>"""
+STYLE = """<style>:root{font:16px system-ui,sans-serif;color:#19334c;background:#f2f6fa}*{box-sizing:border-box}body{max-width:1000px;margin:auto;padding:20px;line-height:1.65}header,section,article,details{background:white;border:1px solid #d8e2ec;border-radius:14px;padding:20px;margin:14px 0;overflow-wrap:anywhere}header{background:#17324c;color:white}header a{color:#e4f5ff}nav{display:flex;flex-wrap:wrap;gap:14px}nav a{padding:4px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.grid article{margin:0}main>section:first-of-type{border-top:5px solid #397ba3}h1,h2,h3{line-height:1.25}h2{margin-top:0}li{margin:7px 0}summary{cursor:pointer;font-weight:600}a:focus-visible,[tabindex]:focus-visible{outline:3px solid orange}section>a,article>a{display:inline-block;min-height:24px;padding:2px 0}footer{padding:16px;color:#526579;font-size:.85rem}@media(max-width:600px){body{padding:10px}header,section,article,details{padding:14px}nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}h1{font-size:1.65rem}h2{font-size:1.3rem}}</style>"""
 
 def esc(value):
     return html.escape(str(value), quote=True)
@@ -266,6 +266,13 @@ def monthly_changes(folder, monthly_status="PASS", as_of=None, accepted_date=Non
     return "<ul>" + "".join(items) + "</ul>"
 
 
+OUTCOME_LABELS = {
+    "early warning": "flagged before the peak",
+    "confirmation after peak": "confirmed after the peak",
+    "missed": "missed",
+}
+
+
 def scorecard_section(card):
     """Readable M2 scorecard; refuses any card that claims skill or probabilities."""
     if (not isinstance(card, dict) or card.get("status") != "RETROSPECTIVE_REPLAY_NOT_POINT_IN_TIME"
@@ -281,7 +288,7 @@ def scorecard_section(card):
                      f"{-lead} month{'' if lead == -1 else 's'} after the peak" if lead < 0 else "at the peak"))
         label = " — pandemic shock, reported separately" if item.get("pandemic_shock") else ""
         rows.append(f"<li>Recession beginning {esc(item['peak'])}{esc(label)}: "
-                    f"<strong>{esc(item['outcome'])}</strong> ({esc(timing)})</li>")
+                    f"<strong>{esc(OUTCOME_LABELS.get(item['outcome'], item['outcome']))}</strong> ({esc(timing)})</li>")
     alarms = card.get("false_alarm_episodes", [])
     alarm_list = "".join(f"<li>{esc(a['first_month'])} to {esc(a['last_month'])} ({a['months']} months)</li>"
                          for a in alarms)
@@ -304,7 +311,9 @@ def scorecard_section(card):
                      f"count as right if {esc(tests.get('constructive', '').lower())}. The two tests overlap, so compare "
                      "each share with its own base rate (how often that outcome happened in all months), "
                      "not with the other group.</p>"
-                     '<div style="overflow-x:auto"><table style="overflow-wrap:normal;border-collapse:collapse;'
+                     '<div style="overflow-x:auto" tabindex="0" role="region" '
+                     'aria-label="Direction calls versus the next six months, scrollable table">'
+                     '<table style="overflow-wrap:normal;border-collapse:collapse;'
                      'text-align:left;width:100%"><caption>Direction calls versus the next six months, excluding 2020'
                      '</caption><thead><tr><th scope="col">Direction</th><th scope="col">Right</th>'
                      '<th scope="col">Base rate</th><th scope="col">Points above base rate</th></tr></thead><tbody>'
@@ -320,7 +329,8 @@ def scorecard_section(card):
             "<strong>not a measure of forecasting accuracy and not a probability</strong>.</p>"
             "<h3>Did the rules flag recessions?</h3><ul>" + "".join(rows) + "</ul>"
             f"<p>{card['recessions_missed']} of {card['recessions_evaluated_excluding_pandemic']} "
-            "non-pandemic recessions were missed entirely. A warning after the peak confirms, it does not anticipate.</p>"
+            "non-pandemic recessions were missed entirely. A warning after the peak confirms, it does not anticipate. "
+            "A warning before a peak in a single case is not proof that the rules predict recessions.</p>"
             + (f"<p>Not evaluated because the data begin too late: recessions beginning {esc(', '.join(not_evaluable))}.</p>"
                if not_evaluable else "")
             + f"<h3>False alarms</h3><p>{len(alarms)} of {card['warning_episodes']} warning episodes were not "
@@ -499,7 +509,9 @@ def build(folder, as_of, evidence=None):
         opinion_html += f'<p>{esc(judgment.get("withheld_reason", ""))}</p>'
     direction_text = {
         "Strengthening": "Direction: strengthening — production momentum and jobs are both improving.",
-        "Firming": "Direction: firming — production momentum is improving while jobs hold steady.",
+        "Firming": ("Direction: firming — production momentum is improving while jobs hold steady. "
+                    "Historically this label has said little about the next six months beyond the base rate, "
+                    "so treat it as a description, not a signal."),
         "Steady": "Direction: steady — no material change in momentum.",
         "Softening": "Direction: softening — production momentum is fading while jobs hold.",
         "Weakening": "Direction: weakening — the labor market is deteriorating.",
@@ -634,7 +646,9 @@ def build(folder, as_of, evidence=None):
                 'flat or contracting growth with deteriorating jobs is Deteriorating; anything else is Mixed.</li>'
                 '<li>Confidence describes evidence coverage and consistency (contrary signals, revisions, missing momentum), '
                 'never the probability of an outcome.</li></ul>'
-                '<p>The thresholds double as the published reversal conditions. See the historical replay on the '
+                '<p>Deteriorating has mostly confirmed recessions after they began rather than anticipating them, and it has produced false alarms. '
+                'Direction labels differ in usefulness: Firming has historically added little beyond the base rate. '
+                'The thresholds double as the published reversal conditions. See the historical replay on the '
                 '<a href="historical.html">Historical Comparisons</a> page for false alarms and misses.</p></details>'
                 '<details><summary>Methods and limitations</summary><p>Retrospective revised observations are not certified '
                 'point-in-time histories. Sector outlooks require sourced earnings, valuation and benchmark-relative total returns. '

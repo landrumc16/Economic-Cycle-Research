@@ -105,6 +105,8 @@ class ScorecardPageTests(unittest.TestCase):
         self.assertIn('<th scope="col">Base rate</th>', html)
         self.assertIn('<th scope="rowgroup" colspan="4">Cautious calls</th>', html)
         self.assertNotIn("1 months", html)
+        self.assertNotIn("early warning", html.lower())
+        self.assertIn("not proof that the rules predict recessions", html)
         agreement = card["directional_agreement_excluding_pandemic"]
         self.assertEqual(agreement["Weakening"]["outcome_test"], "cautious")
         self.assertEqual(agreement["Steady"]["outcome_test"], "constructive")
@@ -124,3 +126,17 @@ class ScorecardPageTests(unittest.TestCase):
                          ("status", "VALIDATED_FORECAST")):
             with self.assertRaises(ValueError):
                 scorecard_section(dict(card, **{key: bad}))
+
+
+class EarlyWarningWordingTests(unittest.TestCase):
+    def test_flagged_before_peak_is_not_presented_as_proven_prediction(self):
+        from scripts.v6_public_site import scorecard_section
+        card = replay(synthetic(), start="2001-06")
+        card["recessions"] = [{"peak": "2001-03", "trough": "2001-11", "pandemic_shock": False,
+                               "first_warning": "2001-02", "warning_months_before_peak": 1,
+                               "outcome": "early warning"}]
+        html = scorecard_section(card)
+        self.assertIn("flagged before the peak", html)
+        self.assertIn("1 month before the peak", html)
+        self.assertNotIn("early warning", html.lower())
+        self.assertIn("not proof that the rules predict recessions", html)
