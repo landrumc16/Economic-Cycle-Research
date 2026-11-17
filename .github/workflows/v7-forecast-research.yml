@@ -29,7 +29,7 @@ jobs:
           for series in GS10 TB3MS BAA USREC UNRATE CPIAUCSL INDPRO PAYEMS ICSA; do
             python scripts/fetch_industry_observations.py "$series" --start 1948-01-01 --end "$(date -u +%F)"
           done
-      - name: Print dated data snapshot (for reproducible offline research)
+      - name: Print dated data snapshot (compact, one line per series)
         run: |
           python - <<'PY'
           import csv, json
@@ -38,9 +38,15 @@ jobs:
           print("V7DATA-BEGIN")
           for series in ("GS10","TB3MS","BAA","USREC","UNRATE","CPIAUCSL","INDPRO","PAYEMS","ICSA"):
               meta = json.loads((root / f"{series}_metadata.json").read_text())
-              print("V7META", series, meta.get("source_url"), meta.get("retrieved_at", meta.get("retrieval_date", "")))
-              for row in csv.DictReader((root / f"{series}_monthly.csv").open()):
-                  print("V7ROW", series, row["date"][:7], row["value"])
+              rows = list(csv.DictReader((root / f"{series}_monthly.csv").open()))
+              months = [r["date"][:7] for r in rows]
+              values = {r["date"][:7]: r["value"] for r in rows}
+              # Contiguous calendar months from first to last; unpublished months are blank.
+              y, m = map(int, months[0].split("-")); seq = []
+              while f"{y:04d}-{m:02d}" <= months[-1]:
+                  seq.append(values.get(f"{y:04d}-{m:02d}", "")); m += 1
+                  if m == 13: y, m = y + 1, 1
+              print("V7SERIES", series, months[0], len(rows), meta.get("source_url"), ",".join(seq))
           print("V7DATA-END")
           PY
       - name: V7 forecast evaluation (if present)
