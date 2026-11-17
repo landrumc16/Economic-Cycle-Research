@@ -39,10 +39,28 @@ def describe(normalized):
         prior_month_index = year * 12 + month - 1 - lag * (3 if series == "GDPC1" else 1)
         prior = f"{prior_month_index // 12:04d}-{prior_month_index % 12 + 1:02d}-01"
         value = change(data[latest], data.get(prior), pct)
+        used, note = latest, None
+        if value is None and series != "GDPC1":
+            # A baseline month that was never published (e.g. October 2025 during
+            # the federal shutdown) must not block the reading. Use the immediately
+            # preceding calendar month only if it AND its own calendar baseline
+            # exist; date the reading by that month. Never substitute a different
+            # baseline month and never look further back.
+            previous_index = year * 12 + month - 2
+            previous = f"{previous_index // 12:04d}-{previous_index % 12 + 1:02d}-01"
+            previous_prior_index = previous_index - lag
+            previous_prior = f"{previous_prior_index // 12:04d}-{previous_prior_index % 12 + 1:02d}-01"
+            fallback = change(data.get(previous), data.get(previous_prior), pct) if previous in data else None
+            if fallback is not None:
+                value, used, prior = fallback, previous, previous_prior
+                note = (f"{latest[:7]} change not computable (baseline unpublished); "
+                        f"{previous[:7]} used")
         report["metrics"][label] = {
-            "value": value, "unit": unit, "latest_date": latest,
+            "value": value, "unit": unit, "latest_date": used,
+            "latest_available_date": latest,
             "baseline_date": prior,
             "reason": None if value is not None else "MISSING_BASELINE_OR_INVALID",
+            "note": note,
             "definition": f"{series} calendar-lag {lag} {'quarters' if series == 'GDPC1' else 'months'}"
         }
     return report
