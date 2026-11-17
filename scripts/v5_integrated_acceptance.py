@@ -14,7 +14,8 @@ FILES = ("index.html", "v5_unified_portal.json", "v5_dashboard.html",
          "v5_dashboard.json", "v5_executive_brief.md",
          "economic_dashboard.html", "economic_dashboard.json",
          "unified_research_status.json", "weekly_release_acceptance.json",
-         "v5_forecast_release_gate.json", "weekly_economic_assessment.json")
+         "v5_forecast_release_gate.json", "weekly_economic_assessment.json",
+         "historical_cycle_timeline.json")
 
 
 class LocalLinks(HTMLParser):
@@ -55,15 +56,21 @@ def _month(value, label):
     return text[:7]
 
 
-def verify_observation_months(portal, historical, monthly, assessment):
+def verify_observation_months(portal, historical, monthly, assessment, timeline):
     """Check each module against its OWN documented source coverage.
 
-    The monthly gate's observation month is the latest month shared by every
-    monthly-assessment series. The V5 historical timeline uses only
-    TIMELINE_SERIES, so its latest month is the latest month shared by those
-    series. Publication schedules differ (housing and income lag), so the two
-    months may legitimately differ; both are derived from the same dated
-    source ledger and neither may be future-dated or internally inconsistent.
+    Monthly gate: its observation month is the latest month published for
+    every monthly-assessment series (the minimum of each series' latest
+    available month).
+
+    V5 historical research: its month is the last complete month of the
+    historical timeline, which needs every TIMELINE_SERIES value plus year-
+    and quarter-earlier values. It therefore can never be later than the
+    earliest latest-month among those series, and it can be earlier when a
+    required prior observation was never published (for example October 2025).
+
+    The two months may legitimately differ. Neither may be future-dated,
+    malformed or inconsistent with the artifacts that produced it.
     """
     if assessment.get("status") != "RESEARCH_SNAPSHOT_NOT_FORECAST":
         raise ValueError("Unapproved monthly assessment")
@@ -73,23 +80,28 @@ def verify_observation_months(portal, historical, monthly, assessment):
     sources = assessment.get("sources")
     if not isinstance(sources, dict) or not sources:
         raise ValueError("Missing monthly source ledger")
-    latest = {}
+    available = {}
     for name, source in sources.items():
         if not isinstance(source, dict):
             raise ValueError(f"Invalid source entry: {name}")
-        latest[name] = _month(source.get("latest_used_month"), name)
-        if latest[name] > assessment_month:
+        available[name] = _month(source.get("latest_available_month", source.get("latest_used_month")), name)
+        used = _month(source.get("latest_used_month"), name)
+        if available[name] > assessment_month or used > available[name]:
             raise ValueError(f"Future-dated observation: {name}")
-    missing = [name for name in TIMELINE_SERIES if name not in latest]
+    missing = [name for name in TIMELINE_SERIES if name not in available]
     if missing:
         raise ValueError("Source ledger lacks V5 timeline series: " + ", ".join(missing))
     monthly_month = _month(monthly.get("observation_month"), "monthly gate")
     if (monthly_month != _month(assessment.get("common_observation_month"), "assessment")
-            or monthly_month != min(latest.values())):
+            or monthly_month != min(available.values())):
         raise ValueError("Monthly observation date mismatch")
+    if timeline.get("status") != "RETROSPECTIVE_DESCRIPTIVE_ONLY":
+        raise ValueError("Unverified historical timeline")
     v5_month = _month(historical.get("observation_month"), "V5 historical")
-    if v5_month != min(latest[name] for name in TIMELINE_SERIES):
-        raise ValueError("V5 historical observation month does not match its timeline sources")
+    if v5_month != _month(timeline.get("last_month"), "timeline"):
+        raise ValueError("V5 historical observation month does not match its timeline")
+    if v5_month > min(available[name] for name in TIMELINE_SERIES):
+        raise ValueError("V5 historical observation month is later than its timeline sources")
     if _month(portal.get("observation_month"), "portal") != v5_month:
         raise ValueError("Historical research mismatch")
     return {"monthly_observation_month": monthly_month, "v5_observation_month": v5_month}
@@ -104,7 +116,7 @@ def verify(folder):
     portal, monthly, unified = map(read, ("v5_unified_portal.json", "weekly_release_acceptance.json",
                                          "unified_research_status.json"))
     forecast, historical = map(read, ("v5_forecast_release_gate.json", "v5_dashboard.json"))
-    assessment = read("weekly_economic_assessment.json")
+    assessment, timeline = map(read, ("weekly_economic_assessment.json", "historical_cycle_timeline.json"))
     if portal.get("status") != "V5_UNIFIED_RESEARCH_PORTAL":
         raise ValueError("Invalid integrated portal")
     if monthly.get("status") not in ("PASS", "STALE_RESEARCH_ONLY"):
@@ -121,7 +133,7 @@ def verify(folder):
         raise ValueError("Uncertified current assessment")
     if monthly["status"] == "STALE_RESEARCH_ONLY" and monthly.get("current_assessment_approved") is True:
         raise ValueError("Stale monthly observations presented as current")
-    months = verify_observation_months(portal, historical, monthly, assessment)
+    months = verify_observation_months(portal, historical, monthly, assessment, timeline)
     for key in ("daily_refresh_status", "weekly_outlook_status", "monthly_cycle_status", "workbook_snapshot_review_status"):
         if key not in portal or key not in unified or not isinstance(portal[key], str) or not portal[key]:
             raise ValueError(f"Missing unified cadence/review status: {key}")

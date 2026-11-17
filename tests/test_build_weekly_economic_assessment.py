@@ -106,3 +106,36 @@ class V63DerivedFieldTests(unittest.TestCase):
             handle.write("2025-01-01,999999\n")
         self.assertEqual(snapshot(self.root, "2018-01-15")["industrial_production_momentum_3m_pp"],
                          result["industrial_production_momentum_3m_pp"])
+
+
+class UnpublishedYearAgoMonthTests(unittest.TestCase):
+    setUp = WeeklyAssessmentTests.setUp
+
+    def _drop(self, series, month):
+        path = self.root / f"data/industry_observations/{series}_monthly.csv"
+        rows = [r for r in csv.DictReader(path.open()) if not r["date"].startswith(month)]
+        with path.open("w", newline="") as handle:
+            writer = csv.DictWriter(handle, fieldnames=["date", "value"])
+            writer.writeheader()
+            writer.writerows(rows)
+
+    def test_latest_computable_month_is_used_and_dated(self):
+        # Latest month 2019-02; its year-earlier month 2018-02 was never published.
+        self._drop("CPIAUCSL", "2018-02")
+        result = snapshot(self.root, "2019-03-10")
+        self.assertIsNotNone(result["cpi_inflation_12m_log_pct"])
+        self.assertEqual(result["sources"]["CPIAUCSL"]["latest_used_month"], "2019-01-01")
+        self.assertEqual(result["sources"]["CPIAUCSL"]["latest_available_month"], "2019-02-01")
+        self.assertEqual(result["sources"]["CPIAUCSL"]["observation_lag_months"], 2)
+        self.assertIn("not published", result["observation_notes"]["CPIAUCSL"])
+        self.assertIn("Note (CPIAUCSL)", markdown(result))
+        # Other series are untouched.
+        self.assertEqual(result["sources"]["INDPRO"]["latest_used_month"], "2019-02-01")
+
+    def test_no_deeper_fallback_and_no_imputation(self):
+        self._drop("CPIAUCSL", "2018-02")
+        self._drop("CPIAUCSL", "2018-01")
+        result = snapshot(self.root, "2019-03-10")
+        self.assertIsNone(result["cpi_inflation_12m_log_pct"])
+        self.assertEqual(result["sources"]["CPIAUCSL"]["latest_used_month"], "2019-02-01")
+        self.assertEqual(result["observation_notes"], {})

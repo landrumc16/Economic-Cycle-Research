@@ -246,7 +246,7 @@ def interpret(assessment: dict, status: str, as_of: date, previous: dict | None 
             "direction": "Not established", "evidence_confidence": "None",
             "headline": "Our assessment: Insufficient current evidence for a defensible economic call.",
             "outlook": "No directional outlook is published from stale or incomplete observations.",
-            "drivers": [], "counterevidence": [], "reversal_conditions": [],
+            "drivers": [], "counterevidence": [], "evidence_gaps": [], "reversal_conditions": [],
             "revisions": [], "changes_since_previous": [], "previous_assessment_date": None,
             "is_forecast": False, "probabilities_published": False}
     if status != "PASS" or assessment.get("stale") is not False:
@@ -330,7 +330,18 @@ def interpret(assessment: dict, status: str, as_of: date, previous: dict | None 
                 revisions.append(f"{series} {month[pillar]} reading revised from {before:.2f} "
                                  f"to {assessment[metric]:.2f}")
 
-    conflicts = len(counter) + len(revisions) + (0 if _number(momentum) else 1)
+    gaps = []
+    if not _number(momentum):
+        gaps.append("Three-month production momentum is unavailable")
+    if not _number(rise):
+        gaps.append("The prior-year unemployment comparison is unavailable "
+                    "(a required month in the past year was not published)")
+    if not _number(inflation_change):
+        gaps.append("The three-month inflation trend is unavailable")
+    notes = assessment.get("observation_notes")
+    if isinstance(notes, dict):
+        gaps.extend(str(note) for note in notes.values())
+    conflicts = len(counter) + len(revisions) + len(gaps)
     confidence = "High" if conflicts == 0 else "Moderate" if conflicts <= 2 else "Low"
 
     result = dict(base)
@@ -342,7 +353,7 @@ def interpret(assessment: dict, status: str, as_of: date, previous: dict | None 
         "classification": {"growth": g_level, "growth_momentum": g_trend, "labor": l_state,
                            "labor_rule_triggered": rule_flag, "inflation": i_band,
                            "inflation_trend": i_trend},
-        "drivers": drivers, "counterevidence": counter,
+        "drivers": drivers, "counterevidence": counter, "evidence_gaps": gaps,
         "reversal_conditions": _reversal(condition), "revisions": revisions,
     })
     result.pop("withheld_reason", None)

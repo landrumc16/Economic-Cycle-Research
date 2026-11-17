@@ -95,6 +95,15 @@ class RubricFixtureTests(unittest.TestCase):
         self.assertEqual(result["direction"], "Unconfirmed")
         self.assertEqual(result["evidence_confidence"], "Moderate")
 
+    def test_unpublished_months_are_evidence_gaps_not_silent(self):
+        result = interpret(assessment(unemployment_3m_avg_rise_from_12m_low_pp=None,
+                                      observation_notes={"CPIAUCSL": "2026-10 not computable; 2026-09 is used"}),
+                           "PASS", AS_OF)
+        self.assertEqual(result["condition"], "Expanding")
+        self.assertTrue(any("prior-year unemployment" in g for g in result["evidence_gaps"]))
+        self.assertTrue(any("2026-09 is used" in g for g in result["evidence_gaps"]))
+        self.assertEqual(result["evidence_confidence"], "Moderate")
+
     def test_momentum_and_inflation_trend(self):
         result = interpret(assessment(industrial_production_momentum_3m_pp=-0.8,
                                       inflation=3.2, cpi_inflation_change_3m_pp=0.5), "PASS", AS_OF)

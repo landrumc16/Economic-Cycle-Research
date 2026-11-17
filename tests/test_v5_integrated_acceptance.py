@@ -38,6 +38,8 @@ class IntegratedAcceptanceTests(unittest.TestCase):
                 "sources": {name: {"latest_used_month": "2026-08-01"} for name in
                             ("NASDAQCOM", "CSUSHPINSA", "TOTALSL", "BUSLOANS", "PI",
                              "UNRATE", "CPIAUCSL", "INDPRO")}},
+            "historical_cycle_timeline.json": {"status": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
+                "last_month": "2026-08"},
         }
         for name in FILES:
             (self.folder / name).write_text(json.dumps(data[name]) if name in data else
@@ -155,6 +157,7 @@ class IntegratedAcceptanceTests(unittest.TestCase):
         self._edit("weekly_economic_assessment.json", self._lagging_housing_and_income)
         for name in ("v5_dashboard.json", "v5_unified_portal.json"):
             self._edit(name, lambda d: d.update(observation_month="2026-09"))
+        self._edit("historical_cycle_timeline.json", lambda d: d.update(last_month="2026-09"))
         result = verify(self.folder)
         self.assertEqual(result["monthly_observation_month"], "2026-08")
         self.assertEqual(result["v5_observation_month"], "2026-09")
@@ -163,12 +166,39 @@ class IntegratedAcceptanceTests(unittest.TestCase):
         # Sources end in August, so a September V5 month would be invented.
         for name in ("v5_dashboard.json", "v5_unified_portal.json"):
             self._edit(name, lambda d: d.update(observation_month="2026-09"))
-        with self.assertRaisesRegex(ValueError, "timeline sources"):
+        self._edit("historical_cycle_timeline.json", lambda d: d.update(last_month="2026-09"))
+        with self.assertRaisesRegex(ValueError, "later than its timeline sources"):
             verify(self.folder)
 
-    def test_reject_v5_month_older_than_its_sources(self):
-        self._edit("weekly_economic_assessment.json", self._lagging_housing_and_income)
-        with self.assertRaisesRegex(ValueError, "timeline sources"):
+    def test_reject_v5_month_disagreeing_with_timeline_artifact(self):
+        self._edit("historical_cycle_timeline.json", lambda d: d.update(last_month="2026-07"))
+        with self.assertRaisesRegex(ValueError, "does not match its timeline"):
+            verify(self.folder)
+        self.setUp()
+        self._edit("historical_cycle_timeline.json", lambda d: d.update(status="FORECAST"))
+        with self.assertRaisesRegex(ValueError, "Unverified historical timeline"):
+            verify(self.folder)
+
+    def test_accept_timeline_ending_before_sources_after_unpublished_year_ago_month(self):
+        # December 2026 pattern: October 2025 CPI was never published, so the
+        # timeline cannot complete October 2026 and legitimately ends in September.
+        def december(data):
+            for name in data["sources"]:
+                data["sources"][name]["latest_used_month"] = "2026-10-01"
+            data["sources"]["CSUSHPINSA"]["latest_used_month"] = "2026-09-01"
+            data["common_observation_month"] = "2026-09-01"
+        self._edit("weekly_economic_assessment.json", december)
+        self._edit("weekly_release_acceptance.json", lambda d: d.update(observation_month="2026-09-01"))
+        for name in ("v5_dashboard.json", "v5_unified_portal.json"):
+            self._edit(name, lambda d: d.update(observation_month="2026-09"))
+        self._edit("historical_cycle_timeline.json", lambda d: d.update(last_month="2026-09"))
+        result = verify(self.folder)
+        self.assertEqual(result["v5_observation_month"], "2026-09")
+
+    def test_reject_used_month_after_available_month(self):
+        self._edit("weekly_economic_assessment.json", lambda d: d["sources"]["CPIAUCSL"].update(
+            latest_available_month="2026-07-01"))
+        with self.assertRaisesRegex(ValueError, "Future-dated"):
             verify(self.folder)
 
     def test_reject_portal_disagreeing_with_v5_dashboard(self):

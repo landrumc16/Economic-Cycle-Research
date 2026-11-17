@@ -463,7 +463,9 @@ def build(folder, as_of, evidence=None):
             '<h3>Why we think this</h3>' + bullet_list(judgment["drivers"])
             + '<h3>What argues against it</h3>'
             + (bullet_list(judgment["counterevidence"]) if judgment["counterevidence"]
-               else '<p>No material contrary evidence among the core indicators.</p>'))
+               else '<p>No material contrary evidence among the core indicators.</p>')
+            + ('<h3>Evidence gaps</h3>' + bullet_list(judgment["evidence_gaps"])
+               if judgment["evidence_gaps"] else ''))
         changes = judgment["changes_since_previous"] + judgment["revisions"]
         opinion_html += ('<h3>What changed since the last accepted assessment</h3>'
                          + (bullet_list(changes) if changes else
