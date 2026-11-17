@@ -102,7 +102,10 @@ class RubricFixtureTests(unittest.TestCase):
         self.assertEqual(result["condition"], "Expanding")
         self.assertTrue(any("prior-year unemployment" in g for g in result["evidence_gaps"]))
         self.assertTrue(any("2026-09 is used" in g for g in result["evidence_gaps"]))
-        self.assertEqual(result["evidence_confidence"], "Moderate")
+        self.assertEqual(result["evidence_confidence"], "Moderate")  # one genuine gap; the note is not penalised
+        only_note = interpret(assessment(observation_notes={"CPIAUCSL": "2026-09 is used"}), "PASS", AS_OF)
+        self.assertEqual(only_note["evidence_confidence"], "High")
+        self.assertIn("2026-09 is used", only_note["evidence_gaps"])
 
     def test_momentum_and_inflation_trend(self):
         result = interpret(assessment(industrial_production_momentum_3m_pp=-0.8,

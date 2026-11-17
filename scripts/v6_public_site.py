@@ -704,7 +704,10 @@ def build(folder, as_of, evidence=None):
         "historical_validation": outlook["historical_research"]["validation"],
     }, indent=2) + "\n")
 
-    return {"pages":list(pages),"monthly_status":status,"sector_count":len(sectors["sectors"])}
+    return {"pages":list(pages),"monthly_status":status,"sector_count":len(sectors["sectors"]),
+            "interpretation": {key: judgment.get(key) for key in
+                               ("condition", "direction", "evidence_confidence", "classification",
+                                "counterevidence", "evidence_gaps", "withheld_reason")}}
 
 def main():
     p=argparse.ArgumentParser()

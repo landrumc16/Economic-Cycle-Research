@@ -338,10 +338,12 @@ def interpret(assessment: dict, status: str, as_of: date, previous: dict | None 
                     "(a required month in the past year was not published)")
     if not _number(inflation_change):
         gaps.append("The three-month inflation trend is unavailable")
+    # Dating notes are disclosed but not penalised: the reading used is still
+    # current under the freshness rule; only genuinely missing evidence counts.
+    conflicts = len(counter) + len(revisions) + len(gaps)
     notes = assessment.get("observation_notes")
     if isinstance(notes, dict):
         gaps.extend(str(note) for note in notes.values())
-    conflicts = len(counter) + len(revisions) + len(gaps)
     confidence = "High" if conflicts == 0 else "Moderate" if conflicts <= 2 else "Low"
 
     result = dict(base)
