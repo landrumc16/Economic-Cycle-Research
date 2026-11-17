@@ -327,7 +327,15 @@ def build(folder, as_of, evidence=None):
             raise ValueError("Missing research link target: "+name)
     # A stale research-only monthly release cannot certify current sector ratings.
     # Preserve the sector inventory, but withhold investment outlooks entirely.
-    sectors = build_sector_report((evidence or {}) if status == "PASS" else {}, as_of)
+    previous_file = folder / "previous_weekly_assessment.json"
+    previous = None
+    if previous_file.is_file():
+        try:
+            previous = json.loads(previous_file.read_text())
+        except ValueError:
+            previous = None
+    judgment = interpret(assessment, status, as_of, previous)
+    sectors = build_sector_report((evidence or {}) if status == "PASS" else {}, as_of, judgment)
     assessment_date = gate.get("assessment_date") or assessment.get("assessment_date") or "unavailable"
     if status == "PASS":
         try:
@@ -400,54 +408,48 @@ def build(folder, as_of, evidence=None):
         f'<li><a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a>: '
         f'<strong>{esc(s["outlook"])}</strong></li>'
         for s in featured[:5])
-    # Plain-language front page: conclusions first; technical material stays on linked pages.
-    sector_context = {
-        "Growth and employment improving": (
-            "Historically, investors often study cyclical businesses when growth strengthens.",
-            ("Industrials", "Consumer Discretionary", "Information Technology"),
-            "Stronger economic activity can support demand, but expensive valuations can still make an investment unattractive."
-        ),
-        "Growth and employment weakening": (
-            "Historically, investors often study more defensive businesses when growth weakens.",
-            ("Consumer Staples", "Health Care", "Utilities"),
-            "Essential services can be more resilient, but no sector is protected from losses."
-        ),
-        "Mixed signals": (
-            "Mixed economic conditions do not support a clear sector rotation.",
-            ("Consumer Staples", "Industrials", "Financials"),
-            "Compare defensive demand, industrial activity and credit sensitivity rather than assuming one winner."
-        ),
-        "Not established": (
-            "The data are not strong enough to choose a current economic-cycle sector theme.",
-            (),
-            "Wait for a qualified monthly assessment before making a cycle-based sector comparison."
-        ),
-    }[outlook["direction"]]
-    context_links = ", ".join(
-        f'<a href="{sector_urls[name]}">{esc(name)}</a>'
-        for name in sector_context[1]
-    )
-    investor_focus = (
-        f'<p>{esc(sector_context[0])}</p>'
-        + (f'<p><strong>Historical sectors to examine:</strong> {context_links}.</p>'
-           if context_links else '<p><strong>No cycle-based sector shortlist is justified.</strong></p>')
-        + f'<p>{esc(sector_context[2])}</p>'
-        + '<p><strong>Current investment rating:</strong> '
+    # V6.3 M3: sectors worth investigating follow from the qualified rubric
+    # reading and each sector's economic exposure. This is economic context,
+    # never an investment rating; investment fit stays separately gated.
+    condition = judgment["condition"]
+    preferred = {"Expanding": ("Supportive",), "Slowing": ("Relatively resilient",),
+                 "Deteriorating": ("Relatively resilient",)}.get(condition, ())
+    candidates = [s for s in sectors["sectors"] if s["economic_backdrop"]["backdrop"] in preferred]
+    headwinds = [s for s in sectors["sectors"] if s["economic_backdrop"]["backdrop"] == "Headwind"]
+    intro = {
+        "Expanding": "With activity expanding, sectors most tied to the growth-and-jobs cycle have the most supportive economic backdrop.",
+        "Slowing": "With growth stalled but jobs holding, less cyclical sectors have the steadier economic backdrop.",
+        "Deteriorating": "With activity and jobs weakening, less cyclical sectors have historically held up better economically — though none is protected from losses.",
+        "Mixed": "Mixed economic conditions do not support a clear sector rotation; compare each sector's specific exposure instead.",
+    }.get(condition, "The data are not strong enough to choose a current economic-cycle sector theme.")
+    def sector_item(s):
+        b = s["economic_backdrop"]
+        risk = b.get("inflation_note") or b["contrary_case"]
+        return (f'<li><a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a> — '
+                f'<strong>{esc(b["backdrop"])} backdrop.</strong> {esc(b["why"])} '
+                f'<em>Key risk:</em> {esc(risk)} <em>What would change this:</em> {esc(b["reverse"])}</li>')
+    investor_focus = f'<p>{esc(intro)}</p>'
+    if candidates:
+        investor_focus += ('<h3>Sectors worth investigating</h3><ul>'
+                           + "".join(sector_item(s) for s in candidates) + '</ul>')
+        if headwinds:
+            investor_focus += ('<p><strong>Facing an economic headwind:</strong> '
+                               + ", ".join(f'<a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a>'
+                                           for s in headwinds) + '.</p>')
+    elif condition == "Mixed":
+        investor_focus += '<p><strong>No cycle-based sector shortlist is justified while indicators conflict.</strong></p>'
+    else:
+        investor_focus += '<p><strong>No cycle-based sector shortlist is justified.</strong></p>'
+    investor_focus += (
+        '<p>A good economic backdrop does not make a sector a good investment: prices may already reflect it, '
+        'and valuations, earnings and interest rates matter.</p>'
+        '<p><strong>Current investment rating:</strong> '
         + (f'{qualified_count} of 11 sectors have qualified investment evidence.'
            if qualified_count else
            'No sector has enough verified valuation, earnings and return evidence for a current investment recommendation.')
-        + '</p>'
-    )
+        + '</p>')
     # V6.3: one shared, published rubric drives the editorial judgment. It is
     # withheld unless every growth, jobs and inflation observation is current.
-    previous_file = folder / "previous_weekly_assessment.json"
-    previous = None
-    if previous_file.is_file():
-        try:
-            previous = json.loads(previous_file.read_text())
-        except ValueError:
-            previous = None
-    judgment = interpret(assessment, status, as_of, previous)
     opinion = judgment["condition"] != "Insufficient evidence"
     def bullet_list(items):
         return "<ul>" + "".join(f"<li>{esc(item)}</li>" for item in items) + "</ul>"
@@ -516,23 +518,48 @@ def build(folder, as_of, evidence=None):
     sector_pages = {}
     for index, sector in enumerate(sectors["sectors"], start=1):
         filename = f"sector-{index:02d}.html"
+        b = sector["economic_backdrop"]
+        if sector["investment_fit"]:
+            evidence_items = "".join(
+                f'<li>{esc(key.replace("_", " ").capitalize())}: {esc(entry["value"])} '
+                f'(observed {esc(entry["observation_date"])}; {esc(entry["methodology"])}) '
+                f'<a href="{esc(entry["source_url"])}">source</a></li>'
+                for key, entry in sector["investment_fit"].items())
+            evidence_html = f'<ul>{evidence_items}</ul>'
+        else:
+            evidence_html = ('<p><strong>Insufficient Evidence.</strong> Missing qualified, dated sources for: '
+                             'sector earnings, valuation, and benchmark-relative total returns.</p>')
+        macro_links = " · ".join(
+            f'<a href="{esc(m["source_url"])}">{esc(m["label"])} source ({esc(m["date"])})</a>'
+            for m in observation_summary(assessment, as_of=as_of) if m["source_url"])
         details = (f'<section><h2>{esc(sector["sector"])}</h2>'
                    f'<p>Research outlook: <strong>{esc(sector["outlook"])}</strong></p>'
                    f'<p>{esc(sector["reason"])}</p>'
-                   f'<h3>Economic sensitivity</h3><p>{esc(sector["economic_exposure_hypothesis"])}</p>'
+                   '<h3>Economic backdrop now</h3>'
+                   f'<p><strong>{esc(b["backdrop"])}</strong> — {esc(b["why"])}</p>'
+                   + (f'<p>{esc(b["inflation_note"])}</p>' if b.get("inflation_note") else "")
+                   + f'<p>What would change this: {esc(b["reverse"])}</p>'
+                   '<p><small>Economic backdrop describes exposure to current conditions; it is not an investment rating.</small></p>'
+                   f'<h3>Economic sensitivity</h3><p>{esc(sector["economic_exposure_hypothesis"])}. '
+                   f'Sensitivity to the growth-and-jobs cycle: {esc(b["growth_sensitivity"])}.</p>'
+                   f'<p>What to watch: {esc(b["watch"])}</p>'
+                   f'<h3>When the usual pattern failed</h3><p>{esc(b["contrary_case"])}</p>'
                    f'<h3>Industry distinctions to research</h3><p>{esc(sector["industry_examples"])}</p>'
                    '<p>These industries have different risks; no company-specific conclusion is implied.</p>'
-                   '<h3>Investment evidence</h3>'
-                   f'<pre style="white-space:pre-wrap;overflow-wrap:anywhere">{esc(json.dumps({"economic_fit":sector["economic_fit"],"investment_fit":sector["investment_fit"]},indent=2))}</pre>'
+                   '<h3>Investment evidence</h3>' + evidence_html +
                    '<p>Historical analogies are not forward-return forecasts. An investment outlook is '
                    'published only when dated earnings, valuation and benchmarked returns pass '
                    'the evidence gate; otherwise the rating is Insufficient Evidence.</p>'
+                   + (f'<p>Economic data sources: {macro_links}</p>' if macro_links else "")
+                   + '<p>Sensitivities summarize commonly cited sector research and have not been validated '
+                   'with sector return data by this project.</p>'
                    '<a href="sectors.html">Back to all sectors</a></section>')
         sector_pages[filename] = page(sector["sector"] + " Research", details)
     sector_cards = "".join(
         f'<article><h2>{esc(s["sector"])}</h2><p><strong>{esc(s["outlook"])}</strong></p>'
         f'<p>{esc(s["reason"])}</p>'
         f'<p>{esc(s["economic_exposure_hypothesis"])}</p>'
+        f'<p>Economic backdrop: <strong>{esc(s["economic_backdrop"]["backdrop"])}</strong></p>'
         f'<a href="sector-{i:02d}.html">Read sector and industry research</a></article>'
         for i, s in enumerate(sectors["sectors"], start=1))
     descriptions = []
