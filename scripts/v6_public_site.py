@@ -9,9 +9,11 @@ from urllib.parse import urlparse
 try:
     from .v6_sector_intelligence import build_sector_report
     from .v6_historical_validation import validate_episodes
+    from .v63_interpretation import interpret
 except ImportError:
     from v6_sector_intelligence import build_sector_report
     from v6_historical_validation import validate_episodes
+    from v63_interpretation import interpret
 
 NAV = (("Overview","overview.html"),("Indicators","economic_dashboard.html"),
        ("Sectors & Industries","sectors.html"),("Historical Comparisons","historical.html"),
@@ -392,44 +394,48 @@ def build(folder, as_of, evidence=None):
            'No sector has enough verified valuation, earnings and return evidence for a current investment recommendation.')
         + '</p>'
     )
-    # An editorial interpretation is useful only when all underlying observations
-    # are source-dated, accepted and recent. Keep it separate from forecasts.
-    opinion = None
-    observations = {item["label"]: item for item in observation_summary(assessment, as_of=as_of)}
-    if status == "PASS" and assessment.get("stale") is False and all(
-            observations[name]["value"] != "Unavailable" for name in ("Growth", "Jobs", "Inflation")):
-        dates = [date.fromisoformat(observations[name]["date"] + "-01"
-                 if len(observations[name]["date"]) == 7 else observations[name]["date"])
-                 for name in ("Growth", "Jobs", "Inflation")]
-        if all(0 <= (as_of.year - d.year) * 12 + as_of.month - d.month <= 2 for d in dates):
-            growth = assessment["industrial_production_growth_12m_log_pct"]
-            inflation = assessment["cpi_inflation_12m_log_pct"]
-            labor_change = assessment.get("unemployment_change_3m_pp")
-            if isinstance(labor_change, (int, float)) and not isinstance(labor_change, bool) and math.isfinite(labor_change):
-                if growth > 0 and labor_change <= 0:
-                    opinion = ("Our assessment: economic activity is expanding and the labor trend is holding up. "
-                               "Inflation remains a risk to monitor." if inflation > 0 else
-                               "Our assessment: economic activity is expanding and the labor trend is holding up.")
-                    outlook_view = ("Working outlook: continued expansion is more consistent with these observations "
-                                    "than an ongoing broad contraction. This is a conditional research judgment, "
-                                    "not a calibrated 3–6 month forecast.")
-                    reversal = "We would turn more cautious if production contracted while unemployment rose."
-                elif growth < 0 and labor_change > 0:
-                    opinion = ("Our assessment: the economy is showing simultaneous production weakness and "
-                               "labor-market deterioration. Downside economic risk deserves priority.")
-                    outlook_view = ("Working outlook: further weakness is a serious scenario, but a recession "
-                                    "or market crash is not established by these indicators.")
-                    reversal = "We would become less cautious if production recovered and unemployment stopped rising."
-                else:
-                    opinion = ("Our assessment: the economy is not sending a unified signal. "
-                               "The evidence favors a selective, cautious interpretation over a sweeping call.")
-                    outlook_view = ("Working outlook: continued growth and deterioration both remain plausible; "
-                                    "the current evidence does not justify choosing a single future path.")
-                    reversal = "A sustained alignment of production and employment trends would change this assessment."
-    opinion_html = (f'<p><strong>{esc(opinion)}</strong></p>' if opinion else
-                    '<p><strong>Our assessment: Insufficient current evidence for a defensible economic call.</strong></p>')
-    outlook_html = (f'<p><strong>{esc(outlook_view)}</strong></p><p>{esc(reversal)}</p>' if opinion else
-                    '<p>No directional outlook is published from stale or incomplete observations.</p>')
+    # V6.3: one shared, published rubric drives the editorial judgment. It is
+    # withheld unless every growth, jobs and inflation observation is current.
+    previous_file = folder / "previous_weekly_assessment.json"
+    previous = None
+    if previous_file.is_file():
+        try:
+            previous = json.loads(previous_file.read_text())
+        except ValueError:
+            previous = None
+    judgment = interpret(assessment, status, as_of, previous)
+    opinion = judgment["condition"] != "Insufficient evidence"
+    def bullet_list(items):
+        return "<ul>" + "".join(f"<li>{esc(item)}</li>" for item in items) + "</ul>"
+    opinion_html = f'<p><strong>{esc(judgment["headline"])}</strong></p>'
+    if opinion:
+        opinion_html += (
+            f'<p>Current condition: <strong>{esc(judgment["condition"])}</strong> · '
+            f'Confidence in evidence coverage: <strong>{esc(judgment["evidence_confidence"])}</strong> '
+            '<small>(how complete and consistent the evidence is — not the odds of any event)</small></p>'
+            '<h3>Why we think this</h3>' + bullet_list(judgment["drivers"])
+            + '<h3>What argues against it</h3>'
+            + (bullet_list(judgment["counterevidence"]) if judgment["counterevidence"]
+               else '<p>No material contrary evidence among the core indicators.</p>'))
+        changes = judgment["changes_since_previous"] + judgment["revisions"]
+        opinion_html += ('<h3>What changed since the last accepted assessment</h3>'
+                         + (bullet_list(changes) if changes else
+                            '<p>No prior accepted assessment is available for comparison.</p>'))
+    else:
+        opinion_html += f'<p>{esc(judgment.get("withheld_reason", ""))}</p>'
+    direction_text = {
+        "Strengthening": "Direction: strengthening — production momentum and jobs are both improving.",
+        "Firming": "Direction: firming — production momentum is improving while jobs hold steady.",
+        "Steady": "Direction: steady — no material change in momentum.",
+        "Softening": "Direction: softening — production momentum is fading while jobs hold.",
+        "Weakening": "Direction: weakening — the labor market is deteriorating.",
+        "Unconfirmed": "Direction: unconfirmed — three-month momentum data are incomplete.",
+        "Not established": "Direction: not established.",
+    }[judgment["direction"]]
+    outlook_html = (f'<p><strong>{esc(direction_text)}</strong></p>'
+                    f'<p><strong>{esc(judgment["outlook"])}</strong></p>'
+                    '<h3>What would change our view</h3>' + bullet_list(judgment["reversal_conditions"])
+                    if opinion else f'<p>{esc(judgment["outlook"])}</p>')
     executive = "".join((
         '<section><h2>1. Where is the economy right now?</h2>',
         f'<p><strong>{esc(trend_label)}</strong></p>',
@@ -533,6 +539,7 @@ def build(folder, as_of, evidence=None):
                     f"<p>{matches} matching historical months out of {examined} months examined."
                     " Months are not independent economic episodes; this is not a crash probability.</p>")
     outlook["historical_research"] = cycle_research_contract(outlook, assessment, as_of)
+    outlook["interpretation"] = judgment
     historical_evidence_file = folder / "v6_historical_episodes.json"
     if historical_evidence_file.is_file():
         episodes = json.loads(historical_evidence_file.read_text())

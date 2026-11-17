@@ -90,3 +90,19 @@ class WeeklyAssessmentTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class V63DerivedFieldTests(unittest.TestCase):
+    setUp = WeeklyAssessmentTests.setUp
+
+    def test_v63_momentum_fields_use_only_dated_history(self):
+        result = snapshot(self.root, "2018-01-15")
+        # Constant 1% monthly log growth: 12m growth is flat, so momentum is zero.
+        self.assertAlmostEqual(result["industrial_production_momentum_3m_pp"], 0.0, places=3)
+        self.assertAlmostEqual(result["cpi_inflation_change_3m_pp"], 0.0, places=3)
+        self.assertIsNotNone(result["unemployment_3m_avg_rise_from_12m_low_pp"])
+        path = self.root / "data/industry_observations/INDPRO_monthly.csv"
+        with path.open("a") as handle:
+            handle.write("2025-01-01,999999\n")
+        self.assertEqual(snapshot(self.root, "2018-01-15")["industrial_production_momentum_3m_pp"],
+                         result["industrial_production_momentum_3m_pp"])

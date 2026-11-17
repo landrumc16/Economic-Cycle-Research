@@ -11,8 +11,10 @@ from pathlib import Path
 
 try:
     from .industry_deviation_metrics import calculate
+    from .v63_interpretation import derive_metrics
 except ImportError:
     from industry_deviation_metrics import calculate
+    from v63_interpretation import derive_metrics
 
 
 def read(path):
@@ -82,7 +84,9 @@ def snapshot(root, as_of):
         prior = f"{(index - 1) // 12:04d}-{(index - 1) % 12 + 1:02d}"
         current, earlier = by_month.get(sources[name][-1]["date"][:7]), by_month.get(prior)
         return round(current - earlier, 4) if current is not None and earlier is not None else None
-    return {
+    monthly = {name: {r["date"][:7]: float(r["value"]) for r in sources[name]}
+               for name in ("INDPRO", "UNRATE", "CPIAUCSL")}
+    result = {
         "status": "RESEARCH_SNAPSHOT_NOT_FORECAST",
         "assessment_date": as_of,
         "common_observation_month": common_date,
@@ -121,6 +125,9 @@ def snapshot(root, as_of):
             "No crash probability, investment recommendation or validated economic phase classification",
         ],
     }
+    # V6.3 momentum and labor-trend fields (additive; None when history is short).
+    result.update(derive_metrics(monthly["INDPRO"], monthly["UNRATE"], monthly["CPIAUCSL"]))
+    return result
 
 
 def markdown(result):
