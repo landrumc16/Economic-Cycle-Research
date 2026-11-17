@@ -9,11 +9,11 @@ from urllib.parse import urlparse
 try:
     from .v6_sector_intelligence import build_sector_report
     from .v6_historical_validation import validate_episodes
-    from .v63_interpretation import interpret
+    from .v63_interpretation import interpret, THRESHOLDS
 except ImportError:
     from v6_sector_intelligence import build_sector_report
     from v6_historical_validation import validate_episodes
-    from v63_interpretation import interpret
+    from v63_interpretation import interpret, THRESHOLDS
 
 NAV = (("Overview","overview.html"),("Indicators","economic_dashboard.html"),
        ("Sectors & Industries","sectors.html"),("Historical Comparisons","historical.html"),
@@ -426,8 +426,9 @@ def build(folder, as_of, evidence=None):
         b = s["economic_backdrop"]
         risk = b.get("inflation_note") or b["contrary_case"]
         return (f'<li><a href="{sector_urls[s["sector"]]}">{esc(s["sector"])}</a> — '
-                f'<strong>{esc(b["backdrop"])} backdrop.</strong> {esc(b["why"])} '
-                f'<em>Key risk:</em> {esc(risk)} <em>What would change this:</em> {esc(b["reverse"])}</li>')
+                f'<strong>{esc(b["backdrop"])} backdrop.</strong> {esc(b["why"])}'
+                f'<details><summary>Key risk and what would change this</summary>'
+                f'<p>Key risk: {esc(risk)}</p><p>What would change this: {esc(b["reverse"])}</p></details></li>')
     investor_focus = f'<p>{esc(intro)}</p>'
     if candidates:
         investor_focus += ('<h3>Sectors worth investigating</h3><ul>'
@@ -482,16 +483,18 @@ def build(folder, as_of, evidence=None):
                     f'<p><strong>{esc(judgment["outlook"])}</strong></p>'
                     '<h3>What would change our view</h3>' + bullet_list(judgment["reversal_conditions"])
                     if opinion else f'<p>{esc(judgment["outlook"])}</p>')
+    # The homepage speaks with one voice: the V6.3 rubric. The legacy
+    # observed-direction summary remains in the structured outlook JSON only.
+    rubric_trend = ("Economic condition: " + judgment["condition"].lower()
+                    if opinion else "Economic condition: not enough reliable data")
     executive = "".join((
         '<section><h2>1. Where is the economy right now?</h2>',
-        f'<p><strong>{esc(trend_label)}</strong></p>',
-        f'<p>{esc(outlook["summary"])}</p>',
+        f'<p><strong>{esc(rubric_trend)}</strong></p>',
         opinion_html,
         f'<p><small>Official monthly assessment: {esc(assessment_date)}.</small></p>',
-        '<p><a href="economic_dashboard.html">See the economic indicators</a></p></section>',
+        '<p><a href="economic_dashboard.html">See the economic indicators</a> · '
+        '<a href="research.html#rubric">How we reach this judgment</a></p></section>',
         '<section><h2>2. Where do we think it is going?</h2>',
-        f'<p><strong>{esc(practical[0])}</strong></p>',
-        f'<p>{esc(practical[1])}</p>',
         outlook_html,
         '<p><strong>Stock market:</strong> Economic direction alone does not establish where stock prices will go. '
         'A market forecast requires independently tested market evidence.</p>',
@@ -589,6 +592,23 @@ def build(folder, as_of, evidence=None):
                 '<details><summary>Monthly research and earlier reports</summary>'
                 '<p><a href="monthly-research.html">Official monthly research</a> and '
                 '<a href="v5_executive_brief.md">research archive</a>.</p></details>'
+                '<details id="rubric"><summary>How we reach the monthly judgment</summary>'
+                '<p>One published rubric classifies the latest source-dated observations. All three core '
+                'indicators must be no more than two months old, from a verified source; otherwise no call is made.</p><ul>'
+                f'<li>Growth: industrial production 12-month change is expanding at or above +{THRESHOLDS["growth_flat_band_pct"]}%, '
+                f'contracting at or below -{THRESHOLDS["growth_flat_band_pct"]}%, otherwise flat. Momentum compares it with three months earlier '
+                f'(±{THRESHOLDS["growth_momentum_band_pp"]} points).</li>'
+                f'<li>Jobs: unemployment rising {THRESHOLDS["labor_deteriorating_3m_pp"]} points or more over three months, or its three-month '
+                f'average rising {THRESHOLDS["labor_rise_from_12m_low_pp"]} points above the prior-year low, is deterioration; '
+                f'falling {abs(THRESHOLDS["labor_improving_3m_pp"])} points or more is improvement.</li>'
+                f'<li>Inflation: consumer prices up {THRESHOLDS["inflation_near_goal_pct"]}% or less is near the goal range; above '
+                f'{THRESHOLDS["inflation_high_pct"]}% is high; between is elevated. A {THRESHOLDS["inflation_trend_band_pp"]}-point move over three months is firming or easing.</li>'
+                '<li>Condition: expanding growth with steady or improving jobs is Expanding; flat growth with steady jobs is Slowing; '
+                'flat or contracting growth with deteriorating jobs is Deteriorating; anything else is Mixed.</li>'
+                '<li>Confidence describes evidence coverage and consistency (contrary signals, revisions, missing momentum), '
+                'never the probability of an outcome.</li></ul>'
+                '<p>The thresholds double as the published reversal conditions. See the historical replay on the '
+                '<a href="historical.html">Historical Comparisons</a> page for false alarms and misses.</p></details>'
                 '<details><summary>Methods and limitations</summary><p>Retrospective revised observations are not certified '
                 'point-in-time histories. Sector outlooks require sourced earnings, valuation and benchmark-relative total returns. '
                 'Missing values are not fabricated. No certified crash probabilities are published.</p></details>')

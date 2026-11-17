@@ -61,7 +61,7 @@ class SectorPageTests(unittest.TestCase):
         page = (self.root / "overview.html").read_text()
         self.assertIn("Sectors worth investigating", page)
         self.assertIn("Consumer Staples</a> — <strong>Relatively resilient backdrop.", page)
-        self.assertIn("Key risk:", page)
+        self.assertIn("Key risk: ", page)
         self.assertIn("What would change this:", page)
         self.assertIn("Facing an economic headwind", page)
         self.assertIn("does not make a sector a good investment", page)

@@ -178,6 +178,15 @@ class HomepageIntegrationTests(unittest.TestCase):
         self.assertEqual(report["observed_outlook"]["interpretation"]["condition"], "Deteriorating")
         self.assertFalse(report["observed_outlook"]["interpretation"]["probabilities_published"])
 
+    def test_homepage_does_not_contradict_rubric(self):
+        # Legacy direction logic called this "Mixed signals"; the rubric reads Expanding.
+        (self.root / "weekly_economic_assessment.json").write_text(json.dumps(assessment(growth=1.2, labor=0.1)))
+        build(self.root, AS_OF)
+        page = (self.root / "overview.html").read_text()
+        self.assertIn("Economic condition: expanding", page)
+        self.assertNotIn("the major indicators disagree", page)
+        self.assertNotIn("Economic trend: mixed", page)
+
     def test_stale_release_shows_no_rubric_sections(self):
         (self.root / "weekly_release_acceptance.json").write_text(json.dumps({"status": "STALE_RESEARCH_ONLY"}))
         (self.root / "v5_unified_portal.json").write_text(json.dumps(
