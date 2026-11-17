@@ -100,6 +100,11 @@ class ScorecardPageTests(unittest.TestCase):
         self.assertIn("not a measure of forecasting accuracy and not a probability", html)
         self.assertIn("False alarms", html)
         self.assertIn("2003-05", html)
+        self.assertIn("versus", html)
+        self.assertIn("base rate", html)
+        base = card["directional_base_rates_excluding_pandemic"]
+        self.assertGreater(base["evaluable_months"], 100)
+        self.assertAlmostEqual(base["deterioration_share"] + base["no_labor_deterioration_share"], 1.0, delta=0.35)
         self.assertIn("<details>", html)
         for key, bad in (("predictive_skill_certified", True), ("probabilities_published", True),
                          ("status", "VALIDATED_FORECAST")):

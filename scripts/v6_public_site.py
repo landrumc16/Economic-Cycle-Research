@@ -285,9 +285,16 @@ def scorecard_section(card):
     alarms = card.get("false_alarm_episodes", [])
     alarm_list = "".join(f"<li>{esc(a['first_month'])} to {esc(a['last_month'])} ({a['months']} months)</li>"
                          for a in alarms)
+    base = card.get("directional_base_rates_excluding_pandemic", {})
+    def reference(label):
+        share = (base.get("deterioration_share") if label in ("Weakening", "Softening")
+                 else base.get("no_labor_deterioration_share"))
+        return f" (versus {share:.0%} of all months)" if isinstance(share, (int, float)) else ""
     agreement = "".join(
-        f"<li>{esc(label)}: {v['agreed']} of {v['months']} months consistent with the next six months</li>"
+        f"<li>{esc(label)}: {v['agreed']} of {v['months']} months consistent with the next six months"
+        f"{esc(reference(label))}</li>"
         for label, v in card.get("directional_agreement_excluding_pandemic", {}).items() if v.get("months"))
+    not_evaluable = card.get("recessions_not_evaluable") or []
     changes = [c for c in card.get("condition_changes", []) if c.get("contradicted_by_subsequent_labor_rise")]
     contradicted = "".join(f"<li>{esc(c['month'])}: turned {esc(c['to'])}, then unemployment rose</li>"
                            for c in changes)
@@ -299,10 +306,13 @@ def scorecard_section(card):
             "<h3>Did the rules flag recessions?</h3><ul>" + "".join(rows) + "</ul>"
             f"<p>{card['recessions_missed']} of {card['recessions_evaluated_excluding_pandemic']} "
             "non-pandemic recessions were missed entirely. A warning after the peak confirms, it does not anticipate.</p>"
-            f"<h3>False alarms</h3><p>{len(alarms)} of {card['warning_episodes']} warning episodes were not "
+            + (f"<p>Not evaluated because the data begin too late: recessions beginning {esc(', '.join(not_evaluable))}.</p>"
+               if not_evaluable else "")
+            + f"<h3>False alarms</h3><p>{len(alarms)} of {card['warning_episodes']} warning episodes were not "
             "followed by a recession or a meaningful rise in unemployment.</p>"
             + (f"<ul>{alarm_list}</ul>" if alarm_list else "")
             + "<h3>Direction calls versus what happened next</h3>"
+            "<p>A direction call is only informative if it agrees more often than the base rate.</p>"
             + (f"<ul>{agreement}</ul>" if agreement else "<p>No evaluable months.</p>")
             + ("<h3>Recent views later contradicted</h3><ul>" + contradicted + "</ul>" if contradicted else "")
             + "<details><summary>Scorecard limitations</summary><ul>"

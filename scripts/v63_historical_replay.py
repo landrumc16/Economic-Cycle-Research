@@ -160,6 +160,8 @@ def score(rows: list, last_observed: str) -> dict:
                         "early warning" if lead > 0 else "confirmation after peak"),
         })
     general_recessions = [r for r in recessions if not r["pandemic_shock"]]
+    not_evaluable = [peak for peak, _trough, _p in RECESSIONS
+                     if _shift(peak, 12) < first_month and peak <= last_month]
 
     # Directional agreement with subsequent observed growth/labor developments.
     def agrees(r):
@@ -171,6 +173,16 @@ def score(rows: list, last_observed: str) -> dict:
         if r["direction"] in ("Strengthening", "Firming", "Steady"):
             return rise < 0.2
         return None
+    # Base rates: how often each outcome happened in ALL evaluable months, so a
+    # direction's agreement share can be compared with doing nothing clever.
+    evaluable = [r for r in general if r["unemployment_rise_next_6m_pp"] is not None
+                 and r["ip_growth_change_next_6m_pp"] is not None]
+    worse = sum(r["unemployment_rise_next_6m_pp"] >= 0.2 or r["ip_growth_change_next_6m_pp"] <= -1.0
+                for r in evaluable)
+    calm = sum(r["unemployment_rise_next_6m_pp"] < 0.2 for r in evaluable)
+    base_rates = {"evaluable_months": len(evaluable),
+                  "deterioration_share": round(worse / len(evaluable), 3) if evaluable else None,
+                  "no_labor_deterioration_share": round(calm / len(evaluable), 3) if evaluable else None}
     judged = [(r, agrees(r)) for r in general]
     judged = [(r, a) for r, a in judged if a is not None]
     agreement = {}
@@ -200,6 +212,8 @@ def score(rows: list, last_observed: str) -> dict:
         "recessions_missed": sum(r["outcome"] == "missed" for r in general_recessions),
         "recessions_evaluated_excluding_pandemic": len(general_recessions),
         "directional_agreement_excluding_pandemic": agreement,
+        "directional_base_rates_excluding_pandemic": base_rates,
+        "recessions_not_evaluable": not_evaluable,
         "condition_changes": changes[-24:],
         "condition_changes_total": len(changes),
         "predictive_skill_certified": False,
@@ -211,6 +225,8 @@ def score(rows: list, last_observed: str) -> dict:
             "Few recessions in the sample; timing results are anecdotal, not statistically validated",
             "NBER dates are announced months after the fact and are used only to score, never to signal",
             "The 2020 pandemic recession is a one-off shock reported separately",
+            "Recessions whose prior 12 months precede the data coverage are not evaluated",
+            "Months whose 12-month change needs an unpublished year-earlier observation are skipped",
         ],
     }
 
@@ -228,10 +244,16 @@ def markdown(card: dict) -> str:
     lines += ["", f"Warning episodes: {card['warning_episodes']}; false alarms: {len(card['false_alarm_episodes'])}"]
     lines.extend(f"- False alarm {e['first_month']} to {e['last_month']} ({e['months']} months)"
                  for e in card["false_alarm_episodes"])
+    if card.get("recessions_not_evaluable"):
+        lines.append("- Not evaluable (coverage starts too late): " + ", ".join(card["recessions_not_evaluable"]))
     lines += ["", "## Directional agreement with the next six months (excluding 2020)", ""]
+    base = card.get("directional_base_rates_excluding_pandemic", {})
     for label, item in card["directional_agreement_excluding_pandemic"].items():
         if item["months"]:
-            lines.append(f"- {label}: {item['agreed']} of {item['months']} months")
+            reference = (base.get("deterioration_share") if label in ("Weakening", "Softening")
+                         else base.get("no_labor_deterioration_share"))
+            suffix = f" (base rate across all months: {reference:.0%})" if reference is not None else ""
+            lines.append(f"- {label}: {item['agreed']} of {item['months']} months{suffix}")
     lines += ["", "## Limitations", ""] + ["- " + x for x in card["limitations"]]
     return "\n".join(lines) + "\n"
 
