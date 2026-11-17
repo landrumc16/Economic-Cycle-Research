@@ -253,7 +253,9 @@ def markdown(card: dict) -> str:
         label = " (pandemic shock, reported separately)" if r["pandemic_shock"] else ""
         timing = ("no warning" if r["first_warning"] is None else
                   f"first warning {r['first_warning']} ({r['warning_months_before_peak']:+d} month{'' if abs(r['warning_months_before_peak']) == 1 else 's'} vs peak)")
-        lines.append(f"- Peak {r['peak']}{label}: {r['outcome']} — {timing}")
+        shown = {"early warning": "flagged before the peak (one case; not proof of predictive ability)",
+                 "confirmation after peak": "confirmed after the peak"}.get(r["outcome"], r["outcome"])
+        lines.append(f"- Peak {r['peak']}{label}: {shown} — {timing}")
     lines += ["", f"Warning episodes: {card['warning_episodes']}; false alarms: {len(card['false_alarm_episodes'])}"]
     lines.extend(f"- False alarm {e['first_month']} to {e['last_month']} ({e['months']} month{'' if e['months'] == 1 else 's'})"
                  for e in card["false_alarm_episodes"])
