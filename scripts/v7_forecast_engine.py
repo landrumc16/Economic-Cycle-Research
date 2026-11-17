@@ -32,6 +32,7 @@ MIN_TRAIN = 120              # Months of labelled history before the first forec
 EVAL_START = "1972-01"
 PANDEMIC = ("2019-03", "2020-12")  # Origins whose window touches the 2020 shock.
 L2 = 1.0
+MIN_CALIBRATION = 120  # Past out-of-sample forecasts with known outcomes before recalibrating.
 
 GATE = {"bss_vs_base_rate": 0.05, "auc": 0.70, "min_episodes": 3, "max_overconfidence": 0.20}
 
@@ -84,8 +85,19 @@ def visible(data: dict, t: str) -> dict:
 # Point-in-time features
 # --------------------------------------------------------------------------
 def _avg3(series, m):
+    """3-month average; tolerates ONE unpublished month (e.g. October 2025) by
+    averaging the published ones. Never fills in a value."""
     vals = [series.get(shift(m, -k)) for k in range(3)]
-    return None if None in vals else sum(vals) / 3
+    vals = [v for v in vals if v is not None]
+    return sum(vals) / len(vals) if len(vals) >= 2 else None
+
+
+def _latest_with(series, m, lag):
+    """Latest month <= m (at most one month back) where m and m-lag both exist."""
+    for cand in (m, shift(m, -1)):
+        if cand in series and shift(cand, -lag) in series:
+            return cand
+    return None
 
 
 def features_at(data: dict, t: str) -> dict | None:
@@ -99,14 +111,20 @@ def features_at(data: dict, t: str) -> dict | None:
         prior = [_avg3(u, shift(m1, -k)) for k in range(1, 13)]
         if now is None or None in prior:
             return None
-        cpi12 = 100 * math.log(cpi[m1] / cpi[shift(m1, -12)])
-        cpi3 = 400 * math.log(cpi[m1] / cpi[shift(m1, -3)])
+        c = _latest_with(cpi, m1, 12)
+        if c is None or shift(c, -3) not in cpi:
+            return None
+        cpi12 = 100 * math.log(cpi[c] / cpi[shift(c, -12)])
+        cpi3 = 400 * math.log(cpi[c] / cpi[shift(c, -3)])
+        pm = _latest_with(pay, m1, 6)
+        if pm is None:
+            return None
         return {
             "term_spread": spreads[0],
             "term_spread_min12": min(spreads),
             "credit_spread": baa[t] - g[t],
             "unemp_rise": now - min(prior),
-            "payrolls_6m": 100 * math.log(pay[m1] / pay[shift(m1, -6)]),
+            "payrolls_6m": 100 * math.log(pay[pm] / pay[shift(pm, -6)]),
             "cpi_12m": cpi12,
             "cpi_momentum": cpi3 - cpi12,
         }
@@ -195,6 +213,21 @@ def fit_logistic(x, y, l2=L2, iters=25):
         if max(abs(s) for s in step) < 1e-8:
             break
     return w, means, sds
+
+
+def _logit(p):
+    p = min(1 - 1e-6, max(1e-6, p))
+    return math.log(p / (1 - p))
+
+
+def fit_calibrator(rows, known_by, target, h):
+    """Platt-style recalibration on PAST out-of-sample forecasts whose outcomes
+    were known by `known_by`. Returns None until enough history exists."""
+    past = [r for r in rows if label_known_by(target, r["origin"], h) <= known_by]
+    ys = [r["y"] for r in past]
+    if len(past) < MIN_CALIBRATION or not 0 < sum(ys) < len(ys):
+        return None
+    return fit_logistic([[_logit(r["model_raw"])] for r in past], ys, l2=0.1)
 
 
 def predict(model, row):
@@ -302,7 +335,7 @@ def evaluate(data: dict, target: str, h: int, end: str | None = None):
         if f is not None:
             panel[t] = f
     rubric_cache = data.setdefault("_rubric_cache", {})
-    rows, model, bmodel, rubric_rates, fitted_at = [], None, None, None, None
+    rows, model, bmodel, rubric_rates, fitted_at, calibrator = [], None, None, None, None, None
     for t in sorted(panel):
         if t < EVAL_START:
             continue
@@ -330,6 +363,7 @@ def evaluate(data: dict, target: str, h: int, end: str | None = None):
             on = [o for fl, o in flags if fl == 1]
             off = [o for fl, o in flags if fl == 0]
             rubric_rates = ((sum(on) + base_rate) / (len(on) + 1), (sum(off) + base_rate) / (len(off) + 1))
+            calibrator = fit_calibrator(rows, t, target, h)
             fitted_at = t
         if model is None:
             continue
@@ -337,8 +371,10 @@ def evaluate(data: dict, target: str, h: int, end: str | None = None):
         if t not in rubric_cache:
             rubric_cache[t] = rubric_flag(data, t)
         rf = rubric_cache[t]
-        rows.append({"origin": t, "y": y, "base": base_rate,
-                     "model": predict(model, [f[k] for k in feats]),
+        raw = predict(model, [f[k] for k in feats])
+        rows.append({"origin": t, "y": y, "base": base_rate, "model_raw": raw,
+                     "model": raw if calibrator is None else predict(calibrator, [_logit(raw)]),
+                     "recalibrated": calibrator is not None,
                      "curve": predict(bmodel, [f[k] for k in bench]),
                      "rubric": base_rate if rf is None else rubric_rates[0 if rf == 1 else 1]})
     return rows, panel
@@ -346,8 +382,9 @@ def evaluate(data: dict, target: str, h: int, end: str | None = None):
 
 def assess(rows, target, h):
     general = [r for r in rows if not PANDEMIC[0] <= r["origin"] <= PANDEMIC[1]]
-    full = {k: summarise(rows, k) for k in ("model", "curve", "rubric")}
-    ex = {k: summarise(general, k) for k in ("model", "curve", "rubric")}
+    keys = ("model", "model_raw", "curve", "rubric")
+    full = {k: summarise(rows, k) for k in keys}
+    ex = {k: summarise(general, k) for k in keys}
     cal = calibration([r["model"] for r in rows], [r["y"] for r in rows])
     oc = overconfidence(cal)
     m = full["model"]
@@ -362,6 +399,8 @@ def assess(rows, target, h):
             "evaluation_end": rows[-1]["origin"] if rows else None,
             "full_sample": full, "excluding_pandemic_window": ex,
             "calibration": cal, "overconfidence": oc,
+            "calibration_raw": calibration([r["model_raw"] for r in rows], [r["y"] for r in rows]),
+            "recalibrated_share": round(sum(r["recalibrated"] for r in rows) / len(rows), 3),
             "gate_checks": checks, "publishable": all(checks.values())}
 
 
@@ -375,7 +414,7 @@ def band(p, base):
     return "Typical"
 
 
-def current_outlook(data, panel, target, h, verdict):
+def current_outlook(data, panel, target, h, verdict, rows=None):
     t = max(panel)
     known_by = t
     train = [(s, panel[s]) for s in sorted(panel)
@@ -392,6 +431,9 @@ def current_outlook(data, panel, target, h, verdict):
                               ", ".join(k for k, ok in verdict["gate_checks"].items() if not ok)})
         return out
     p = predict(fit_logistic([[f[k] for k in feats] for _, f in train], ys), [panel[t][k] for k in feats])
+    calibrator = fit_calibrator(rows or [], t, target, h)
+    if calibrator is not None:
+        p = predict(calibrator, [_logit(p)])
     shown = min(0.95, max(0.05, round(p * 20) / 20))
     text = ("under 5%" if p < 0.05 else "over 95%" if p > 0.95 else f"about {round(shown * 100)}%")
     out.update({"state": "Published", "probability": round(shown, 2), "probability_text": text, "band": band(p, base),
@@ -408,9 +450,10 @@ def run(data: dict, end: str | None = None) -> dict:
                 continue
             verdict = assess(rows, target, h)
             results.append(verdict)
-            outlooks.append(current_outlook(data, panel, target, h, verdict))
+            outlooks.append(current_outlook(data, panel, target, h, verdict, rows))
             archive.extend({"target": target, "horizon_months": h, "origin": r["origin"],
-                            "probability": round(r["model"], 4), "outcome": r["y"]} for r in rows)
+                            "probability": round(r["model"], 4), "probability_raw": round(r["model_raw"], 4),
+                            "outcome": r["y"]} for r in rows)
     return {"status": "V7_FORECAST_EVALUATION_RESEARCH", "generated": date.today().isoformat(),
             "point_in_time": {"publication_lags_months": LAG, "recession_label_delay_months": RECESSION_LABEL_DELAY,
                               "refit_every_months": REFIT_EVERY, "vintage": "current-vintage FRED; market inputs unrevised, macro inputs may be revised"},
@@ -420,12 +463,14 @@ def run(data: dict, end: str | None = None) -> dict:
 
 def markdown(report: dict) -> str:
     lines = ["# V7 forecast evaluation (out-of-sample, chronological)", "",
-             "| Target | h | n | episodes | Brier | BSS vs base | AUC | curve-only BSS | rubric BSS | publishable |",
-             "|---|---|---|---|---|---|---|---|---|---|"]
+             "| Target | h | n | episodes | Brier | BSS vs base | AUC | overconf. | raw BSS | curve-only BSS | rubric BSS | publishable |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for e in report["evaluations"]:
         m, c, r = e["full_sample"]["model"], e["full_sample"]["curve"], e["full_sample"]["rubric"]
+        raw = e["full_sample"]["model_raw"]
         lines.append(f"| {e['target']} | {e['horizon_months']} | {m['n']} | {m['episodes']} | {m['brier']} | "
-                     f"{m['bss_vs_base_rate']} | {m['auc']} | {c['bss_vs_base_rate']} | {r['bss_vs_base_rate']} | "
+                     f"{m['bss_vs_base_rate']} | {m['auc']} | {e['overconfidence']} | {raw['bss_vs_base_rate']} | "
+                     f"{c['bss_vs_base_rate']} | {r['bss_vs_base_rate']} | "
                      f"{'YES' if e['publishable'] else 'no'} |")
     lines += ["", "Excluding pandemic window (model BSS / AUC):"]
     for e in report["evaluations"]:

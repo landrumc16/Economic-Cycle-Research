@@ -1,0 +1,80 @@
+{
+ "description": "Dated snapshot of official FRED API series used by the V7 forecasting engine. Monthly value = last observation in each complete calendar month (scripts/fetch_industry_observations.py).",
+ "retrieved_by": "GitHub Actions 'V7 Forecast Research' run 44099072909 (job 134093873753) at commit 3159d1d",
+ "retrieved_utc_date": "2026-11-17",
+ "point_in_time_certified": false,
+ "notes": [
+  "Current-vintage values: macro series (UNRATE, PAYEMS, CPIAUCSL, INDPRO, ICSA) may have been revised since first publication; Treasury (GS10, TB3MS) and BAA yields are not revised.",
+  "USREC (NBER recession indicator) is used only as an evaluation target, never as a model input.",
+  "Months listed under unpublished_months were never published (e.g. October 2025 federal shutdown) and are left missing, not imputed."
+ ],
+ "series": {
+  "GS10": {
+   "rows": 883,
+   "first": "1953-04",
+   "last": "2026-10",
+   "unpublished_months": [],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=GS10"
+  },
+  "TB3MS": {
+   "rows": 946,
+   "first": "1948-01",
+   "last": "2026-10",
+   "unpublished_months": [],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=TB3MS"
+  },
+  "BAA": {
+   "rows": 946,
+   "first": "1948-01",
+   "last": "2026-10",
+   "unpublished_months": [],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAA"
+  },
+  "USREC": {
+   "rows": 946,
+   "first": "1948-01",
+   "last": "2026-10",
+   "unpublished_months": [],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=USREC"
+  },
+  "UNRATE": {
+   "rows": 945,
+   "first": "1948-01",
+   "last": "2026-10",
+   "unpublished_months": [
+    "2025-10"
+   ],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=UNRATE"
+  },
+  "CPIAUCSL": {
+   "rows": 945,
+   "first": "1948-01",
+   "last": "2026-10",
+   "unpublished_months": [
+    "2025-10"
+   ],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=CPIAUCSL"
+  },
+  "INDPRO": {
+   "rows": 945,
+   "first": "1948-01",
+   "last": "2026-09",
+   "unpublished_months": [],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=INDPRO"
+  },
+  "PAYEMS": {
+   "rows": 946,
+   "first": "1948-01",
+   "last": "2026-10",
+   "unpublished_months": [],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=PAYEMS"
+  },
+  "ICSA": {
+   "rows": 718,
+   "first": "1967-01",
+   "last": "2026-10",
+   "unpublished_months": [],
+   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=ICSA"
+  }
+ }
+}

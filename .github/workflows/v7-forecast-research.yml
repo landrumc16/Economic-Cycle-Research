@@ -56,6 +56,17 @@ jobs:
           else
             echo "Engine not yet committed."
           fi
+      - name: Reproduce committed evidence from the dated snapshot
+        run: |
+          python scripts/v7_forecast_engine.py --data-dir data/v7 --output audit-output/v7_snapshot_evaluation.json > /dev/null
+          python - <<'PY'
+          import json
+          a = json.load(open("audit-output/v7_snapshot_evaluation.json"))
+          b = json.load(open("docs/evidence/v7_forecast_evaluation_2026-11-17.json"))
+          key = lambda r: {(e["target"], e["horizon_months"]): (e["publishable"], e["full_sample"]["model"]["bss_vs_base_rate"], e["full_sample"]["model"]["auc"]) for e in r["evaluations"]}
+          assert key(a) == key(b), "Snapshot evaluation no longer reproduces committed evidence"
+          print("Reproduced committed V7 evidence from data/v7 snapshot:", sum(v[0] for v in key(a).values()), "publishable of", len(key(a)))
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
