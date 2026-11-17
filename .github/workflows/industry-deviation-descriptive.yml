@@ -185,7 +185,7 @@ jobs:
       - name: Validate complete V5 integrated release artifacts
         run: python scripts/v5_integrated_acceptance.py
       - name: V6 sector and public-site regression tests
-        run: python -m unittest discover -s tests -p 'test_v6_*.py' -v
+        run: python -m unittest discover -s tests -p 'test_v6_*.py' -v && python -m unittest discover -s tests -p 'test_v63_*.py' -v
       - name: Publish unified V5 release summary
         if: always()
         shell: bash
@@ -220,6 +220,8 @@ jobs:
           PY
       - name: Descriptive release acceptance gate
         run: python scripts/validate_industry_deviation_release.py
+      - name: Replay V6.3 interpretation rubric over history
+        run: python scripts/v63_historical_replay.py --start 1980-01 --output audit-output/v63_historical_scorecard.json
       - name: Build V6 evidence-gated public research pages
         run: python scripts/v6_public_site.py --as-of "$(date -u +%F)"
       - name: Validate Version 6.1 release artifacts

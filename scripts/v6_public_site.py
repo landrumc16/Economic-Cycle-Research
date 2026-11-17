@@ -266,6 +266,50 @@ def monthly_changes(folder, monthly_status="PASS", as_of=None, accepted_date=Non
     return "<ul>" + "".join(items) + "</ul>"
 
 
+def scorecard_section(card):
+    """Readable M2 scorecard; refuses any card that claims skill or probabilities."""
+    if (not isinstance(card, dict) or card.get("status") != "RETROSPECTIVE_REPLAY_NOT_POINT_IN_TIME"
+            or card.get("predictive_skill_certified") is not False
+            or card.get("probabilities_published") is not False):
+        raise ValueError("Historical scorecard is not an approved retrospective replay")
+    rows = []
+    for item in card.get("recessions", []):
+        lead = item.get("warning_months_before_peak")
+        timing = ("no warning before the trough" if item.get("first_warning") is None else
+                  f"first warning {item['first_warning']}, "
+                  + (f"{lead} months before the peak" if lead > 0 else
+                     f"{-lead} months after the peak" if lead < 0 else "at the peak"))
+        label = " — pandemic shock, reported separately" if item.get("pandemic_shock") else ""
+        rows.append(f"<li>Recession beginning {esc(item['peak'])}{esc(label)}: "
+                    f"<strong>{esc(item['outcome'])}</strong> ({esc(timing)})</li>")
+    alarms = card.get("false_alarm_episodes", [])
+    alarm_list = "".join(f"<li>{esc(a['first_month'])} to {esc(a['last_month'])} ({a['months']} months)</li>"
+                         for a in alarms)
+    agreement = "".join(
+        f"<li>{esc(label)}: {v['agreed']} of {v['months']} months consistent with the next six months</li>"
+        for label, v in card.get("directional_agreement_excluding_pandemic", {}).items() if v.get("months"))
+    changes = [c for c in card.get("condition_changes", []) if c.get("contradicted_by_subsequent_labor_rise")]
+    contradicted = "".join(f"<li>{esc(c['month'])}: turned {esc(c['to'])}, then unemployment rose</li>"
+                           for c in changes)
+    return ("<section><h2>How our interpretation rules performed historically</h2>"
+            f"<p>We replayed today's rules on {card['months_replayed']} months "
+            f"({esc(card['first_month'])} to {esc(card['last_month'])}), using only data that would have been "
+            "available a month later. This is a retrospective check on revised data — "
+            "<strong>not a measure of forecasting accuracy and not a probability</strong>.</p>"
+            "<h3>Did the rules flag recessions?</h3><ul>" + "".join(rows) + "</ul>"
+            f"<p>{card['recessions_missed']} of {card['recessions_evaluated_excluding_pandemic']} "
+            "non-pandemic recessions were missed entirely. A warning after the peak confirms, it does not anticipate.</p>"
+            f"<h3>False alarms</h3><p>{len(alarms)} of {card['warning_episodes']} warning episodes were not "
+            "followed by a recession or a meaningful rise in unemployment.</p>"
+            + (f"<ul>{alarm_list}</ul>" if alarm_list else "")
+            + "<h3>Direction calls versus what happened next</h3>"
+            + (f"<ul>{agreement}</ul>" if agreement else "<p>No evaluable months.</p>")
+            + ("<h3>Recent views later contradicted</h3><ul>" + contradicted + "</ul>" if contradicted else "")
+            + "<details><summary>Scorecard limitations</summary><ul>"
+            + "".join(f"<li>{esc(x)}</li>" for x in card.get("limitations", []))
+            + "</ul></details></section>")
+
+
 def build(folder, as_of, evidence=None):
     required = ("v5_integrated_acceptance.json","v5_unified_portal.json","weekly_release_acceptance.json","weekly_economic_assessment.json")
     if any(not (folder / n).is_file() for n in required):
@@ -556,7 +600,13 @@ def build(folder, as_of, evidence=None):
         f'non-downturn controls: {history_validation["negative_controls"]}; '
         f'other historical phases: {history_validation["other_phases"]}. '
         'These counts do not certify forecasting skill.</p>')
+    scorecard_html = ("<section><h2>How our interpretation rules performed historically</h2>"
+                      "<p>The V6.3 scorecard has not been generated for this release.</p></section>")
+    scorecard_file = folder / "v63_historical_scorecard.json"
+    if scorecard_file.is_file():
+        scorecard_html = scorecard_section(json.loads(scorecard_file.read_text()))
     history = (
+        scorecard_html +
         "<section><h2>Historical comparison research</h2>" + historical_note + history_counts +
         "<p>Different market declines can reflect credit contraction, speculative valuation, "
         "industry overinvestment, or external shocks. A matching observation alone does not "
