@@ -18,7 +18,12 @@ from pathlib import Path
 ALLOWED = {"NASDAQCOM": "daily", "CSUSHPINSA": "monthly",
            "TOTALSL": "monthly", "BUSLOANS": "monthly",
            "PI": "monthly", "UNRATE": "monthly",
-           "CPIAUCSL": "monthly", "INDPRO": "monthly"}
+           "CPIAUCSL": "monthly", "INDPRO": "monthly",
+           # V7 forecasting inputs. Treasury and corporate yields are market
+           # data that are not revised; USREC is used only as an evaluation
+           # target (NBER dates are announced months after the fact).
+           "GS10": "monthly", "TB3MS": "monthly", "BAA": "monthly",
+           "USREC": "monthly", "PAYEMS": "monthly", "ICSA": "weekly"}
 
 
 def normalize_csv(payload, series):

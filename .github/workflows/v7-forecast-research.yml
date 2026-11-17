@@ -1,0 +1,60 @@
+name: V7 Forecast Research
+# Research-only workflow for the V7 forecasting engine. It never publishes or
+# deploys, and it does not trigger the production Milestone 1 workflow.
+on:
+  push:
+    branches: [v7-development]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: v7-forecast-research-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Full regression suite
+        run: python -m unittest discover -s tests
+      - name: Fetch V7 research series from the official FRED API
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          set -euo pipefail
+          for series in GS10 TB3MS BAA USREC UNRATE CPIAUCSL INDPRO PAYEMS ICSA; do
+            python scripts/fetch_industry_observations.py "$series" --start 1948-01-01 --end "$(date -u +%F)"
+          done
+      - name: Print dated data snapshot (for reproducible offline research)
+        run: |
+          python - <<'PY'
+          import csv, json
+          from pathlib import Path
+          root = Path("data/industry_observations")
+          print("V7DATA-BEGIN")
+          for series in ("GS10","TB3MS","BAA","USREC","UNRATE","CPIAUCSL","INDPRO","PAYEMS","ICSA"):
+              meta = json.loads((root / f"{series}_metadata.json").read_text())
+              print("V7META", series, meta.get("source_url"), meta.get("retrieved_at", meta.get("retrieval_date", "")))
+              for row in csv.DictReader((root / f"{series}_monthly.csv").open()):
+                  print("V7ROW", series, row["date"][:7], row["value"])
+          print("V7DATA-END")
+          PY
+      - name: V7 forecast evaluation (if present)
+        run: |
+          if [ -f scripts/v7_forecast_engine.py ]; then
+            python scripts/v7_forecast_engine.py --data-dir data/industry_observations --output audit-output/v7_forecast_evaluation.json
+          else
+            echo "Engine not yet committed."
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v7-forecast-research
+          path: |
+            data/industry_observations/
+            audit-output/
+          retention-days: 30
