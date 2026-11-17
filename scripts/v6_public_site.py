@@ -277,8 +277,8 @@ def scorecard_section(card):
         lead = item.get("warning_months_before_peak")
         timing = ("no warning before the trough" if item.get("first_warning") is None else
                   f"first warning {item['first_warning']}, "
-                  + (f"{lead} months before the peak" if lead > 0 else
-                     f"{-lead} months after the peak" if lead < 0 else "at the peak"))
+                  + (f"{lead} month{'' if lead == 1 else 's'} before the peak" if lead > 0 else
+                     f"{-lead} month{'' if lead == -1 else 's'} after the peak" if lead < 0 else "at the peak"))
         label = " — pandemic shock, reported separately" if item.get("pandemic_shock") else ""
         rows.append(f"<li>Recession beginning {esc(item['peak'])}{esc(label)}: "
                     f"<strong>{esc(item['outcome'])}</strong> ({esc(timing)})</li>")
@@ -286,24 +286,29 @@ def scorecard_section(card):
     alarm_list = "".join(f"<li>{esc(a['first_month'])} to {esc(a['last_month'])} ({a['months']} months)</li>"
                          for a in alarms)
     tests = card.get("directional_outcome_tests") or {}
-    agreement = "".join(
-        f"<tr><th scope=\"row\">{esc(label)}</th><td>{esc(v.get('outcome_test', ''))}</td>"
-        f"<td>{v['agreed']} of {v['months']}</td>"
-        f"<td>{(v['base_rate'] or 0):.0%}</td>"
-        f"<td>{(v['lift_pp'] or 0):+.1f} points{'' if v.get('informative') else ' — not informative'}</td></tr>"
-        for label, v in card.get("directional_agreement_excluding_pandemic", {}).items()
-        if v.get("months") and v.get("base_rate") is not None)
-    if agreement:
+    def rows_for(group, title):
+        items = [(label, v) for label, v in card.get("directional_agreement_excluding_pandemic", {}).items()
+                 if v.get("months") and v.get("base_rate") is not None and v.get("outcome_test") == group]
+        if not items:
+            return ""
+        return (f'<tr><th scope="rowgroup" colspan="4">{esc(title)}</th></tr>' + "".join(
+            f'<tr><th scope="row">{esc(label)}</th><td style="white-space:nowrap">{v["agreed"]} of {v["months"]}</td>'
+            f'<td>{v["base_rate"]:.0%}</td>'
+            f'<td>{v["lift_pp"]:+.1f}{"" if v.get("informative") else " (not informative)"}</td></tr>'
+            for label, v in items))
+    body = rows_for("cautious", "Cautious calls") + rows_for("constructive", "Constructive calls")
+    agreement = ""
+    if body:
         agreement = ("<p>Cautious calls (Weakening, Softening) count as right if "
                      f"{esc(tests.get('cautious', '').lower())}. Constructive calls (Steady, Firming, Strengthening) "
                      f"count as right if {esc(tests.get('constructive', '').lower())}. The two tests overlap, so compare "
                      "each share with its own base rate (how often that outcome happened in all months), "
                      "not with the other group.</p>"
-                     '<div style="overflow-x:auto"><table><caption>Direction calls versus the next six months, '
-                     "excluding 2020</caption><thead><tr><th scope=\"col\">Direction</th><th scope=\"col\">Test</th>"
-                     "<th scope=\"col\">Right</th><th scope=\"col\">Base rate</th>"
-                     "<th scope=\"col\">Better than base rate</th></tr></thead><tbody>"
-                     + agreement + "</tbody></table></div>")
+                     '<div style="overflow-x:auto"><table style="overflow-wrap:normal;border-collapse:collapse;'
+                     'text-align:left;width:100%"><caption>Direction calls versus the next six months, excluding 2020'
+                     '</caption><thead><tr><th scope="col">Direction</th><th scope="col">Right</th>'
+                     '<th scope="col">Base rate</th><th scope="col">Points above base rate</th></tr></thead><tbody>'
+                     + body + "</tbody></table></div>")
     not_evaluable = card.get("recessions_not_evaluable") or []
     changes = [c for c in card.get("condition_changes", []) if c.get("contradicted_by_subsequent_labor_rise")]
     contradicted = "".join(f"<li>{esc(c['month'])}: turned {esc(c['to'])}, then unemployment rose</li>"

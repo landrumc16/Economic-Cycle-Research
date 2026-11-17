@@ -103,6 +103,8 @@ class ScorecardPageTests(unittest.TestCase):
         self.assertIn("versus", html)
         self.assertIn("The two tests overlap", html)
         self.assertIn('<th scope="col">Base rate</th>', html)
+        self.assertIn('<th scope="rowgroup" colspan="4">Cautious calls</th>', html)
+        self.assertNotIn("1 months", html)
         agreement = card["directional_agreement_excluding_pandemic"]
         self.assertEqual(agreement["Weakening"]["outcome_test"], "cautious")
         self.assertEqual(agreement["Steady"]["outcome_test"], "constructive")
