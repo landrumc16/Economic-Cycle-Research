@@ -33,6 +33,16 @@ HORIZON = 6          # Months ahead for subsequent-development checks.
 ALARM_WINDOW = 12    # A warning without a recession start or labor rise within this is a false alarm.
 LABOR_RISE = 0.5     # Subsequent unemployment rise counted as observed deterioration.
 WARNING = "Deteriorating"
+# Directional scoring uses two DIFFERENT outcome tests. They overlap (a month
+# can pass both), so shares are comparable only with their own base rate.
+CAUTIOUS = ("Weakening", "Softening")
+CONSTRUCTIVE = ("Steady", "Firming", "Strengthening")
+OUTCOME_TESTS = {
+    "cautious": ("Unemployment rose 0.2 points or more, or 12-month production growth fell "
+                 "1 point or more, within the next six months"),
+    "constructive": "Unemployment did not rise 0.2 points or more within the next six months",
+}
+INFORMATIVE_LIFT_PP = 5  # Lift below this is labelled "not informative".
 # Months whose signal or six-month outcome window touches the pandemic shock.
 PANDEMIC_WINDOW = ("2019-08", "2021-06")
 
@@ -164,33 +174,31 @@ def score(rows: list, last_observed: str) -> dict:
                      if _shift(peak, 12) < first_month and peak <= last_month]
 
     # Directional agreement with subsequent observed growth/labor developments.
-    def agrees(r):
-        rise, ip = r["unemployment_rise_next_6m_pp"], r["ip_growth_change_next_6m_pp"]
-        if rise is None or ip is None:
-            return None
-        if r["direction"] in ("Weakening", "Softening"):
-            return rise >= 0.2 or ip <= -1.0
-        if r["direction"] in ("Strengthening", "Firming", "Steady"):
-            return rise < 0.2
-        return None
-    # Base rates: how often each outcome happened in ALL evaluable months, so a
-    # direction's agreement share can be compared with doing nothing clever.
+    def worse(r):
+        return r["unemployment_rise_next_6m_pp"] >= 0.2 or r["ip_growth_change_next_6m_pp"] <= -1.0
+
+    def calm(r):
+        return r["unemployment_rise_next_6m_pp"] < 0.2
+
+    # Base rates over ALL evaluable months: what each test scores with no signal.
     evaluable = [r for r in general if r["unemployment_rise_next_6m_pp"] is not None
                  and r["ip_growth_change_next_6m_pp"] is not None]
-    worse = sum(r["unemployment_rise_next_6m_pp"] >= 0.2 or r["ip_growth_change_next_6m_pp"] <= -1.0
-                for r in evaluable)
-    calm = sum(r["unemployment_rise_next_6m_pp"] < 0.2 for r in evaluable)
+    base = {"cautious": round(sum(map(worse, evaluable)) / len(evaluable), 3) if evaluable else None,
+            "constructive": round(sum(map(calm, evaluable)) / len(evaluable), 3) if evaluable else None}
     base_rates = {"evaluable_months": len(evaluable),
-                  "deterioration_share": round(worse / len(evaluable), 3) if evaluable else None,
-                  "no_labor_deterioration_share": round(calm / len(evaluable), 3) if evaluable else None}
-    judged = [(r, agrees(r)) for r in general]
-    judged = [(r, a) for r, a in judged if a is not None]
+                  "deterioration_share": base["cautious"],
+                  "no_labor_deterioration_share": base["constructive"]}
     agreement = {}
-    for label in ("Weakening", "Softening", "Steady", "Firming", "Strengthening"):
-        subset = [a for r, a in judged if r["direction"] == label]
-        agreement[label] = {"months": len(subset),
-                            "agreed": sum(subset),
-                            "share": round(sum(subset) / len(subset), 3) if subset else None}
+    for label in CAUTIOUS + CONSTRUCTIVE:
+        group = "cautious" if label in CAUTIOUS else "constructive"
+        test = worse if group == "cautious" else calm
+        subset = [test(r) for r in evaluable if r["direction"] == label]
+        share = round(sum(subset) / len(subset), 3) if subset else None
+        lift = (round(100 * (share - base[group]), 1)
+                if share is not None and base[group] is not None else None)
+        agreement[label] = {"months": len(subset), "agreed": sum(subset), "share": share,
+                            "outcome_test": group, "base_rate": base[group], "lift_pp": lift,
+                            "informative": lift is not None and lift >= INFORMATIVE_LIFT_PP}
 
     changes = []
     for prev, cur in zip(rows, rows[1:]):
@@ -213,6 +221,8 @@ def score(rows: list, last_observed: str) -> dict:
         "recessions_evaluated_excluding_pandemic": len(general_recessions),
         "directional_agreement_excluding_pandemic": agreement,
         "directional_base_rates_excluding_pandemic": base_rates,
+        "directional_outcome_tests": OUTCOME_TESTS,
+        "directional_informative_lift_pp": INFORMATIVE_LIFT_PP,
         "recessions_not_evaluable": not_evaluable,
         "condition_changes": changes[-24:],
         "condition_changes_total": len(changes),
@@ -227,6 +237,9 @@ def score(rows: list, last_observed: str) -> dict:
             "The 2020 pandemic recession is a one-off shock reported separately",
             "Recessions whose prior 12 months precede the data coverage are not evaluated",
             "Months whose 12-month change needs an unpublished year-earlier observation are skipped",
+            "Cautious and constructive direction calls use different, overlapping outcome tests; "
+            "compare each share only with its own base rate, not with each other",
+            "Direction scoring uses only months with a direction call; Unconfirmed months are excluded",
         ],
     }
 
@@ -246,14 +259,17 @@ def markdown(card: dict) -> str:
                  for e in card["false_alarm_episodes"])
     if card.get("recessions_not_evaluable"):
         lines.append("- Not evaluable (coverage starts too late): " + ", ".join(card["recessions_not_evaluable"]))
-    lines += ["", "## Directional agreement with the next six months (excluding 2020)", ""]
-    base = card.get("directional_base_rates_excluding_pandemic", {})
+    lines += ["", "## Directional agreement with the next six months (excluding 2020)", "",
+              "Two different outcome tests are used; compare each share only with its own base rate.", ""]
+    tests = card.get("directional_outcome_tests", OUTCOME_TESTS)
+    lines += [f"- Cautious calls (Weakening, Softening) agree if: {tests['cautious']}",
+              f"- Constructive calls (Steady, Firming, Strengthening) agree if: {tests['constructive']}", "",
+              "| Direction | Outcome test | Agreed | Base rate | Lift |", "|---|---|---|---|---|"]
     for label, item in card["directional_agreement_excluding_pandemic"].items():
         if item["months"]:
-            reference = (base.get("deterioration_share") if label in ("Weakening", "Softening")
-                         else base.get("no_labor_deterioration_share"))
-            suffix = f" (base rate across all months: {reference:.0%})" if reference is not None else ""
-            lines.append(f"- {label}: {item['agreed']} of {item['months']} months{suffix}")
+            flag = "" if item.get("informative") else " (not informative)"
+            lines.append(f"| {label} | {item['outcome_test']} | {item['agreed']} / {item['months']} | "
+                         f"{item['base_rate']:.0%} | {item['lift_pp']:+.1f} pt{flag} |")
     lines += ["", "## Limitations", ""] + ["- " + x for x in card["limitations"]]
     return "\n".join(lines) + "\n"
 

@@ -101,6 +101,18 @@ class ScorecardPageTests(unittest.TestCase):
         self.assertIn("False alarms", html)
         self.assertIn("2003-05", html)
         self.assertIn("versus", html)
+        self.assertIn("The two tests overlap", html)
+        self.assertIn('<th scope="col">Base rate</th>', html)
+        agreement = card["directional_agreement_excluding_pandemic"]
+        self.assertEqual(agreement["Weakening"]["outcome_test"], "cautious")
+        self.assertEqual(agreement["Steady"]["outcome_test"], "constructive")
+        for item in agreement.values():
+            if item["months"]:
+                self.assertAlmostEqual(item["lift_pp"], round(100 * (item["share"] - item["base_rate"]), 1))
+                self.assertEqual(item["informative"], item["lift_pp"] >= card["directional_informative_lift_pp"])
+        self.assertIn("unemployment rose 0.2 points", html.lower())
+        self.assertIn("different, overlapping outcome tests", " ".join(card["limitations"]))
+        self.assertIn("| Direction | Outcome test |", markdown(card))
         self.assertIn("base rate", html)
         base = card["directional_base_rates_excluding_pandemic"]
         self.assertGreater(base["evaluable_months"], 100)

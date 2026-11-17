@@ -285,15 +285,25 @@ def scorecard_section(card):
     alarms = card.get("false_alarm_episodes", [])
     alarm_list = "".join(f"<li>{esc(a['first_month'])} to {esc(a['last_month'])} ({a['months']} months)</li>"
                          for a in alarms)
-    base = card.get("directional_base_rates_excluding_pandemic", {})
-    def reference(label):
-        share = (base.get("deterioration_share") if label in ("Weakening", "Softening")
-                 else base.get("no_labor_deterioration_share"))
-        return f" (versus {share:.0%} of all months)" if isinstance(share, (int, float)) else ""
+    tests = card.get("directional_outcome_tests") or {}
     agreement = "".join(
-        f"<li>{esc(label)}: {v['agreed']} of {v['months']} months consistent with the next six months"
-        f"{esc(reference(label))}</li>"
-        for label, v in card.get("directional_agreement_excluding_pandemic", {}).items() if v.get("months"))
+        f"<tr><th scope=\"row\">{esc(label)}</th><td>{esc(v.get('outcome_test', ''))}</td>"
+        f"<td>{v['agreed']} of {v['months']}</td>"
+        f"<td>{(v['base_rate'] or 0):.0%}</td>"
+        f"<td>{(v['lift_pp'] or 0):+.1f} points{'' if v.get('informative') else ' — not informative'}</td></tr>"
+        for label, v in card.get("directional_agreement_excluding_pandemic", {}).items()
+        if v.get("months") and v.get("base_rate") is not None)
+    if agreement:
+        agreement = ("<p>Cautious calls (Weakening, Softening) count as right if "
+                     f"{esc(tests.get('cautious', '').lower())}. Constructive calls (Steady, Firming, Strengthening) "
+                     f"count as right if {esc(tests.get('constructive', '').lower())}. The two tests overlap, so compare "
+                     "each share with its own base rate (how often that outcome happened in all months), "
+                     "not with the other group.</p>"
+                     '<div style="overflow-x:auto"><table><caption>Direction calls versus the next six months, '
+                     "excluding 2020</caption><thead><tr><th scope=\"col\">Direction</th><th scope=\"col\">Test</th>"
+                     "<th scope=\"col\">Right</th><th scope=\"col\">Base rate</th>"
+                     "<th scope=\"col\">Better than base rate</th></tr></thead><tbody>"
+                     + agreement + "</tbody></table></div>")
     not_evaluable = card.get("recessions_not_evaluable") or []
     changes = [c for c in card.get("condition_changes", []) if c.get("contradicted_by_subsequent_labor_rise")]
     contradicted = "".join(f"<li>{esc(c['month'])}: turned {esc(c['to'])}, then unemployment rose</li>"
@@ -313,7 +323,7 @@ def scorecard_section(card):
             + (f"<ul>{alarm_list}</ul>" if alarm_list else "")
             + "<h3>Direction calls versus what happened next</h3>"
             "<p>A direction call is only informative if it agrees more often than the base rate.</p>"
-            + (f"<ul>{agreement}</ul>" if agreement else "<p>No evaluable months.</p>")
+            + (agreement or "<p>No evaluable months.</p>")
             + ("<h3>Recent views later contradicted</h3><ul>" + contradicted + "</ul>" if contradicted else "")
             + "<details><summary>Scorecard limitations</summary><ul>"
             + "".join(f"<li>{esc(x)}</li>" for x in card.get("limitations", []))
