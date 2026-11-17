@@ -29,5 +29,27 @@ class DescriptiveMacroTests(unittest.TestCase):
             "2025-09-01": 0, "2026-09-01": 320}})["metrics"]["cpi_yoy_pct"]
         self.assertIsNone(result["value"])
 
+    def test_unpublished_baseline_uses_previous_month_with_its_own_baseline(self):
+        # October 2025 CPI was never published: October 2026 has no baseline.
+        result = describe({"CPIAUCSL": {
+            "2025-09-01": 300, "2026-09-01": 312, "2026-10-01": 313}})["metrics"]["cpi_yoy_pct"]
+        self.assertEqual(result["value"], 4.0)
+        self.assertEqual(result["latest_date"], "2026-09-01")
+        self.assertEqual(result["latest_available_date"], "2026-10-01")
+        self.assertEqual(result["baseline_date"], "2025-09-01")
+        self.assertIn("baseline unpublished", result["note"])
+
+    def test_no_deeper_fallback_and_no_baseline_substitution(self):
+        result = describe({"CPIAUCSL": {
+            "2025-08-01": 300, "2026-09-01": 312, "2026-10-01": 313}})["metrics"]["cpi_yoy_pct"]
+        self.assertIsNone(result["value"])
+        self.assertIsNone(result["note"])
+        self.assertEqual(result["latest_date"], "2026-10-01")
+
+    def test_quarterly_gdp_has_no_monthly_fallback(self):
+        result = describe({"GDPC1": {"2025-04-01": 100, "2026-07-01": 103}})["metrics"]["real_gdp_yoy_pct"]
+        self.assertIsNone(result["value"])
+
+
 if __name__ == "__main__":
     unittest.main()
