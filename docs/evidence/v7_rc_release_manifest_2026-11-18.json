@@ -1,0 +1,56 @@
+{
+  "assessment_date": "2026-10-20",
+  "build_commit": "204e5dfbc13eceec4f78e062efc814a5e01be9cf",
+  "build_time_utc": "2026-11-18T12:30:42Z",
+  "condition": "Expanding",
+  "direction": "Firming",
+  "held_for_review": [],
+  "observation_cutoff": "2026-09",
+  "pages": {
+    "forecast.html": "9d5d7c1f7824867d125cbfe6a3894f9a8d1c20efcf6f2f4329e86c92942c2d7f",
+    "index.html": "a04c6c521fbd6a14829807978ffd58309760abb8ab960e52afc2ee4c59ddee7d",
+    "research.html": "1066b455ea672aca8773e286238543b02c306ad862a3a05ed3afd01881183d89",
+    "sector-communication-services.html": "b9d0d72d36d88bc017046baa26563390689dfd6bc3b165da5234cfda96fc3aab",
+    "sector-consumer-discretionary.html": "33e79b217a12dd4b220158a2680a5cd0de9d1a1ebc371478b9cf2ba27bc78cf7",
+    "sector-consumer-staples.html": "22eabf80ef6dc323c39e2dc5da5067ba5f80a01e79813afe8f882236a9b545de",
+    "sector-energy.html": "5279a598dfaa03b2e76fb9edf75320f3730f45e5a3fb6ecfcafc95a1cfadd914",
+    "sector-financials.html": "83d0e0c2d96d7b83efe1d2c7614c0345fe86f1d55baf1fa5b0aabeda0dfd78be",
+    "sector-health-care.html": "dc46ed6f1b94c70bb18a40ff0bf76a2fd8cd7b8193346ef51df7e06be3466fb7",
+    "sector-industrials.html": "ef952e9c75bfff79edef00c055b2bfdb6fe870a3b69bbdba9802d930ff1383c1",
+    "sector-information-technology.html": "a949f9d15067f1dc0d76bd8ab4fb0ef5ba37074c2452fc8e0728aa70868bcb69",
+    "sector-materials.html": "a7e43dea23c8f4c1f3ef8276aeb06532ef492fcea18468fb72693cee23bd7077",
+    "sector-real-estate.html": "62cf3c23670ae6d1e74a2ac95f0e3df5a7c96c9a6f9a5a0c7464adc28817203f",
+    "sector-utilities.html": "6ab68741f4e7827cbea08e70b0f80ee05dd9a9c6210e3e025bf938ea89e2af9f",
+    "sectors.html": "919fce0a99f9fbe133fe4028a8f6240132afb390e3b23dfdea81e564cb00df74",
+    "track-record.html": "82f3c89a13cbcd6402f39faa9f8d226e43a815837feba33ab9673e66ad96fb9f"
+  },
+  "promotion_outcome": "NEW_QUALIFIED",
+  "published_outlooks": [
+    {
+      "band": "Typical",
+      "forecast_origin": "2026-10",
+      "horizon_months": 12,
+      "probability": 0.3,
+      "target": "labor_deterioration"
+    }
+  ],
+  "research_gate": {
+    "qualified": true,
+    "reasons": []
+  },
+  "sector_as_of": "2026-09",
+  "source_status": {
+    "fred_latest_month": "2026-10",
+    "french_latest_month": "2026-09",
+    "monthly_gate": "PASS",
+    "point_in_time_certified": false,
+    "research_retrieved": "2026-11-18"
+  },
+  "version": "7.0",
+  "worth_researching_now": [
+    "Energy",
+    "Industrials",
+    "Information Technology",
+    "Materials"
+  ]
+}
