@@ -267,3 +267,14 @@ Limits: automated checks and a self-evaluation only. Real-device and screen-read
   - axe: only position-dependent `target-size` findings;
   - 38 screenshots in `docs/evidence/v7-rc-screenshots/`.
 - **Not merged, not deployed.**
+
+## Private interactive preview (2026-11-18)
+- **Hosting:** a private Claude artifact at https://claude.ai/artifact/LrasGuZVxqsWeNv3Ao78Jz. Only the owner, signed in to claude.ai, can open it; an anonymous request receives only the generic sign-in shell. Production GitHub Pages is unchanged (still V6.3, `7dfc811`) and nothing was pushed to `main`.
+- **Content:** the actual pipeline output from monthly run 264 (code `69a91c1`), updated by the daily market refresh in rehearsal 44365933301 (code `88f22ab`, market data through 2026-11-17). The only addition is a "Private V7 preview" banner.
+- **Interactions:**
+  - chart period buttons (1Y/5Y/10Y/30Y/All, with the axis re-fitted);
+  - dated readouts on touch, mouse and keyboard (arrow keys, with Shift for years; announced to screen readers);
+  - a light/dark/system theme switch;
+  - expandable research sections;
+  - five-destination navigation, sector pages and the track record.
+- **Daily refresh:** `v7_release.py refresh-market` runs in the daily Pages workflow after an owner-approved merge. The preview itself is a snapshot and is republished on request.
