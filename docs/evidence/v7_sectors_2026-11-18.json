@@ -1,0 +1,596 @@
+{
+ "status": "V7_SECTOR_RESEARCH_DESCRIPTIVE",
+ "as_of_month": "2026-09",
+ "condition_used": "Expanding",
+ "labor_outlook_band_used": "Typical",
+ "relative_strength_test": {
+  "periods": 133,
+  "first_period": "1960-01",
+  "last_period": "2026-01",
+  "mean_spread_pp_per_6m": 1.65,
+  "t_stat": 2.15,
+  "first_half_mean": 2.25,
+  "second_half_mean": 1.06,
+  "sign_hit_rate": 0.558,
+  "historically_informative": true,
+  "rule": "Informative only if mean top-minus-bottom spread has t >= 2.0 and is positive in both halves (pre-registered)."
+ },
+ "rates_rose_6m": true,
+ "sectors": [
+  {
+   "sector": "Communication Services",
+   "slug": "communication-services",
+   "proxy_industries": [
+    "Telcm",
+    "Fun",
+    "Books"
+   ],
+   "cycle_class": "Neutral",
+   "economic_backdrop": "Neutral",
+   "relative_strength_12m_pp": -26.9,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": 2.3,
+    "expansion_excess_pct_per_year": 0.3,
+    "cycle_gap_pp": 2.0,
+    "rate_beta_pct_per_pp": -0.21,
+    "high_inflation_excess_pct_per_year": -0.8,
+    "low_inflation_excess_pct_per_year": 1.3
+   },
+   "valuation_context": {
+    "industries_matched": 9,
+    "forward_pe_median": 26.5,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": -0.042,
+    "expected_growth_5y_median_pct": 9.4,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Lower priority for now",
+   "supports": [
+    "Communication Services has historically moved with the market across the cycle (recessions +2.3%/yr vs market, expansions +0.3%/yr, since 1953)."
+   ],
+   "challenges": [
+    "Past 12 months: -26.9 percentage points versus the market. Relative strength has historically persisted."
+   ],
+   "what_would_change": [
+    "This sector's view depends more on its own fundamentals than on the economic cycle.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Advertising-driven companies fell sharply in the 2022 rate shock even though the economy kept growing.",
+   "watch": "Advertising spending, subscriber growth and borrowing costs.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Consumer Discretionary",
+   "slug": "consumer-discretionary",
+   "proxy_industries": [
+    "Autos",
+    "Toys",
+    "Clths",
+    "Txtls",
+    "Rtail",
+    "Meals",
+    "PerSv"
+   ],
+   "cycle_class": "Neutral",
+   "economic_backdrop": "Neutral",
+   "relative_strength_12m_pp": -17.3,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": 3.9,
+    "expansion_excess_pct_per_year": -0.5,
+    "cycle_gap_pp": 4.4,
+    "rate_beta_pct_per_pp": -0.23,
+    "high_inflation_excess_pct_per_year": -2.0,
+    "low_inflation_excess_pct_per_year": 1.0
+   },
+   "valuation_context": {
+    "industries_matched": 17,
+    "forward_pe_median": 21.9,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": -0.209,
+    "expected_growth_5y_median_pct": 10.2,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Lower priority for now",
+   "supports": [
+    "Consumer Discretionary has historically moved with the market across the cycle (recessions +3.9%/yr vs market, expansions -0.5%/yr, since 1953)."
+   ],
+   "challenges": [
+    "Past 12 months: -17.3 percentage points versus the market. Relative strength has historically persisted."
+   ],
+   "what_would_change": [
+    "This sector's view depends more on its own fundamentals than on the economic cycle.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "In 2008 household spending collapsed faster than production data showed; in 2020 online retail grew during a recession.",
+   "watch": "Real household income, consumer credit growth and unemployment.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Consumer Staples",
+   "slug": "consumer-staples",
+   "proxy_industries": [
+    "Food",
+    "Soda",
+    "Beer",
+    "Smoke",
+    "Hshld",
+    "Agric"
+   ],
+   "cycle_class": "Defensive",
+   "economic_backdrop": "Less favored",
+   "relative_strength_12m_pp": -11.5,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": 6.6,
+    "expansion_excess_pct_per_year": -0.1,
+    "cycle_gap_pp": 6.7,
+    "rate_beta_pct_per_pp": -0.52,
+    "high_inflation_excess_pct_per_year": 3.5,
+    "low_inflation_excess_pct_per_year": -0.2
+   },
+   "valuation_context": {
+    "industries_matched": 8,
+    "forward_pe_median": 17.0,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": -0.384,
+    "expected_growth_5y_median_pct": 9.6,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Lower priority for now",
+   "supports": [
+    "Consumer Staples has historically held up better than the market in recessions (recessions +6.6%/yr vs market, expansions -0.1%/yr, since 1953)."
+   ],
+   "challenges": [
+    "Past 12 months: -11.5 percentage points versus the market. Relative strength has historically persisted."
+   ],
+   "what_would_change": [
+    "A clear, broad expansion would reduce the relative appeal of this sector's resilience.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "In 2021\u20132022 input-cost inflation squeezed margins despite stable demand.",
+   "watch": "Input costs, pricing power and volume trends.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Energy",
+   "slug": "energy",
+   "proxy_industries": [
+    "Oil",
+    "Coal"
+   ],
+   "cycle_class": "Cyclical",
+   "economic_backdrop": "Supportive",
+   "relative_strength_12m_pp": 31.1,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": -3.6,
+    "expansion_excess_pct_per_year": 2.3,
+    "cycle_gap_pp": -5.9,
+    "rate_beta_pct_per_pp": 2.42,
+    "high_inflation_excess_pct_per_year": 8.3,
+    "low_inflation_excess_pct_per_year": -1.1
+   },
+   "valuation_context": {
+    "industries_matched": 6,
+    "forward_pe_median": 28.1,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": 0.018,
+    "expected_growth_5y_median_pct": 6.3,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Worth researching now",
+   "supports": [
+    "Energy has historically lagged the market in recessions and led in expansions (recessions -3.6%/yr vs market, expansions +2.3%/yr, since 1953).",
+    "Past 12 months: +31.1 percentage points versus the market. Relative strength has historically persisted."
+   ],
+   "challenges": [],
+   "what_would_change": [
+    "A turn toward slowing or deteriorating conditions, or a rise in labor-market risk, would weaken this view.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Energy outperformed in 2022 while growth slowed, and collapsed in 2014\u20132016 during a global expansion, because supply decisions dominate.",
+   "watch": "Oil and gas prices, production discipline and global demand.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Financials",
+   "slug": "financials",
+   "proxy_industries": [
+    "Banks",
+    "Insur",
+    "Fin"
+   ],
+   "cycle_class": "Neutral",
+   "economic_backdrop": "Neutral",
+   "relative_strength_12m_pp": -6.4,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": 0.2,
+    "expansion_excess_pct_per_year": 0.7,
+    "cycle_gap_pp": -0.4,
+    "rate_beta_pct_per_pp": -1.14,
+    "high_inflation_excess_pct_per_year": 1.6,
+    "low_inflation_excess_pct_per_year": 0.4
+   },
+   "valuation_context": {
+    "industries_matched": 9,
+    "forward_pe_median": 16.4,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": -0.409,
+    "expected_growth_5y_median_pct": 15.2,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Lower priority for now",
+   "supports": [
+    "Financials has historically moved with the market across the cycle (recessions +0.2%/yr vs market, expansions +0.7%/yr, since 1953)."
+   ],
+   "challenges": [
+    "Past 12 months: -6.4 percentage points versus the market. Relative strength has historically persisted.",
+    "Rising 10-year yields have historically hurt this sector (-1.1% relative return per 1-point rise); yields rose over the past 6 months."
+   ],
+   "what_would_change": [
+    "This sector's view depends more on its own fundamentals than on the economic cycle.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Rising rates helped lending margins in 2022 but exposed bank balance-sheet losses in 2023.",
+   "watch": "Loan growth, credit losses, yield-curve shape and deposit costs.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Health Care",
+   "slug": "health-care",
+   "proxy_industries": [
+    "Hlth",
+    "MedEq",
+    "Drugs"
+   ],
+   "cycle_class": "Defensive",
+   "economic_backdrop": "Less favored",
+   "relative_strength_12m_pp": -2.5,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": 9.1,
+    "expansion_excess_pct_per_year": 0.8,
+    "cycle_gap_pp": 8.3,
+    "rate_beta_pct_per_pp": -0.59,
+    "high_inflation_excess_pct_per_year": 4.8,
+    "low_inflation_excess_pct_per_year": 0.6
+   },
+   "valuation_context": {
+    "industries_matched": 6,
+    "forward_pe_median": 39.9,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": 0.441,
+    "expected_growth_5y_median_pct": 13.8,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Lower priority for now",
+   "supports": [
+    "Health Care has historically held up better than the market in recessions (recessions +9.1%/yr vs market, expansions +0.8%/yr, since 1953)."
+   ],
+   "challenges": [
+    "Past 12 months: -2.5 percentage points versus the market. Relative strength has historically persisted.",
+    "Forward P/E about 44% above the market (annual vintage) \u2014 a strong economy may already be priced in."
+   ],
+   "what_would_change": [
+    "A clear, broad expansion would reduce the relative appeal of this sector's resilience.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Policy and drug-pricing risk can dominate the economic cycle, as in 2015\u20132016.",
+   "watch": "Reimbursement policy, innovation pipelines and funding conditions.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Industrials",
+   "slug": "industrials",
+   "proxy_industries": [
+    "Mach",
+    "ElcEq",
+    "Aero",
+    "Ships",
+    "Guns",
+    "Trans",
+    "BusSv",
+    "Cnstr",
+    "FabPr",
+    "Whlsl"
+   ],
+   "cycle_class": "Neutral",
+   "economic_backdrop": "Neutral",
+   "relative_strength_12m_pp": 1.8,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": -3.0,
+    "expansion_excess_pct_per_year": 1.5,
+    "cycle_gap_pp": -4.4,
+    "rate_beta_pct_per_pp": 0.19,
+    "high_inflation_excess_pct_per_year": 0.8,
+    "low_inflation_excess_pct_per_year": 1.0
+   },
+   "valuation_context": {
+    "industries_matched": 12,
+    "forward_pe_median": 22.3,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": -0.195,
+    "expected_growth_5y_median_pct": 16.1,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Worth researching now",
+   "supports": [
+    "Industrials has historically moved with the market across the cycle (recessions -3.0%/yr vs market, expansions +1.5%/yr, since 1953).",
+    "Past 12 months: +1.8 percentage points versus the market. Relative strength has historically persisted."
+   ],
+   "challenges": [],
+   "what_would_change": [
+    "This sector's view depends more on its own fundamentals than on the economic cycle.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Supply bottlenecks in 2021 limited output despite strong orders.",
+   "watch": "Industrial production, new orders, business lending and capital spending.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Information Technology",
+   "slug": "information-technology",
+   "proxy_industries": [
+    "Hardw",
+    "Softw",
+    "Chips",
+    "LabEq"
+   ],
+   "cycle_class": "Neutral",
+   "economic_backdrop": "Neutral",
+   "relative_strength_12m_pp": 25.7,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": 4.2,
+    "expansion_excess_pct_per_year": 2.8,
+    "cycle_gap_pp": 1.4,
+    "rate_beta_pct_per_pp": 0.93,
+    "high_inflation_excess_pct_per_year": -2.3,
+    "low_inflation_excess_pct_per_year": 5.0
+   },
+   "valuation_context": {
+    "industries_matched": 8,
+    "forward_pe_median": 36.7,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": 0.328,
+    "expected_growth_5y_median_pct": 20.8,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Worth researching now",
+   "supports": [
+    "Information Technology has historically moved with the market across the cycle (recessions +4.2%/yr vs market, expansions +2.8%/yr, since 1953).",
+    "Past 12 months: +25.7 percentage points versus the market. Relative strength has historically persisted."
+   ],
+   "challenges": [
+    "Forward P/E about 33% above the market (annual vintage) \u2014 a strong economy may already be priced in."
+   ],
+   "what_would_change": [
+    "This sector's view depends more on its own fundamentals than on the economic cycle.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Technology valuations fell steeply in 2000\u20132002 and 2022 for valuation and rate reasons, not only economic ones.",
+   "watch": "Enterprise spending, semiconductor cycles and interest rates.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Materials",
+   "slug": "materials",
+   "proxy_industries": [
+    "Chems",
+    "Steel",
+    "Mines",
+    "Gold",
+    "Paper",
+    "Boxes",
+    "BldMt",
+    "Rubbr"
+   ],
+   "cycle_class": "Neutral",
+   "economic_backdrop": "Neutral",
+   "relative_strength_12m_pp": 5.6,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": 0.1,
+    "expansion_excess_pct_per_year": 0.2,
+    "cycle_gap_pp": -0.1,
+    "rate_beta_pct_per_pp": -0.15,
+    "high_inflation_excess_pct_per_year": -0.7,
+    "low_inflation_excess_pct_per_year": 0.6
+   },
+   "valuation_context": {
+    "industries_matched": 10,
+    "forward_pe_median": 17.3,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": -0.376,
+    "expected_growth_5y_median_pct": 16.0,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Worth researching now",
+   "supports": [
+    "Materials has historically moved with the market across the cycle (recessions +0.1%/yr vs market, expansions +0.2%/yr, since 1953).",
+    "Past 12 months: +5.6 percentage points versus the market. Relative strength has historically persisted."
+   ],
+   "challenges": [],
+   "what_would_change": [
+    "This sector's view depends more on its own fundamentals than on the economic cycle.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Commodity prices can be driven by global (especially Chinese) demand more than U.S. conditions.",
+   "watch": "Industrial production, construction activity and commodity prices.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Real Estate",
+   "slug": "real-estate",
+   "proxy_industries": [
+    "RlEst"
+   ],
+   "cycle_class": "Cyclical",
+   "economic_backdrop": "Supportive",
+   "relative_strength_12m_pp": -21.1,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": -6.9,
+    "expansion_excess_pct_per_year": -1.1,
+    "cycle_gap_pp": -5.8,
+    "rate_beta_pct_per_pp": -1.48,
+    "high_inflation_excess_pct_per_year": -3.0,
+    "low_inflation_excess_pct_per_year": -1.3
+   },
+   "valuation_context": {
+    "industries_matched": 5,
+    "forward_pe_median": 44.4,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": 0.605,
+    "expected_growth_5y_median_pct": 4.1,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Monitor",
+   "supports": [
+    "Real Estate has historically lagged the market in recessions and led in expansions (recessions -6.9%/yr vs market, expansions -1.1%/yr, since 1953)."
+   ],
+   "challenges": [
+    "Past 12 months: -21.1 percentage points versus the market. Relative strength has historically persisted.",
+    "Forward P/E about 60% above the market (annual vintage) \u2014 a strong economy may already be priced in.",
+    "Rising 10-year yields have historically hurt this sector (-1.5% relative return per 1-point rise); yields rose over the past 6 months.",
+    "Historically lagged in high-inflation periods (-3.0%/yr)."
+   ],
+   "what_would_change": [
+    "A turn toward slowing or deteriorating conditions, or a rise in labor-market risk, would weaken this view.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Office property weakened after 2020 for structural reasons while the broader economy recovered.",
+   "watch": "Mortgage and financing rates, vacancies, rents and property credit.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  },
+  {
+   "sector": "Utilities",
+   "slug": "utilities",
+   "proxy_industries": [
+    "Util"
+   ],
+   "cycle_class": "Defensive",
+   "economic_backdrop": "Less favored",
+   "relative_strength_12m_pp": -11.5,
+   "relative_strength_as_of": "2026-09",
+   "sensitivities": {
+    "period": "1953-05 to 2026-09",
+    "months": 881,
+    "recession_excess_pct_per_year": 3.7,
+    "expansion_excess_pct_per_year": -2.1,
+    "cycle_gap_pp": 5.8,
+    "rate_beta_pct_per_pp": -1.7,
+    "high_inflation_excess_pct_per_year": 1.4,
+    "low_inflation_excess_pct_per_year": -2.5
+   },
+   "valuation_context": {
+    "industries_matched": 3,
+    "forward_pe_median": 18.1,
+    "market_forward_pe": 27.66,
+    "forward_pe_vs_market": -0.345,
+    "expected_growth_5y_median_pct": 7.7,
+    "vintage": "Damodaran annual US industry dataset (January vintage); dated context only",
+    "qualifies_rating": false
+   },
+   "research_priority": "Lower priority for now",
+   "supports": [
+    "Utilities has historically held up better than the market in recessions (recessions +3.7%/yr vs market, expansions -2.1%/yr, since 1953)."
+   ],
+   "challenges": [
+    "Past 12 months: -11.5 percentage points versus the market. Relative strength has historically persisted.",
+    "Rising 10-year yields have historically hurt this sector (-1.7% relative return per 1-point rise); yields rose over the past 6 months."
+   ],
+   "what_would_change": [
+    "A clear, broad expansion would reduce the relative appeal of this sector's resilience.",
+    "Qualified, current valuation and earnings data could change the investment view."
+   ],
+   "contrary_case": "Utilities fell with bonds when interest rates jumped in 2022 despite stable demand.",
+   "watch": "Interest rates, regulated rate decisions and electricity demand.",
+   "investment_attractiveness": "Insufficient evidence",
+   "attractiveness_reason": "Requires valuation no older than 3 months and earnings no older than 6 months from a qualified licensed source; only annual-vintage context is available.",
+   "is_recommendation": false
+  }
+ ],
+ "sources": {
+  "french": {
+   "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/49_Industry_Portfolios_CSV.zip",
+   "first": "1926-07",
+   "last": "2026-09"
+  },
+  "damodaran": {
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/pedata.html",
+   "industries": 96,
+   "columns": [
+    "Industry Name",
+    "Number of firms",
+    "% of Money Losing firms (Trailing)",
+    "Current PE",
+    "Trailing PE",
+    "Forward PE",
+    "Aggregate Mkt Cap/ Net Income (all firms)",
+    "Aggregate Mkt Cap/ Trailing Net Income (only money making firms)",
+    "Expected growth - next 5 years",
+    "PEG Ratio"
+   ]
+  },
+  "attribution": [
+   "Kenneth R. French Data Library (Dartmouth)",
+   "Aswath Damodaran, NYU Stern"
+  ]
+ },
+ "disclaimer": "Educational research, not personalized investment advice. Sector proxies are equal-weighted French industry portfolios, not official GICS indices."
+}

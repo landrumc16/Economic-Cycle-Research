@@ -1,0 +1,992 @@
+{
+ "status": "V7_PASS_B_PREREGISTERED_RESEARCH",
+ "preregistration": "docs/V7_PREREGISTRATION_PASS_B.md (commit 84105b9, before results)",
+ "data": "data/v7 (FRED snapshot) + data/v7_research (ALFRED first releases, retrieved 2026-11-18, run 44236468568)",
+ "recession_onset": [
+  {
+   "target": "recession_onset",
+   "horizon_months": 3,
+   "definition": "A new NBER-dated recession begins within the next 3 months (scored from expansion months only)",
+   "features": [
+    "term_spread",
+    "term_spread_min12",
+    "credit_spread",
+    "unemp_rise",
+    "payrolls_6m"
+   ],
+   "evaluation_start": "1972-01",
+   "evaluation_end": "2026-07",
+   "full_sample": {
+    "model": {
+     "n": 580,
+     "events": 21,
+     "episodes": 7,
+     "brier": 0.0367,
+     "brier_base_rate": 0.0353,
+     "bss_vs_base_rate": -0.041,
+     "auc": 0.867
+    },
+    "model_raw": {
+     "n": 580,
+     "events": 21,
+     "episodes": 7,
+     "brier": 0.0449,
+     "brier_base_rate": 0.0353,
+     "bss_vs_base_rate": -0.271,
+     "auc": 0.902
+    },
+    "curve": {
+     "n": 580,
+     "events": 21,
+     "episodes": 7,
+     "brier": 0.0391,
+     "brier_base_rate": 0.0353,
+     "bss_vs_base_rate": -0.107,
+     "auc": 0.91
+    },
+    "rubric": {
+     "n": 580,
+     "events": 21,
+     "episodes": 7,
+     "brier": 0.0356,
+     "brier_base_rate": 0.0353,
+     "bss_vs_base_rate": -0.008,
+     "auc": 0.441
+    }
+   },
+   "excluding_pandemic_window": {
+    "model": {
+     "n": 560,
+     "events": 18,
+     "episodes": 6,
+     "brier": 0.0318,
+     "brier_base_rate": 0.0316,
+     "bss_vs_base_rate": -0.007,
+     "auc": 0.872
+    },
+    "model_raw": {
+     "n": 560,
+     "events": 18,
+     "episodes": 6,
+     "brier": 0.0407,
+     "brier_base_rate": 0.0316,
+     "bss_vs_base_rate": -0.289,
+     "auc": 0.911
+    },
+    "curve": {
+     "n": 560,
+     "events": 18,
+     "episodes": 6,
+     "brier": 0.0358,
+     "brier_base_rate": 0.0316,
+     "bss_vs_base_rate": -0.135,
+     "auc": 0.921
+    },
+    "rubric": {
+     "n": 560,
+     "events": 18,
+     "episodes": 6,
+     "brier": 0.0319,
+     "brier_base_rate": 0.0316,
+     "bss_vs_base_rate": -0.009,
+     "auc": 0.483
+    }
+   },
+   "calibration": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 500,
+     "mean_forecast": 0.016,
+     "observed": 0.022
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 57,
+     "mean_forecast": 0.168,
+     "observed": 0.018
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 2,
+     "mean_forecast": 0.443,
+     "observed": 0.0
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 6,
+     "mean_forecast": 0.646,
+     "observed": 0.667
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 15,
+     "mean_forecast": 0.848,
+     "observed": 0.333
+    }
+   ],
+   "overconfidence": 0.515,
+   "calibration_raw": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 470,
+     "mean_forecast": 0.016,
+     "observed": 0.006
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 57,
+     "mean_forecast": 0.189,
+     "observed": 0.158
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 21,
+     "mean_forecast": 0.374,
+     "observed": 0.0
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 17,
+     "mean_forecast": 0.59,
+     "observed": 0.235
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 15,
+     "mean_forecast": 0.85,
+     "observed": 0.333
+    }
+   ],
+   "recalibrated_share": 0.757,
+   "gate_checks": {
+    "bss_vs_base_rate": false,
+    "auc": true,
+    "episodes": true,
+    "calibration": false
+   },
+   "publishable": false
+  },
+  {
+   "target": "recession_onset",
+   "horizon_months": 6,
+   "definition": "A new NBER-dated recession begins within the next 6 months (scored from expansion months only)",
+   "features": [
+    "term_spread",
+    "term_spread_min12",
+    "credit_spread",
+    "unemp_rise",
+    "payrolls_6m"
+   ],
+   "evaluation_start": "1972-01",
+   "evaluation_end": "2026-04",
+   "full_sample": {
+    "model": {
+     "n": 577,
+     "events": 42,
+     "episodes": 7,
+     "brier": 0.0585,
+     "brier_base_rate": 0.069,
+     "bss_vs_base_rate": 0.152,
+     "auc": 0.896
+    },
+    "model_raw": {
+     "n": 577,
+     "events": 42,
+     "episodes": 7,
+     "brier": 0.0798,
+     "brier_base_rate": 0.069,
+     "bss_vs_base_rate": -0.156,
+     "auc": 0.905
+    },
+    "curve": {
+     "n": 577,
+     "events": 42,
+     "episodes": 7,
+     "brier": 0.0697,
+     "brier_base_rate": 0.069,
+     "bss_vs_base_rate": -0.01,
+     "auc": 0.921
+    },
+    "rubric": {
+     "n": 577,
+     "events": 42,
+     "episodes": 7,
+     "brier": 0.0701,
+     "brier_base_rate": 0.069,
+     "bss_vs_base_rate": -0.015,
+     "auc": 0.442
+    }
+   },
+   "excluding_pandemic_window": {
+    "model": {
+     "n": 557,
+     "events": 36,
+     "episodes": 6,
+     "brier": 0.0518,
+     "brier_base_rate": 0.0623,
+     "bss_vs_base_rate": 0.168,
+     "auc": 0.9
+    },
+    "model_raw": {
+     "n": 557,
+     "events": 36,
+     "episodes": 6,
+     "brier": 0.0757,
+     "brier_base_rate": 0.0623,
+     "bss_vs_base_rate": -0.215,
+     "auc": 0.911
+    },
+    "curve": {
+     "n": 557,
+     "events": 36,
+     "episodes": 6,
+     "brier": 0.065,
+     "brier_base_rate": 0.0623,
+     "bss_vs_base_rate": -0.044,
+     "auc": 0.927
+    },
+    "rubric": {
+     "n": 557,
+     "events": 36,
+     "episodes": 6,
+     "brier": 0.0634,
+     "brier_base_rate": 0.0623,
+     "bss_vs_base_rate": -0.018,
+     "auc": 0.488
+    }
+   },
+   "calibration": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 423,
+     "mean_forecast": 0.025,
+     "observed": 0.014
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 87,
+     "mean_forecast": 0.158,
+     "observed": 0.218
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 32,
+     "mean_forecast": 0.383,
+     "observed": 0.0
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 12,
+     "mean_forecast": 0.549,
+     "observed": 0.0
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 23,
+     "mean_forecast": 0.956,
+     "observed": 0.739
+    }
+   ],
+   "overconfidence": 0.549,
+   "calibration_raw": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 445,
+     "mean_forecast": 0.016,
+     "observed": 0.013
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 38,
+     "mean_forecast": 0.172,
+     "observed": 0.158
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 26,
+     "mean_forecast": 0.384,
+     "observed": 0.462
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 26,
+     "mean_forecast": 0.618,
+     "observed": 0.038
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 42,
+     "mean_forecast": 0.899,
+     "observed": 0.405
+    }
+   ],
+   "recalibrated_share": 0.756,
+   "gate_checks": {
+    "bss_vs_base_rate": true,
+    "auc": true,
+    "episodes": true,
+    "calibration": false
+   },
+   "publishable": false
+  },
+  {
+   "target": "recession_onset",
+   "horizon_months": 12,
+   "definition": "A new NBER-dated recession begins within the next 12 months (scored from expansion months only)",
+   "features": [
+    "term_spread",
+    "term_spread_min12",
+    "credit_spread",
+    "unemp_rise",
+    "payrolls_6m"
+   ],
+   "evaluation_start": "1972-01",
+   "evaluation_end": "2025-10",
+   "full_sample": {
+    "model": {
+     "n": 572,
+     "events": 84,
+     "episodes": 6,
+     "brier": 0.1177,
+     "brier_base_rate": 0.1306,
+     "bss_vs_base_rate": 0.099,
+     "auc": 0.89
+    },
+    "model_raw": {
+     "n": 572,
+     "events": 84,
+     "episodes": 6,
+     "brier": 0.1103,
+     "brier_base_rate": 0.1306,
+     "bss_vs_base_rate": 0.155,
+     "auc": 0.892
+    },
+    "curve": {
+     "n": 572,
+     "events": 84,
+     "episodes": 6,
+     "brier": 0.1089,
+     "brier_base_rate": 0.1306,
+     "bss_vs_base_rate": 0.166,
+     "auc": 0.899
+    },
+    "rubric": {
+     "n": 572,
+     "events": 84,
+     "episodes": 6,
+     "brier": 0.1354,
+     "brier_base_rate": 0.1306,
+     "bss_vs_base_rate": -0.037,
+     "auc": 0.452
+    }
+   },
+   "excluding_pandemic_window": {
+    "model": {
+     "n": 552,
+     "events": 72,
+     "episodes": 5,
+     "brier": 0.1154,
+     "brier_base_rate": 0.1198,
+     "bss_vs_base_rate": 0.036,
+     "auc": 0.891
+    },
+    "model_raw": {
+     "n": 552,
+     "events": 72,
+     "episodes": 5,
+     "brier": 0.108,
+     "brier_base_rate": 0.1198,
+     "bss_vs_base_rate": 0.099,
+     "auc": 0.891
+    },
+    "curve": {
+     "n": 552,
+     "events": 72,
+     "episodes": 5,
+     "brier": 0.1035,
+     "brier_base_rate": 0.1198,
+     "bss_vs_base_rate": 0.136,
+     "auc": 0.903
+    },
+    "rubric": {
+     "n": 552,
+     "events": 72,
+     "episodes": 5,
+     "brier": 0.125,
+     "brier_base_rate": 0.1198,
+     "bss_vs_base_rate": -0.043,
+     "auc": 0.502
+    }
+   },
+   "calibration": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 343,
+     "mean_forecast": 0.015,
+     "observed": 0.012
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 56,
+     "mean_forecast": 0.187,
+     "observed": 0.071
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 37,
+     "mean_forecast": 0.421,
+     "observed": 0.243
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 50,
+     "mean_forecast": 0.612,
+     "observed": 0.46
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 86,
+     "mean_forecast": 0.9,
+     "observed": 0.512
+    }
+   ],
+   "overconfidence": 0.388,
+   "calibration_raw": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 342,
+     "mean_forecast": 0.017,
+     "observed": 0.012
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 73,
+     "mean_forecast": 0.18,
+     "observed": 0.082
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 42,
+     "mean_forecast": 0.384,
+     "observed": 0.286
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 38,
+     "mean_forecast": 0.601,
+     "observed": 0.684
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 77,
+     "mean_forecast": 0.893,
+     "observed": 0.468
+    }
+   ],
+   "recalibrated_share": 0.733,
+   "gate_checks": {
+    "bss_vs_base_rate": true,
+    "auc": true,
+    "episodes": true,
+    "calibration": false
+   },
+   "publishable": false
+  }
+ ],
+ "first_release_labor_robustness": [
+  {
+   "target": "labor_deterioration",
+   "horizon_months": 3,
+   "definition": "Unemployment rises 0.5 points or more above its latest known level within 3 months",
+   "features": [
+    "term_spread",
+    "term_spread_min12",
+    "credit_spread",
+    "unemp_rise",
+    "payrolls_6m"
+   ],
+   "evaluation_start": "1972-01",
+   "evaluation_end": "2026-07",
+   "full_sample": {
+    "model": {
+     "n": 650,
+     "events": 70,
+     "episodes": 11,
+     "brier": 0.0973,
+     "brier_base_rate": 0.0985,
+     "bss_vs_base_rate": 0.012,
+     "auc": 0.888
+    },
+    "model_raw": {
+     "n": 650,
+     "events": 70,
+     "episodes": 11,
+     "brier": 0.0917,
+     "brier_base_rate": 0.0985,
+     "bss_vs_base_rate": 0.069,
+     "auc": 0.892
+    },
+    "curve": {
+     "n": 650,
+     "events": 70,
+     "episodes": 11,
+     "brier": 0.0985,
+     "brier_base_rate": 0.0985,
+     "bss_vs_base_rate": 0.001,
+     "auc": 0.747
+    },
+    "rubric": {
+     "n": 650,
+     "events": 70,
+     "episodes": 11,
+     "brier": 0.084,
+     "brier_base_rate": 0.0985,
+     "bss_vs_base_rate": 0.148,
+     "auc": 0.672
+    }
+   },
+   "excluding_pandemic_window": {
+    "model": {
+     "n": 628,
+     "events": 65,
+     "episodes": 10,
+     "brier": 0.086,
+     "brier_base_rate": 0.0954,
+     "bss_vs_base_rate": 0.098,
+     "auc": 0.902
+    },
+    "model_raw": {
+     "n": 628,
+     "events": 65,
+     "episodes": 10,
+     "brier": 0.081,
+     "brier_base_rate": 0.0954,
+     "bss_vs_base_rate": 0.151,
+     "auc": 0.904
+    },
+    "curve": {
+     "n": 628,
+     "events": 65,
+     "episodes": 10,
+     "brier": 0.0959,
+     "brier_base_rate": 0.0954,
+     "bss_vs_base_rate": -0.005,
+     "auc": 0.745
+    },
+    "rubric": {
+     "n": 628,
+     "events": 65,
+     "episodes": 10,
+     "brier": 0.0783,
+     "brier_base_rate": 0.0954,
+     "bss_vs_base_rate": 0.179,
+     "auc": 0.711
+    }
+   },
+   "calibration": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 376,
+     "mean_forecast": 0.056,
+     "observed": 0.005
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 201,
+     "mean_forecast": 0.149,
+     "observed": 0.189
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 18,
+     "mean_forecast": 0.377,
+     "observed": 0.556
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 16,
+     "mean_forecast": 0.596,
+     "observed": 0.562
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 39,
+     "mean_forecast": 0.872,
+     "observed": 0.282
+    }
+   ],
+   "overconfidence": 0.59,
+   "calibration_raw": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 368,
+     "mean_forecast": 0.042,
+     "observed": 0.005
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 166,
+     "mean_forecast": 0.175,
+     "observed": 0.084
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 48,
+     "mean_forecast": 0.4,
+     "observed": 0.542
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 28,
+     "mean_forecast": 0.58,
+     "observed": 0.607
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 40,
+     "mean_forecast": 0.873,
+     "observed": 0.275
+    }
+   ],
+   "recalibrated_share": 0.797,
+   "gate_checks": {
+    "bss_vs_base_rate": false,
+    "auc": true,
+    "episodes": true,
+    "calibration": false
+   },
+   "publishable": false
+  },
+  {
+   "target": "labor_deterioration",
+   "horizon_months": 6,
+   "definition": "Unemployment rises 0.5 points or more above its latest known level within 6 months",
+   "features": [
+    "term_spread",
+    "term_spread_min12",
+    "credit_spread",
+    "unemp_rise",
+    "payrolls_6m"
+   ],
+   "evaluation_start": "1972-01",
+   "evaluation_end": "2026-04",
+   "full_sample": {
+    "model": {
+     "n": 644,
+     "events": 114,
+     "episodes": 16,
+     "brier": 0.1228,
+     "brier_base_rate": 0.151,
+     "bss_vs_base_rate": 0.187,
+     "auc": 0.848
+    },
+    "model_raw": {
+     "n": 644,
+     "events": 114,
+     "episodes": 16,
+     "brier": 0.1174,
+     "brier_base_rate": 0.151,
+     "bss_vs_base_rate": 0.222,
+     "auc": 0.855
+    },
+    "curve": {
+     "n": 644,
+     "events": 114,
+     "episodes": 16,
+     "brier": 0.1263,
+     "brier_base_rate": 0.151,
+     "bss_vs_base_rate": 0.163,
+     "auc": 0.784
+    },
+    "rubric": {
+     "n": 644,
+     "events": 114,
+     "episodes": 16,
+     "brier": 0.1305,
+     "brier_base_rate": 0.151,
+     "bss_vs_base_rate": 0.136,
+     "auc": 0.586
+    }
+   },
+   "excluding_pandemic_window": {
+    "model": {
+     "n": 622,
+     "events": 106,
+     "episodes": 15,
+     "brier": 0.1116,
+     "brier_base_rate": 0.1469,
+     "bss_vs_base_rate": 0.24,
+     "auc": 0.852
+    },
+    "model_raw": {
+     "n": 622,
+     "events": 106,
+     "episodes": 15,
+     "brier": 0.1075,
+     "brier_base_rate": 0.1469,
+     "bss_vs_base_rate": 0.268,
+     "auc": 0.862
+    },
+    "curve": {
+     "n": 622,
+     "events": 106,
+     "episodes": 15,
+     "brier": 0.1231,
+     "brier_base_rate": 0.1469,
+     "bss_vs_base_rate": 0.162,
+     "auc": 0.78
+    },
+    "rubric": {
+     "n": 622,
+     "events": 106,
+     "episodes": 15,
+     "brier": 0.1221,
+     "brier_base_rate": 0.1469,
+     "bss_vs_base_rate": 0.169,
+     "auc": 0.624
+    }
+   },
+   "calibration": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 178,
+     "mean_forecast": 0.052,
+     "observed": 0.022
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 342,
+     "mean_forecast": 0.178,
+     "observed": 0.096
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 59,
+     "mean_forecast": 0.357,
+     "observed": 0.678
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 8,
+     "mean_forecast": 0.584,
+     "observed": 0.75
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 57,
+     "mean_forecast": 0.904,
+     "observed": 0.544
+    }
+   ],
+   "overconfidence": 0.36,
+   "calibration_raw": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 272,
+     "mean_forecast": 0.04,
+     "observed": 0.029
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 183,
+     "mean_forecast": 0.176,
+     "observed": 0.077
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 81,
+     "mean_forecast": 0.411,
+     "observed": 0.358
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 49,
+     "mean_forecast": 0.577,
+     "observed": 0.612
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 59,
+     "mean_forecast": 0.9,
+     "observed": 0.559
+    }
+   ],
+   "recalibrated_share": 0.795,
+   "gate_checks": {
+    "bss_vs_base_rate": true,
+    "auc": true,
+    "episodes": true,
+    "calibration": false
+   },
+   "publishable": false
+  },
+  {
+   "target": "labor_deterioration",
+   "horizon_months": 12,
+   "definition": "Unemployment rises 0.5 points or more above its latest known level within 12 months",
+   "features": [
+    "term_spread",
+    "term_spread_min12",
+    "credit_spread",
+    "unemp_rise",
+    "payrolls_6m"
+   ],
+   "evaluation_start": "1972-05",
+   "evaluation_end": "2025-10",
+   "full_sample": {
+    "model": {
+     "n": 630,
+     "events": 172,
+     "episodes": 15,
+     "brier": 0.1453,
+     "brier_base_rate": 0.2104,
+     "bss_vs_base_rate": 0.309,
+     "auc": 0.823
+    },
+    "model_raw": {
+     "n": 630,
+     "events": 172,
+     "episodes": 15,
+     "brier": 0.137,
+     "brier_base_rate": 0.2104,
+     "bss_vs_base_rate": 0.349,
+     "auc": 0.848
+    },
+    "curve": {
+     "n": 630,
+     "events": 172,
+     "episodes": 15,
+     "brier": 0.1431,
+     "brier_base_rate": 0.2104,
+     "bss_vs_base_rate": 0.32,
+     "auc": 0.824
+    },
+    "rubric": {
+     "n": 630,
+     "events": 172,
+     "episodes": 15,
+     "brier": 0.1866,
+     "brier_base_rate": 0.2104,
+     "bss_vs_base_rate": 0.113,
+     "auc": 0.453
+    }
+   },
+   "excluding_pandemic_window": {
+    "model": {
+     "n": 608,
+     "events": 158,
+     "episodes": 14,
+     "brier": 0.1362,
+     "brier_base_rate": 0.2045,
+     "bss_vs_base_rate": 0.334,
+     "auc": 0.823
+    },
+    "model_raw": {
+     "n": 608,
+     "events": 158,
+     "episodes": 14,
+     "brier": 0.1301,
+     "brier_base_rate": 0.2045,
+     "bss_vs_base_rate": 0.364,
+     "auc": 0.851
+    },
+    "curve": {
+     "n": 608,
+     "events": 158,
+     "episodes": 14,
+     "brier": 0.1391,
+     "brier_base_rate": 0.2045,
+     "bss_vs_base_rate": 0.32,
+     "auc": 0.819
+    },
+    "rubric": {
+     "n": 608,
+     "events": 158,
+     "episodes": 14,
+     "brier": 0.1737,
+     "brier_base_rate": 0.2045,
+     "bss_vs_base_rate": 0.151,
+     "auc": 0.492
+    }
+   },
+   "calibration": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 155,
+     "mean_forecast": 0.037,
+     "observed": 0.071
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 217,
+     "mean_forecast": 0.197,
+     "observed": 0.124
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 113,
+     "mean_forecast": 0.393,
+     "observed": 0.274
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 75,
+     "mean_forecast": 0.576,
+     "observed": 0.653
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 70,
+     "mean_forecast": 0.953,
+     "observed": 0.771
+    }
+   ],
+   "overconfidence": 0.182,
+   "calibration_raw": [
+    {
+     "bucket": "0.0-0.1",
+     "n": 247,
+     "mean_forecast": 0.029,
+     "observed": 0.065
+    },
+    {
+     "bucket": "0.1-0.3",
+     "n": 141,
+     "mean_forecast": 0.189,
+     "observed": 0.135
+    },
+    {
+     "bucket": "0.3-0.5",
+     "n": 55,
+     "mean_forecast": 0.381,
+     "observed": 0.2
+    },
+    {
+     "bucket": "0.5-0.7",
+     "n": 59,
+     "mean_forecast": 0.594,
+     "observed": 0.559
+    },
+    {
+     "bucket": "0.7-1.0",
+     "n": 128,
+     "mean_forecast": 0.892,
+     "observed": 0.727
+    }
+   ],
+   "recalibrated_share": 0.79,
+   "gate_checks": {
+    "bss_vs_base_rate": true,
+    "auc": true,
+    "episodes": true,
+    "calibration": true
+   },
+   "publishable": true
+  }
+ ],
+ "decisions": [
+  "Recession onset fails the calibration gate at all horizons: recession remains Insufficient evidence.",
+  "Labor deterioration 12 months passes on first-release inputs: revision bias does not drive the published outlook; it stays published.",
+  "No model was promoted from previously examined data."
+ ]
+}

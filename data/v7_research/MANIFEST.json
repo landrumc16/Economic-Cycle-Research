@@ -1,0 +1,46 @@
+{
+ "retrieved": "2026-11-18",
+ "sources": {
+  "french_49_industries": {
+   "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/49_Industry_Portfolios_CSV.zip",
+   "first": "1926-07",
+   "last": "2026-09"
+  },
+  "french_factors": {
+   "url": "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/F-F_Research_Data_Factors_CSV.zip",
+   "first": "1926-07",
+   "last": "2026-09"
+  },
+  "damodaran_pe": {
+   "url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/pedata.html",
+   "industries": 96,
+   "columns": [
+    "Industry Name",
+    "Number of firms",
+    "% of Money Losing firms (Trailing)",
+    "Current PE",
+    "Trailing PE",
+    "Forward PE",
+    "Aggregate Mkt Cap/ Net Income (all firms)",
+    "Aggregate Mkt Cap/ Trailing Net Income (only money making firms)",
+    "Expected growth - next 5 years",
+    "PEG Ratio"
+   ]
+  },
+  "alfred_UNRATE": {
+   "url": "https://api.stlouisfed.org/fred/series/observations?series_id=UNRATE&output_type=4",
+   "first": "1960-03",
+   "last": "2026-10"
+  },
+  "alfred_PAYEMS": {
+   "url": "https://api.stlouisfed.org/fred/series/observations?series_id=PAYEMS&output_type=4",
+   "first": "1955-05",
+   "last": "2026-10"
+  }
+ },
+ "notes": [
+  "French industry returns are value-weighted monthly percent returns; Mkt-RF and RF are percent.",
+  "Damodaran data are an annual vintage (published each January) and are context, not current valuation.",
+  "ALFRED output_type=4 gives each observation's value as first released."
+ ]
+}

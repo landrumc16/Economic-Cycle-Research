@@ -40,13 +40,16 @@ FEATURES = {
     "recession": ("term_spread", "term_spread_min12", "credit_spread", "unemp_rise", "payrolls_6m"),
     "labor_deterioration": ("term_spread", "term_spread_min12", "credit_spread", "unemp_rise", "payrolls_6m"),
     "inflation_rising": ("cpi_momentum", "cpi_12m", "unemp_rise", "term_spread"),
+    # Pre-registered in docs/V7_PREREGISTRATION_PASS_B.md (same features as `recession`).
+    "recession_onset": ("term_spread", "term_spread_min12", "credit_spread", "unemp_rise", "payrolls_6m"),
 }
 BENCH_FEATURES = {"recession": ("term_spread_min12",), "labor_deterioration": ("term_spread_min12",),
-                  "inflation_rising": ("cpi_momentum",)}
+                  "inflation_rising": ("cpi_momentum",), "recession_onset": ("term_spread_min12",)}
 TARGET_TEXT = {
     "recession": "The economy is in an NBER-dated recession at some point in the next {h} months",
     "labor_deterioration": "Unemployment rises 0.5 points or more above its latest known level within {h} months",
     "inflation_rising": "The 12-month inflation rate is higher in {h} months than its latest known level",
+    "recession_onset": "A new NBER-dated recession begins within the next {h} months (scored from expansion months only)",
 }
 
 
@@ -76,8 +79,11 @@ def load(data_dir: Path) -> dict:
 
 
 def visible(data: dict, t: str) -> dict:
-    """Only observations available at the end of month t (publication lags)."""
-    return {name: {m: v for m, v in data[name].items() if m <= shift(t, -LAG[name])}
+    """Only observations available at the end of month t (publication lags).
+
+    If data holds "<SERIES>_FEAT" (e.g. first-release UNRATE from ALFRED), that
+    series is used for features while outcomes keep using data[SERIES]."""
+    return {name: {m: v for m, v in data.get(name + "_FEAT", data[name]).items() if m <= shift(t, -LAG[name])}
             for name in LAG}
 
 
@@ -137,6 +143,12 @@ def features_at(data: dict, t: str) -> dict | None:
 # --------------------------------------------------------------------------
 def outcome(data: dict, target: str, t: str, h: int):
     future = [shift(t, k) for k in range(1, h + 1)]
+    if target == "recession_onset":
+        rec = data["USREC"]
+        if t not in rec or rec[t] >= 0.5 or any(m not in rec for m in future):
+            return None  # scored only from expansion months
+        prev = [t] + future[:-1]
+        return int(any(rec[m] >= 0.5 and rec[p] < 0.5 for m, p in zip(future, prev)))
     if target == "recession":
         rec = data["USREC"]
         if any(m not in rec for m in future):
@@ -161,7 +173,7 @@ def outcome(data: dict, target: str, t: str, h: int):
 
 
 def label_known_by(target: str, origin: str, h: int) -> str:
-    delay = RECESSION_LABEL_DELAY if target == "recession" else MACRO_LABEL_DELAY
+    delay = RECESSION_LABEL_DELAY if target in ("recession", "recession_onset") else MACRO_LABEL_DELAY
     return shift(origin, h + delay)
 
 
@@ -438,6 +450,20 @@ def current_outlook(data, panel, target, h, verdict, rows=None):
     text = ("under 5%" if p < 0.05 else "over 95%" if p > 0.95 else f"about {round(shown * 100)}%")
     out.update({"state": "Published", "probability": round(shown, 2), "probability_text": text, "band": band(p, base),
                 "inputs": {k: round(panel[t][k], 3) for k in feats}})
+    return out
+
+
+def first_release_check(data: dict, first_release: dict, end: str | None = None) -> list:
+    """Pre-registered robustness check: labor model with first-release UNRATE and
+    PAYEMS as inputs; outcomes remain on current-vintage UNRATE."""
+    d = dict(data)
+    d["UNRATE_FEAT"], d["PAYEMS_FEAT"] = first_release["UNRATE"], first_release["PAYEMS"]
+    d.pop("_rubric_cache", None)
+    out = []
+    for h in HORIZONS:
+        rows, _ = evaluate(d, "labor_deterioration", h, end)
+        if rows:
+            out.append(assess(rows, "labor_deterioration", h))
     return out
 
 

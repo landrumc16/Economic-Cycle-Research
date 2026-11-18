@@ -82,9 +82,22 @@ jobs:
           a = json.load(open("audit-output/v7_snapshot_evaluation.json"))
           b = json.load(open("docs/evidence/v7_forecast_evaluation_2026-11-17.json"))
           key = lambda r: {(e["target"], e["horizon_months"]): (e["publishable"], e["full_sample"]["model"]["bss_vs_base_rate"], e["full_sample"]["model"]["auc"]) for e in r["evaluations"]}
-          assert key(a) == key(b), "Snapshot evaluation no longer reproduces committed evidence"
+          ka, kb = key(a), key(b)
+          assert all(ka.get(k) == v for k, v in kb.items()), "Snapshot evaluation no longer reproduces committed evidence"
+          a = {"evaluations": [e for e in a["evaluations"] if (e["target"], e["horizon_months"]) in kb]}
           print("Reproduced committed V7 evidence from data/v7 snapshot:", sum(v[0] for v in key(a).values()), "publishable of", len(key(a)))
           PY
+      - name: Build V7 sector research and the redesigned site from committed evidence
+        run: |
+          python scripts/v7_sectors.py --output audit-output/v7_sectors.json
+          python - <<'PY'
+          import json
+          a = json.load(open("audit-output/v7_sectors.json")); b = json.load(open("docs/evidence/v7_sectors_2026-11-18.json"))
+          key = lambda r: [(s["sector"], s["cycle_class"], s["economic_backdrop"], s["research_priority"]) for s in r["sectors"]]
+          assert key(a) == key(b) and a["relative_strength_test"] == b["relative_strength_test"], "Sector evidence not reproduced"
+          print("Reproduced committed sector evidence for 11 sectors")
+          PY
+          python scripts/v7_site.py --output audit-output/v7-site
       - uses: actions/upload-artifact@v4
         if: always()
         with:
