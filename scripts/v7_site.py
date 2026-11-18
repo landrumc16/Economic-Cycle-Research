@@ -281,10 +281,14 @@ function setup(fig){
   svg.addEventListener("focus",function(){live.textContent="Use left and right arrow keys to read values; Shift moves a year.";});
 }
 document.querySelectorAll("figure[data-chart]").forEach(function(f){try{setup(f);}catch(err){}});
+// Stale-data notice: shown when the latest market data are more than four days old on the viewer's own clock.
+document.querySelectorAll("[data-through]").forEach(function(el){var t=el.getAttribute("data-through");if(!t)return;
+  var days=Math.floor((Date.now()-Date.parse(t+"T00:00:00Z"))/864e5);if(days>4){el.textContent="Market data are "+days+
+  " days old. The latest update may have failed, so the last valid assessment is shown.";el.hidden=false;}});
 // Colour theme: System, Light or Dark (remembered on this device when storage is available)
-var btn=document.querySelector(".theme button"),modes=["system","light","dark"],names={system:"System",light:"Light",dark:"Dark"};
+var btn=document.querySelector(".theme button"),modes=["system","light","dark"],names={system:"Auto",light:"Light",dark:"Dark"};
 function apply(m){if(m==="system")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",m);
-  if(btn){btn.textContent="Theme: "+names[m];btn.setAttribute("aria-label","Colour theme: "+names[m]+". Change theme");}}
+  if(btn){btn.textContent="\u25D0 "+names[m];btn.setAttribute("aria-label","Colour theme: "+(m==="system"?"follows your device":names[m])+". Change theme");}}
 var mode="system";try{mode=localStorage.getItem("v7-theme")||"system";}catch(e){}
 if(document.documentElement.hasAttribute("data-theme")&&mode==="system"){mode="host";}
 if(btn){btn.parentNode.classList.add("on");if(mode!=="host")apply(mode);else{apply(document.documentElement.getAttribute("data-theme")==="dark"?"dark":"light");}
@@ -679,6 +683,75 @@ def drawdown_chart(c, start, h=160, label_min=-40):
 
 
 
+def _utc(ts):
+    """'2026-11-18T18:09:32Z' -> 'Nov 18, 2026, 18:09 UTC'."""
+    if not ts or len(ts) < 16:
+        return ts or "n/a"
+    return f"{day(ts[:10])}, {ts[11:16]} UTC"
+
+
+KIND = {"tested": ("Tested warning", "st-warning"), "monitoring": ("Monitoring", "st-nc")}
+
+
+def change_rows(items):
+    return "".join(
+        f'<li><div class="rowstatic"><span class="rname">{esc(c["title"])}</span>'
+        f'<span class="st {"st-clear" if c["kind"] == "tested" and c["severity"] == "down" else KIND[c["kind"]][1]}">'
+        f'{KIND[c["kind"]][0]}</span><span class="rsub">{esc(c["detail"])} · {esc(day(c["date"]) if c.get("date") else "")}'
+        f'</span></div></li>' for c in items)
+
+
+def changes_card(inp):
+    mon = inp.get("monitor")
+    if not mon or not mon.get("assessments"):
+        return ""
+    cur = mon["assessments"][-1]
+    prev = mon["assessments"][-2] if len(mon["assessments"]) > 1 else None
+    items, events = cur.get("changes", []), cur.get("events", [])
+    head = (f'<p class="oneline"><small>Assessed {esc(_utc(cur["assessed_at_utc"]))} · data through '
+            f'{esc(day(cur["market_data_through"]))}'
+            + (f' (previous: {esc(day(prev["market_data_through"]))})' if prev else "") + "</small></p>")
+    stale = f'<p class="note" data-through="{esc(cur["market_data_through"])}" hidden></p>'
+    if not prev:
+        body = '<p class="oneline">First market assessment. Changes appear after the next trading day.</p>'
+    elif not items:
+        body = '<p class="oneline">No meaningful changes since the previous assessment.</p>'
+    else:
+        body = f'<ul class="rows">{change_rows(items[:3])}</ul>' + (
+            fold(f"{len(items) - 3} more change{'s' if len(items) > 4 else ''}", f'<ul class="rows">{change_rows(items[3:])}</ul>')
+            if len(items) > 3 else "")
+    ev = ('<p class="note" role="status"><strong>Event review:</strong> ' + esc("; ".join(events)) +
+          '. Every warning sign was rechecked. Not a prediction.</p>') if events else ""
+    whys = []
+    for c in items:
+        if c["why"] not in whys:
+            whys.append(c["why"])
+    why = fold("Why these changes matter", li_p(whys + [
+        "“Tested warning” means a historically tested sign changed state. “Monitoring” means a descriptive threshold, "
+        "not a predictor.", "Daily, weekly and monthly data each keep their own observation dates."]))
+    return (f'<section class="card" aria-labelledby="chg"><h2 id="chg">What changed since the last market assessment?</h2>'
+            f'{head}{stale}{ev}{body}{why}<p class="oneline"><a href="market-risk.html#week">This week’s interpretation →</a></p>'
+            '</section>')
+
+
+def weekly_card(inp):
+    mon = inp.get("monitor")
+    if not mon or not mon.get("weekly"):
+        return ""
+    wk = mon["weekly"][-1]
+    rows = "".join(f'<li><strong>{esc(l_["topic"])}.</strong> {esc(l_["text"])}</li>' for l_ in wk["lines"])
+    log = "".join(f'<li>{esc(_utc(a["assessed_at_utc"]))}: data through {esc(day(a["market_data_through"]))} — '
+                  f'{len(a.get("changes", []))} change{"s" if len(a.get("changes", [])) != 1 else ""}'
+                  + (" (baseline)" if a.get("baseline") else "") + "</li>" for a in reversed(mon["assessments"][-10:]))
+    return (f'<section class="card" id="week" aria-labelledby="wk"><p class="eyebrow">Weekly interpretation</p>'
+            f'<h2 id="wk">Week of {esc(day(wk["week"][0]))} to {esc(day(wk["week"][1]))}</h2>'
+            f'<p class="oneline"><strong>{esc(wk["summary"])}</strong></p><ul class="clean">{rows}</ul>'
+            + fold("Assessment log (latest 10)", f'<ul class="clean">{log}</ul>'
+                   '<p class="oneline"><small>A new assessment is made only when new market data arrive; slower '
+                   'indicators keep their own observation dates.</small></p>') + "</section>")
+
+
+
 def home(inp, matrix):
     c = inp["crash"]
     site_ = c["site"]
@@ -743,6 +816,7 @@ def home(inp, matrix):
         f'<ul class="rows wgrid">{rows}</ul>'
         + (f'<p class="oneline"><small>{esc(", ".join(x["title"] for x in stale))}: not counted because the tested data are not current.</small></p>' if stale else "")
         + '<p class="oneline"><a href="market-risk.html">See the evidence →</a></p></section>'
+        + changes_card(inp) +
         '<section class="card" aria-labelledby="cr"><h2 id="cr" class="sr-only">What concerns us and what reassures us</h2>'
         '<div class="two">'
         f'<div><h3>Concerning</h3>{li(concern)}</div><div><h3>Reassuring</h3>{li(reassure)}</div></div>'
@@ -878,6 +952,7 @@ def market_page(inp):
     body = (
         '<h1>Market risk</h1><p class="lede">Warning signs that came before past major declines, measured today, with their '
         'track records. Market data are daily or weekly; economic conclusions are monthly.</p><div class="stack">'
+        + weekly_card(inp)
         + '<div class="two">' + "".join(cards) + "</div>"
         + '<section class="card" aria-labelledby="cmp"><h2 id="cmp">Today versus past market peaks</h2>'
         f'<p class="muted oneline">Median of {cmp_["credit"]["n"]} U.S. bear-market peaks since 1953, compared with the latest data.</p>'

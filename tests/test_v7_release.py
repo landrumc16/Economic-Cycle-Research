@@ -223,6 +223,19 @@ class HttpTests(unittest.TestCase):
 
 
 class RefreshTests(_Fixture):
+    def newer(self, name="newer-market"):
+        """Test-only copy of the market snapshot with one extra (synthetic) S&P 500 close, i.e. a new trading day."""
+        d = self.tmp / name
+        if d.exists():
+            shutil.rmtree(d)
+        shutil.copytree(ROOT / "data/v7_crash", d)
+        with (d / "fred_SP500.csv").open("a") as f:
+            f.write("2026-11-17,7380.0\n")
+        man = json.loads((d / "MANIFEST.json").read_text())
+        man["fred"]["SP500"]["last"] = "2026-11-17"
+        (d / "MANIFEST.json").write_text(json.dumps(man))
+        return d
+
     def setUp(self):
         root = self.bundle.parent.parent
         if not (root / "data" / "v7_fresh").exists():
@@ -236,13 +249,16 @@ class RefreshTests(_Fixture):
 
     def test_daily_refresh_updates_market_data_but_never_monthly_conclusions(self):
         before = self.manifest(self.t)
-        r = rel.refresh_market(self.bundle.parent.parent, self.t, ROOT / "data/v7_crash", date(2026, 11, 18), COMMIT,
+        r = rel.refresh_market(self.bundle.parent.parent, self.t, self.newer(), date(2026, 11, 18), COMMIT,
                                "2026-11-19T12:20:00Z")
         self.assertEqual(r["status"], "REFRESHED")
         after = self.manifest(self.t)
         for k in ("build_commit", "build_time_utc", "assessment_date", "published_outlooks", "promotion_outcome"):
             self.assertEqual(after[k], before[k], k)
-        self.assertEqual(after["market_refresh"]["market_data_through"], "2026-11-16")
+        self.assertEqual(after["market_refresh"]["market_data_through"], "2026-11-17")
+        hist = json.loads((self.t / "v7_market_history.json").read_text())
+        self.assertEqual([a["market_data_through"] for a in hist["assessments"]], ["2026-11-16", "2026-11-17"])
+        self.assertIn("What changed since the last market assessment?", (self.t / "index.html").read_text())
         self.assertEqual(rel.validate_site(self.t, after)["status"], "V7_SITE_CONTRACT_PASS")
         # The refreshed publication is preserved byte for byte on a later day.
         keep = self.tmp / "refresh-keep"
@@ -254,12 +270,27 @@ class RefreshTests(_Fixture):
             d = self.tmp / "gapdata"
             if d.exists():
                 shutil.rmtree(d)
-            shutil.copytree(ROOT / "data/v7_crash", d)
+            shutil.copytree(self.newer("gapbase"), d)
             man = json.loads((d / "MANIFEST.json").read_text())
             man["gaps"] = [gap]
             (d / "MANIFEST.json").write_text(json.dumps(man))
             r = rel.refresh_market(self.bundle.parent.parent, self.t, d, date(2026, 11, 18), COMMIT, "2026-11-19T12:20:00Z")
             self.assertEqual(r["status"], expected, gap)
+
+    def test_market_history_is_published_and_survives_preservation(self):
+        m = self.manifest(self.t)
+        self.assertIn("v7_market_history.json", m["data_files"])
+        self.assertEqual(m["market_assessment"]["market_data_through"], "2026-11-16")
+        r = rel.refresh_market(self.bundle.parent.parent, self.t, ROOT / "data/v7_crash", date(2026, 11, 18), COMMIT,
+                               "2026-11-19T12:20:00Z")
+        self.assertEqual(r["status"], "NO_NEW_DATA")  # same market data as the monthly build: nothing re-dated
+        keep = self.tmp / "hist-keep"
+        rel.publish(None, keep, "https://x", date(2026, 11, 20), fetch=self.live_from(self.t))
+        self.assertEqual((keep / "v7_market_history.json").read_bytes(), (self.t / "v7_market_history.json").read_bytes())
+        live = self.live_from(self.t)
+        tampered = lambda u: b'{"assessments": []}' if u.endswith("v7_market_history.json") else live(u)
+        with self.assertRaises(RuntimeError):
+            rel.publish(None, self.tmp / "hist-bad", "https://x", date(2026, 11, 20), fetch=tampered)
 
     def test_refresh_skips_stale_market_data_or_a_different_bundle(self):
         r = rel.refresh_market(self.bundle.parent.parent, self.t, ROOT / "data/v7_crash", date(2026, 12, 15), COMMIT, "x")

@@ -36,10 +36,10 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 try:
-    from . import v7_crash_research as crash, v7_forecast_engine as engine, v7_sectors as sectors, v7_site as site
+    from . import v7_crash_research as crash, v7_forecast_engine as engine, v7_market_monitor as monitor, v7_sectors as sectors, v7_site as site
 except ImportError:  # executed as a script
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import v7_crash_research as crash, v7_forecast_engine as engine, v7_sectors as sectors, v7_site as site  # type: ignore
+    import v7_crash_research as crash, v7_forecast_engine as engine, v7_market_monitor as monitor, v7_sectors as sectors, v7_site as site  # type: ignore
 
 VERSION = "7.0"
 MANIFEST = "v7_release_manifest.json"
@@ -105,6 +105,9 @@ def validate_manifest(m: dict) -> dict:
     for name, digest in pages.items():
         if "/" in name or ".." in name or not re.fullmatch(r"[0-9a-f]{64}", str(digest)):
             raise ValueError("Invalid page entry: " + name)
+    for name, digest in (m.get("data_files") or {}).items():
+        if "/" in name or ".." in name or not name.endswith(".json") or not re.fullmatch(r"[0-9a-f]{64}", str(digest)):
+            raise ValueError("Invalid data file entry: " + name)
     if m["promotion_outcome"] != "FAILED" and m["research_gate"]["qualified"] is not True:
         raise ValueError("Only a qualified V7 bundle may be published")
     return m
@@ -207,6 +210,17 @@ def hold_unapproved(report: dict) -> list:
     return held
 
 
+def economy_of(inp: dict) -> dict:
+    return {"condition": inp["view"]["condition"], "through": inp["assessment"]["sources"]["UNRATE"]["latest_used_month"]}
+
+
+def assessment_summary(history: dict) -> dict:
+    a = history["assessments"][-1]
+    return {"assessed_at_utc": a["assessed_at_utc"], "market_data_through": a["market_data_through"],
+            "changes": len(a.get("changes", [])), "events": a.get("events", []),
+            "weekly_period": history["weekly"][-1]["week"] if history.get("weekly") else None}
+
+
 def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_of: str,
             commit: str, built_at: str, research_evidence: Path = Path(RESEARCH_EVIDENCE),
             crash_dir: Path | None = None) -> dict:
@@ -264,7 +278,13 @@ def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_o
         if not sp_last or (date.fromisoformat(as_of[:10]) - date.fromisoformat(sp_last)).days > MAX_MARKET_LAG_DAYS:
             reasons.append(f"Daily market data end {sp_last}; too old for {as_of[:10]}")
     inp = site.load_inputs(forecast_path, research_evidence, sectors_path, archive_path, fred_dir, crash_path)
+    history = None
+    if crash_dir is not None and (Path(crash_dir) / "MANIFEST.json").is_file():
+        history, _ = monitor.update(None, inp["crash"], Path(crash_dir), built_at, economy_of(inp))
+        inp["monitor"] = history
     site.build(site_dir, inp)
+    if history:
+        (site_dir / monitor.HISTORY).write_text(json.dumps(history, indent=1, sort_keys=True) + "\n")
     published = [{"target": r["target"], "horizon_months": r["h"], "probability": r["p"], "band": r["band"],
                   "forecast_origin": r["origin"]} for r in site.outlook_matrix(inp) if r["published"]]
     pages = {p.name: sha(p.read_bytes()) for p in sorted(site_dir.glob("*.html"))}
@@ -282,6 +302,8 @@ def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_o
                           "french_latest_month": french_latest, "research_retrieved": rman.get("retrieved"),
                           "point_in_time_certified": False},
         "published_outlooks": published, "held_for_review": held, "pages": pages,
+        **({"data_files": {monitor.HISTORY: sha((site_dir / monitor.HISTORY).read_bytes())}} if history else {}),
+        **({"market_assessment": assessment_summary(history)} if history else {}),
         "research_gate": {"qualified": False, "reasons": reasons},
         "promotion_outcome": "FAILED",
     }
@@ -326,7 +348,7 @@ def http_get(url: str, attempts: int = 6, wait: float = 10.0, opener=urllib.requ
 
 
 def files_of(manifest: dict) -> list:
-    return sorted(manifest["pages"]) + ["forecast_archive.csv"]
+    return sorted(manifest["pages"]) + ["forecast_archive.csv"] + sorted(manifest.get("data_files", {}))
 
 
 def stale_notice(html: str, assessment_date: str) -> str:
@@ -380,6 +402,8 @@ def publish(source: Path | None, target: Path, live_base: str, today: date, fetc
             body = body.decode("utf-8").replace(note, "", 1).encode("utf-8")  # restore the accepted original
             if sha(body) != original[name]:
                 raise RuntimeError("Live page does not match its accepted original: " + name)
+        elif name in (prev.get("data_files") or {}) and sha(body) != prev["data_files"][name]:
+            raise RuntimeError("Live data file does not match its manifest: " + name)
         (target / name).write_bytes(body)
     accepted = date.fromisoformat(prev["build_time_utc"][:10])
     old = (today - accepted).days > STALE_NOTICE_DAYS
@@ -429,8 +453,22 @@ def refresh_market(source: Path, target: Path, crash_dir: Path, today: date, com
     with contextlib.redirect_stdout(io.StringIO()):
         crash.analyze(Path(crash_dir), crash_path)
     inp = site.load_inputs(needed[0], Path(RESEARCH_EVIDENCE), needed[1], needed[2], fred_dir, crash_path)
+    prev_hist = json.loads((target / monitor.HISTORY).read_text()) if (target / monitor.HISTORY).is_file() else None
+    baseline = None
+    if prev_hist is None and (bundle / "v7_crash_research.json").is_file() and (root / "data" / "v7_crash_fresh").is_dir():
+        # First daily run after a monthly build that predates monitoring: the monthly market data are the baseline.
+        baseline = monitor.assess(json.loads((bundle / "v7_crash_research.json").read_text()), root / "data" / "v7_crash_fresh",
+                                  pub["build_time_utc"])
+    history, status = monitor.update(prev_hist, inp["crash"], Path(crash_dir), built_at, economy_of(inp), baseline)
+    if status == "NO_NEW_DATA":
+        shutil.rmtree(work, ignore_errors=True)
+        last = history["assessments"][-1]
+        return {"status": "NO_NEW_DATA", "reason": "No observation is newer than the last assessment",
+                "last_assessment_utc": last["assessed_at_utc"], "market_data_through": last["market_data_through"]}
+    inp["monitor"] = history
     site_dir = work / "site"
     site.build(site_dir, inp)
+    (site_dir / monitor.HISTORY).write_text(json.dumps(history, indent=1, sort_keys=True) + "\n")
     published = [{"target": r["target"], "horizon_months": r["h"], "probability": r["p"], "band": r["band"],
                   "forecast_origin": r["origin"]} for r in site.outlook_matrix(inp) if r["published"]]
     if published != pub["published_outlooks"] or inp["assessment"]["assessment_date"] != pub["assessment_date"]:
@@ -440,13 +478,17 @@ def refresh_market(source: Path, target: Path, crash_dir: Path, today: date, com
     new["market_warnings"] = [{k: w.get(k) for k in ("key", "title", "status", "value", "date", "frequency")}
                               for w in inp["crash"]["site"]["warnings"]]
     new["market_refresh"] = {"market_data_through": sp_last, "refreshed_at_utc": built_at, "refresh_commit": commit}
+    new["data_files"] = {monitor.HISTORY: sha((site_dir / monitor.HISTORY).read_bytes())}
+    new["market_assessment"] = assessment_summary(history)
     validate_manifest(new)
     validate_site(site_dir, new)
     for name in files_of(new):  # all checks passed: write pages, then the manifest last
         shutil.copy(site_dir / name, target / name)
     (target / MANIFEST).write_text(json.dumps(new, indent=2, sort_keys=True) + "\n")
     shutil.rmtree(work, ignore_errors=True)
+    latest = history["assessments"][-1]
     return {"status": "REFRESHED", "market_data_through": sp_last, "non_critical_gaps": cman.get("gaps", []),
+            "changes": [c["title"] for c in latest.get("changes", [])], "events": latest.get("events", []),
             "warnings": {w["key"]: w["status"] for w in new["market_warnings"]}}
 
 

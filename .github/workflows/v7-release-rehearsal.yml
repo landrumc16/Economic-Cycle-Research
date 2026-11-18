@@ -69,8 +69,13 @@ jobs:
           python scripts/v7_crash_research.py fetch --out /tmp/v7-market > /dev/null
           python scripts/v7_release.py refresh-market --source /tmp/economic-monthly --target rehearsal/dashboard \
             --crash-dir /tmp/v7-market --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee rehearsal/refresh.json
-          grep -q REFRESHED rehearsal/refresh.json
+          grep -Eq '"status": "(REFRESHED|NO_NEW_DATA)"' rehearsal/refresh.json
           python scripts/v7_release.py verify --directory rehearsal/dashboard
+          # A second run with the same data must not create a new assessment (no re-dating of unchanged readings).
+          python scripts/v7_release.py refresh-market --source /tmp/economic-monthly --target rehearsal/dashboard \
+            --crash-dir /tmp/v7-market --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee rehearsal/refresh2.json
+          grep -q '"status": "NO_NEW_DATA"' rehearsal/refresh2.json
+          python -c "import json; h=json.load(open('rehearsal/dashboard/v7_market_history.json')); a=h['assessments'][-1]; print('Latest assessment', a['assessed_at_utc'], 'data through', a['market_data_through']); [print(' change:', c['kind'], c['title']) for c in a['changes']]; print(' events:', a['events']); print(' weekly:', h['weekly'][-1]['week'], h['weekly'][-1]['summary'])"
       - name: Rehearse public verification, preservation, old-bundle notice and fail-closed behaviour
         run: |
           (cd rehearsal/dashboard && python -m http.server 8765 >/dev/null 2>&1 &) ; sleep 2

@@ -610,8 +610,17 @@ jobs:
           python scripts/v7_crash_research.py fetch --out /tmp/v7-market > /dev/null || echo "Market fetch failed; V7 pages unchanged."
           if [ -f /tmp/v7-market/MANIFEST.json ]; then
             python scripts/v7_release.py refresh-market --source /tmp/economic-monthly --target audit-output/dashboard \
-              --crash-dir /tmp/v7-market --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee -a "$GITHUB_STEP_SUMMARY"
+              --crash-dir /tmp/v7-market --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee /tmp/v7-refresh.json | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo '{"status": "FAILED", "reason": "market data fetch failed"}' > /tmp/v7-refresh.json
           fi
+          # Monitoring: a skipped or failed refresh is annotated on the run; the previous valid assessment stays published.
+          python - <<'PY'
+          import json
+          r = json.load(open("/tmp/v7-refresh.json"))
+          if r.get("status") in ("FAILED", "SKIPPED"):
+              print(f"::warning title=V7 daily market assessment {r['status'].lower()}::{r.get('reason', '')}")
+          PY
           python scripts/v7_release.py verify --directory audit-output/dashboard
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
