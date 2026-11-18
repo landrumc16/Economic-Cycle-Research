@@ -116,7 +116,8 @@ ul.dbars li{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 4.8em;gap:8px
 th[scope=row]{text-transform:none;letter-spacing:0;font-size:.92rem;color:var(--ink);font-weight:600}
 /* Market-risk dashboard */
 .fig{margin:8px 0 0}.fig figcaption{font-size:.85rem;color:var(--muted);margin-top:4px}
-.chart.ts{max-width:760px}
+.chart.ts{max-width:600px}
+.legend i.dash{background:none!important;border-top:2px dashed var(--ink);height:0;border-radius:0}
 .legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.85rem;color:var(--muted);margin:6px 0 0;padding:0;list-style:none}
 .legend li{display:flex;align-items:center;gap:6px}.legend i{display:inline-block;width:14px;height:4px;border-radius:2px}
 .st{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.85rem;border-radius:999px;padding:3px 10px;white-space:nowrap}
@@ -249,10 +250,9 @@ def ts_chart(series, *, y0, y1, start, label, caption="", h=170, w=400, shade=()
         x = X(f"{yr}-01")
         if L <= x <= w - R:
             out.append(f'<text x="{x:.1f}" y="{h - 5}" text-anchor="middle" font-size="11">{yr}</text>')
-    for v, txt in hlines:
+    for v, txt in hlines:  # threshold lines; their meaning is given in the legend, never drawn over the data
         out.append(f'<line x1="{L}" x2="{w - R}" y1="{Y(v):.1f}" y2="{Y(v):.1f}" stroke="var(--ink)" stroke-dasharray="4 3" '
-                   f'stroke-width="1.2"/><text x="{w - R}" y="{Y(v) - 4:.1f}" text-anchor="end" font-size="11" '
-                   f'font-weight="700">{esc(txt)}</text>')
+                   'stroke-width="1.2"/>')
     for sr in series:
         pts = [(X(t), Y(v)) for t, v in sr["pts"] if t >= start and v is not None]
         if not pts:
@@ -274,8 +274,9 @@ def ts_chart(series, *, y0, y1, start, label, caption="", h=170, w=400, shade=()
                    f'<text x="{x:.1f}" y="{y + (13 if below else -6):.1f}" text-anchor="{anchor}" '
                    f'font-size="10.5" font-weight="700">{esc(txt)}</text>')
     legend = ""
-    if len(series) > 1 or shade:
+    if len(series) > 1 or shade or hlines:
         items = "".join(f'<li><i style="background:{sr["color"]}"></i>{esc(sr["name"])}</li>' for sr in series)
+        items += "".join(f'<li><i class="dash"></i>{esc(txt)}</li>' for _, txt in hlines)
         if shade:
             items += '<li><i style="background:var(--hatch);height:10px"></i>Recession</li>'
         legend = f'<ul class="legend" aria-hidden="true">{items}</ul>'
@@ -630,7 +631,7 @@ def home(inp, matrix):
         f'<section class="card" aria-labelledby="eco"><p class="eyebrow">Supporting context</p><div class="row-head">'
         f'<h2 id="eco">The economy: {esc(v["condition"])}</h2><a href="forecast.html">Economy →</a></div>'
         + ts_chart([{"name": "Industrial production, 12-month change", "pts": ipg, "color": "var(--brand2)"}],
-                   y0=-20, y1=10, start="2012-01", h=120, yfmt="{:.0f}%", hlines=((0, "0%"),),
+                   y0=-20, y1=10, start="2012-01", h=120, yfmt="{:.0f}%", hlines=((0, "No change (0%)"),),
                    label=f"Industrial production, 12-month change, 2012 to {_fmt_month(ipg[-1][0])}.",
                    caption=f"Industrial production, 12-month change (FRED), through {_fmt_month(ipg[-1][0])}.")
         + f'<p class="oneline">Job market weakens within 12 months: <strong>{esc(labor["text"] or "not enough evidence")}</strong>'
@@ -649,28 +650,28 @@ def market_page(inp):
     w = {x["key"]: x for x in ws}
     signal_charts = {
         "curve": lambda: ts_chart([{"name": "10-year minus 3-month Treasury", "pts": ch["curve"], "color": "var(--brand2)"}],
-                                  y0=-4, y1=5, start="1960-01", h=130, yfmt="{:.0f}", hlines=((0, "Inverted below 0"),),
+                                  y0=-4, y1=5, start="1960-01", h=130, yfmt="{:.0f}", hlines=((0, "Inverted when below this line (0)"),),
                                   shade=ch["recession_months"], label="Yield curve, 10-year minus 3-month, 1960 to date.",
                                   caption="Points; monthly averages (FRED GS10 − TB3MS)."),
         "credit": lambda: ts_chart([{"name": "BAA corporate minus 10-year Treasury", "pts": ch["credit"], "color": "var(--warn)"}],
-                                   y0=0, y1=6, start="1960-01", h=130, yfmt="{:.0f}", hlines=((2.5, "Stress 2.5"),),
+                                   y0=0, y1=6, start="1960-01", h=130, yfmt="{:.0f}", hlines=((2.5, "Stress threshold (2.5 points)"),),
                                    shade=ch["recession_months"], label="Corporate credit spread, BAA minus 10-year Treasury, 1960 to date.",
                                    caption="Points; monthly (FRED BAA − GS10)."),
         "conditions": lambda: ts_chart([{"name": "Chicago Fed NFCI", "pts": ch["nfci"], "color": "var(--brand2)"}],
-                                       y0=-1.5, y1=3, start="1971-01", h=130, yfmt="{:.1f}", hlines=((0, "Tighter above 0"),),
+                                       y0=-1.5, y1=3, start="1971-01", h=130, yfmt="{:.1f}", hlines=((0, "Average (0); above = tighter"),),
                                        shade=ch["recession_months"], label="Chicago Fed National Financial Conditions Index, 1971 to date.",
                                        caption="Monthly average of the weekly index (FRED NFCI)."),
         "breadth": lambda: ts_chart([{"name": "Industries above trend", "pts": [[m, 100 * v] for m, v in ch["breadth"]],
                                       "color": "var(--good)"}], y0=0, y1=100, start="2000-01", h=130, yfmt="{:.0f}%",
-                                    hlines=((40, "Weak below 40%"),), shade=ch["recession_months"],
+                                    hlines=((40, "Weak-breadth threshold (40%)"),), shade=ch["recession_months"],
                                     label="Share of 49 industries above their 10-month average, 2000 to date.",
                                     caption="Kenneth R. French 49 industry portfolios, monthly."),
         "trend": lambda: ts_chart([{"name": n, "pts": [[d, 100 * v / pts[0][1]] for d, v in pts], "color": col}
                                    for (n, pts, col) in (("S&P 500", ch["index_1y"]["SP500"], "var(--brand2)"),
                                                          ("Nasdaq", ch["index_1y"]["NASDAQCOM"], "var(--bad)"),
                                                          ("Dow", ch["index_1y"]["DJIA"], "var(--good)")) if pts],
-                                  y0=80, y1=125, start=ch["index_1y"]["SP500"][0][0], h=140, yfmt="{:.0f}",
-                                  hlines=((100, "Start = 100"),), ticks_every=1,
+                                  y0=75, y1=125, start=ch["index_1y"]["SP500"][0][0], h=140, yfmt="{:.0f}",
+                                  hlines=((100, "Starting level (100)"),), ticks_every=1,
                                   label=f'S&P 500, Nasdaq and Dow, {day(ch["index_1y"]["SP500"][0][0])} to '
                                         f'{day(ch["index_1y"]["SP500"][-1][0])}, rebased to 100.',
                                   caption=f'Daily closes (FRED), rebased to 100, through {day(ch["index_1y"]["SP500"][-1][0])}.'),
@@ -746,7 +747,7 @@ def market_page(inp):
     body = (
         '<h1>Market risk</h1><p class="lede">Warning signs that came before past major declines, measured today, with their '
         'track records. Market data are daily or weekly; economic conclusions are monthly.</p><div class="stack">'
-        + "".join(cards)
+        + '<div class="two">' + "".join(cards) + "</div>"
         + '<section class="card" aria-labelledby="cmp"><h2 id="cmp">Today versus past market peaks</h2>'
         f'<p class="muted oneline">Median of {cmp_["credit"]["n"]} U.S. bear-market peaks since 1953, compared with the latest data.</p>'
         f'{compare}<p class="oneline"><small>Past peaks use the total U.S. market (monthly); today’s trend uses S&amp;P 500 daily '
@@ -769,7 +770,7 @@ def market_page(inp):
         '</section>'
         '<section class="card" aria-labelledby="dv"><h2 id="dv">When the economy and the market disagree</h2>'
         + ts_chart([{"name": "Industrial production, 12-month change", "pts": ch["ip_growth"], "color": "var(--brand2)"}],
-                   y0=-20, y1=10, start="1985-01", h=120, yfmt="{:.0f}%", hlines=((0, "0%"),), shade=ch["recession_months"],
+                   y0=-20, y1=10, start="1985-01", h=120, yfmt="{:.0f}%", hlines=((0, "No change (0%)"),), shade=ch["recession_months"],
                    label="Industrial production, 12-month change, 1985 to date.")
         + drawdown_chart(c, "1985-01", h=120, label_min=-30)
         + '<p class="oneline">The market fell 20% or more in 1987, 1998, 2018 and 2022 while production was still growing. '
@@ -835,7 +836,7 @@ def forecast(inp, matrix):
             f'<p class="oneline"><span class="chip">Direction: {esc(v["direction"])}</span><span class="chip">Evidence: {esc(v["evidence_confidence"])}</span></p>'
             f'<p class="oneline">{esc(hl[:1].upper() + hl[1:])}</p>'
             + ts_chart([{"name": "Industrial production, 12-month change", "pts": ipg, "color": "var(--brand2)"}],
-                       y0=-20, y1=10, start="2000-01", h=130, yfmt="{:.0f}%", hlines=((0.5, "Expanding above +0.5%"),),
+                       y0=-20, y1=10, start="2000-01", h=130, yfmt="{:.0f}%", hlines=((0.5, "Expansion threshold (+0.5%)"),),
                        shade=inp["crash"]["site"]["charts"]["recession_months"],
                        label=f"Industrial production, 12-month change, 2000 to {_fmt_month(ipg[-1][0])}.",
                        caption="Industrial production (FRED). Shaded: recessions.")

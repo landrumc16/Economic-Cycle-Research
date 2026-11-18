@@ -1,25 +1,29 @@
-320 index.html H 2147 2.54scr now 439 next 962 sec 1558 over false false covered false smallTargets 1 
-320 forecast.html H 1809 2.14scr  over false false covered false smallTargets 0 
+320 index.html H 3765 4.46scr now null next null sec 4376 over false false covered false smallTargets 1 
+320 market-risk.html H 7537 8.93scr  over false false covered false smallTargets 0 
+320 forecast.html H 2614 3.10scr  over false false covered false smallTargets 1 
 320 sectors.html H 1765 2.09scr  over false false covered false smallTargets 0 
 320 track-record.html H 1925 2.28scr  over false false covered false smallTargets 0 
-320 research.html H 1325 1.57scr  over false false covered false smallTargets 0 
+320 research.html H 1474 1.75scr  over false false covered false smallTargets 0 
 320 sector-energy.html H 1600 1.90scr  over false false covered false smallTargets 1 
-375 index.html H 1946 2.31scr now 420 next 870 sec 1403 over false false covered false smallTargets 1 
-375 forecast.html H 1680 1.99scr  over false false covered false smallTargets 0 
+375 index.html H 3391 4.02scr now null next null sec 3875 over false false covered false smallTargets 1 
+375 market-risk.html H 6883 8.16scr  over false false covered false smallTargets 0 
+375 forecast.html H 2402 2.85scr  over false false covered false smallTargets 1 
 375 sectors.html H 1694 2.01scr  over false false covered false smallTargets 0 
 375 track-record.html H 1656 1.96scr  over false false covered false smallTargets 1 
-375 research.html H 1163 1.38scr  over false false covered false smallTargets 0 
+375 research.html H 1295 1.53scr  over false false covered false smallTargets 0 
 375 sector-energy.html H 1432 1.70scr  over false false covered false smallTargets 1 
-390 index.html H 1950 2.31scr now 424 next 874 sec 1406 over false false covered false smallTargets 1 
-390 forecast.html H 1609 1.91scr  over false false covered false smallTargets 0 
+390 index.html H 3314 3.93scr now null next null sec 3797 over false false covered false smallTargets 1 
+390 market-risk.html H 6763 8.01scr  over false false covered false smallTargets 0 
+390 forecast.html H 2315 2.74scr  over false false covered false smallTargets 1 
 390 sectors.html H 1694 2.01scr  over false false covered false smallTargets 0 
 390 track-record.html H 1638 1.94scr  over false false covered false smallTargets 1 
-390 research.html H 1163 1.38scr  over false false covered false smallTargets 0 
+390 research.html H 1270 1.50scr  over false false covered false smallTargets 0 
 390 sector-energy.html H 1383 1.64scr  over false false covered false smallTargets 1 
-430 index.html H 1872 2.22scr now 433 next 883 sec 1350 over false false covered false smallTargets 1 
-430 forecast.html H 1524 1.81scr  over false false covered false smallTargets 0 
+430 index.html H 3221 3.82scr now null next null sec 3701 over false false covered false smallTargets 1 
+430 market-risk.html H 6657 7.89scr  over false false covered false smallTargets 0 
+430 forecast.html H 2199 2.61scr  over false false covered false smallTargets 1 
 430 sectors.html H 1673 1.98scr  over false false covered false smallTargets 0 
 430 track-record.html H 1519 1.80scr  over false false covered false smallTargets 1 
-430 research.html H 1117 1.32scr  over false false covered false smallTargets 0 
+430 research.html H 1199 1.42scr  over false false covered false smallTargets 0 
 430 sector-energy.html H 1331 1.58scr  over false false covered false smallTargets 1 
 PROBLEMS 0

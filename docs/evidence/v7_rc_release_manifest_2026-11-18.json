@@ -1,28 +1,79 @@
 {
   "assessment_date": "2026-10-20",
-  "build_commit": "d57358d87990998345ae5f44366f63f2fbd5718c",
-  "build_time_utc": "2026-11-18T12:50:07Z",
+  "build_commit": "938cbc122d22fde3c5c6a9ff90c190235a01b80f",
+  "build_time_utc": "2026-11-18T14:08:49Z",
   "condition": "Expanding",
   "direction": "Firming",
   "held_for_review": [],
+  "market_warnings": [
+    {
+      "date": "2026-10",
+      "frequency": "monthly",
+      "key": "curve",
+      "status": "clear",
+      "title": "Yield curve",
+      "value": 1.08
+    },
+    {
+      "date": "2026-11-16",
+      "frequency": "daily",
+      "key": "trend",
+      "status": "near",
+      "title": "Market trend",
+      "value": 0.88
+    },
+    {
+      "date": "2026-09",
+      "frequency": "monthly",
+      "key": "breadth",
+      "status": "near",
+      "title": "Market breadth",
+      "value": 40.8
+    },
+    {
+      "date": "2026-11-13",
+      "frequency": "weekly",
+      "key": "conditions",
+      "status": "clear",
+      "title": "Financial conditions",
+      "value": -0.48
+    },
+    {
+      "date": "2026-10",
+      "frequency": "monthly",
+      "key": "credit",
+      "status": "clear",
+      "title": "Credit spreads",
+      "value": 1.46
+    },
+    {
+      "date": "2023-09",
+      "frequency": "monthly",
+      "key": "valuation",
+      "status": "not current",
+      "title": "Valuation",
+      "value": 30.81
+    }
+  ],
   "observation_cutoff": "2026-09",
   "pages": {
-    "forecast.html": "289d3e5a697a1d388a6b967697175e52be445b7940a35f8b703b3cace6d14d3d",
-    "index.html": "daf4ef8a3c2b3838cdbe1901bbfe194cdfa9354c39ea501fd086e9c4a7c4ae97",
-    "research.html": "a2743cf76e83c63f145c19628141c08be4b59911933ce6026fd98f57666ed0ee",
-    "sector-communication-services.html": "60a7e4dcb2ec50dc8d6cba3ea0543740a841a1ccb10ce57a338edf28169564b6",
-    "sector-consumer-discretionary.html": "0a38e8abc6cdcc30987e5111de37729962fb747f02e2abf2db8b9bfc1e28f801",
-    "sector-consumer-staples.html": "b04e6fd27552a219c462e0b3313df8453220f093e44600bb883de90caa68c6f9",
-    "sector-energy.html": "cf3b23ec164459617283f2a220bf1cd1e8e571601fbca8fc7b7742e72c05d138",
-    "sector-financials.html": "18bca51af9a50f735a6a0eb6c1771d7f6b9f0e44445530ef7ceb3bd21a21662d",
-    "sector-health-care.html": "0252aa79fe0ed18597a32cfc4452316c432a9a271e2274358b95fa8d591b6f73",
-    "sector-industrials.html": "7a6e23557c382dbafe0f185ed95095cdd756c6d446755ac85453dcb5fc64ed4f",
-    "sector-information-technology.html": "8ab91f4f1c524ee71988beb51981e11150b6cae94db7bc658b99a47081c736e3",
-    "sector-materials.html": "53a7a0eb4c3566d1d7147aa55a78f71eef06ab4602d84d53e6138d6bf08ed1ab",
-    "sector-real-estate.html": "7b73438ffecf4d9d35cd3e4a5fe7b2ae1040900a579880d03b0af79864d72d31",
-    "sector-utilities.html": "cc7ded0fc3a45dfb3ae38b2bcb518a95fd3a2995900a829acf27e710fd34571d",
-    "sectors.html": "62757e66c04d61371f35e99801a2d10568b1af198c4d073ec112c158f18f4f04",
-    "track-record.html": "4dc9dabb439631be860dbd88aaf451183ababe5a981531204b82dba244e4f7d2"
+    "forecast.html": "7f7026a4f068f334e269facba718263bb9db4da1bedfc8da9ad34cdcc86086ad",
+    "index.html": "9f2fc6ce823cb0d9a4440ab4574858efaa0f907baf2fc81cccad57d44ef1e389",
+    "market-risk.html": "9da97c7a3743050c2ea0c59dbfc6fd855049dd1210f843feb34a473d40b17733",
+    "research.html": "bd40680261977ac2b3356eb51bd18ca22724159517ec641a96ca8466486ec5be",
+    "sector-communication-services.html": "e3b40bca774859babf577a7f88b882525dc91425d12ca41785db414b00140ed4",
+    "sector-consumer-discretionary.html": "2cc57d43f9d3d5acc03632f4d146fd308bc9778cb7df9be4b3039586c1831b0a",
+    "sector-consumer-staples.html": "b09e35fb5250c08ef8e9bb7f4f77116bf9b3a4c11e89924c1f3df68bcd08df8b",
+    "sector-energy.html": "0ed6399f82c04e348c8dc60668ed025eb2b2fa2c8bcc11e9aef6f000b32e592d",
+    "sector-financials.html": "ecf3d433160a1d9f1d5010271de084cddef0d2ccd5cf7b552a8faa9f8da2b2d7",
+    "sector-health-care.html": "88d88aa22a0ffa629f0e0bd9a51003f407b6a2c9d17acf6642b2a32445967c8a",
+    "sector-industrials.html": "fb0d605066910d22474eea9732ea8490d1e1c8a00f8087fc7da23aa5d4ea9b07",
+    "sector-information-technology.html": "71a190b717a0bfeed25f1ce30a76fc7dcb74c053fb0aaf2865a2a06a438283f8",
+    "sector-materials.html": "d1f249bac92c9cf527d17acd09649b55555b774b201feab0815ac8870fa8b400",
+    "sector-real-estate.html": "08ff0d10396a5803193f528f902e8b61febd92c9397b70f75db0f87ef03a20d4",
+    "sector-utilities.html": "496a26613153729ffc8515fe24456b1f86d5872b8cd2e8e1c270404cc7aa194b",
+    "sectors.html": "bfdabfef7bd264f8fb19acec14d4f911d0998145fdf3e3a60c686c88db4233dc",
+    "track-record.html": "ecfed5eae26b47914bf11bfaddd273f204dc510a73aace964243b276f1934335"
   },
   "promotion_outcome": "NEW_QUALIFIED",
   "published_outlooks": [

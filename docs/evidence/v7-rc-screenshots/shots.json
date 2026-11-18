@@ -8,6 +8,14 @@
   "index · 390 px · light · full page"
  ],
  [
+  "390-light-market-risk-first-screen.png",
+  "market-risk · 390 px · light · first screen"
+ ],
+ [
+  "390-light-market-risk-full-page.png",
+  "market-risk · 390 px · light · full page"
+ ],
+ [
   "390-light-forecast-first-screen.png",
   "forecast · 390 px · light · first screen"
  ],
@@ -24,20 +32,20 @@
   "sectors · 390 px · light · full page"
  ],
  [
-  "390-light-track-record-first-screen.png",
-  "track-record · 390 px · light · first screen"
- ],
- [
-  "390-light-track-record-full-page.png",
-  "track-record · 390 px · light · full page"
- ],
- [
   "390-light-research-first-screen.png",
   "research · 390 px · light · first screen"
  ],
  [
   "390-light-research-full-page.png",
   "research · 390 px · light · full page"
+ ],
+ [
+  "390-light-track-record-first-screen.png",
+  "track-record · 390 px · light · first screen"
+ ],
+ [
+  "390-light-track-record-full-page.png",
+  "track-record · 390 px · light · full page"
  ],
  [
   "390-light-sector-energy-full-page.png",
@@ -52,8 +60,8 @@
   "Home · all evidence sections expanded"
  ],
  [
-  "390-light-track-record-expanded.png",
-  "Track Record · calibration chart and notes expanded"
+  "390-light-market-risk-expanded.png",
+  "Market Risk · every track record and method section expanded"
  ],
  [
   "390-light-sectors-scrolled-to-end.png",
@@ -66,6 +74,14 @@
  [
   "390-dark-index-full-page.png",
   "index · 390 px · dark · full page"
+ ],
+ [
+  "390-dark-market-risk-first-screen.png",
+  "market-risk · 390 px · dark · first screen"
+ ],
+ [
+  "390-dark-market-risk-full-page.png",
+  "market-risk · 390 px · dark · full page"
  ],
  [
   "390-dark-forecast-first-screen.png",
@@ -100,16 +116,16 @@
   "index · desktop 1280 px · first screen"
  ],
  [
+  "1280-market-risk-first-screen.png",
+  "market-risk · desktop 1280 px · first screen"
+ ],
+ [
   "1280-forecast-first-screen.png",
   "forecast · desktop 1280 px · first screen"
  ],
  [
   "1280-sectors-first-screen.png",
   "sectors · desktop 1280 px · first screen"
- ],
- [
-  "1280-track-record-first-screen.png",
-  "track-record · desktop 1280 px · first screen"
  ],
  [
   "1280-research-first-screen.png",
@@ -120,7 +136,19 @@
   "sector-energy · desktop 1280 px · first screen"
  ],
  [
-  "1280-index-full-page.png",
-  "Home · desktop 1280 px · full page"
+  "1280-light-index-full-page.png",
+  "index · desktop 1280 px · light · full page"
+ ],
+ [
+  "1280-light-market-risk-full-page.png",
+  "market-risk · desktop 1280 px · light · full page"
+ ],
+ [
+  "1280-dark-index-full-page.png",
+  "index · desktop 1280 px · dark · full page"
+ ],
+ [
+  "1280-dark-market-risk-full-page.png",
+  "market-risk · desktop 1280 px · dark · full page"
  ]
 ]
