@@ -1,0 +1,132 @@
+name: V7 Release Rehearsal
+# Rehearses the production publication path for V7 without deploying anything:
+# the real Monthly Economic Cycle Assessment artifact from v7-development, the actual
+# last-deployed production bundle from main, then publish, verify, preserve, fail and rollback.
+on:
+  workflow_dispatch:
+    inputs:
+      monthly_run_id:
+        description: 'Monthly Economic Cycle Assessment run on v7-development (blank = latest successful)'
+        required: false
+permissions:
+  contents: read
+  actions: read
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      LIVE: https://${{ github.repository_owner }}.github.io/Economic-Cycle-Research/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: V7 release tests
+        run: python -m unittest discover -s tests -p 'test_v7_*.py' -v
+      - name: Download the real monthly artifact (v7-development) and the last production bundle (main)
+        shell: bash
+        run: |
+          set -euo pipefail
+          run="${{ inputs.monthly_run_id }}"
+          if [ -z "$run" ]; then
+            run="$(gh run list --workflow industry-deviation-descriptive.yml --branch v7-development --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          fi
+          echo "Monthly run: $run" | tee -a "$GITHUB_STEP_SUMMARY"
+          gh run download "$run" --name industry-deviation-descriptive-evidence --dir /tmp/economic-monthly
+          prod="$(gh run list --workflow milestone1.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')"
+          echo "Production bundle from Milestone 1 run: $prod" | tee -a "$GITHUB_STEP_SUMMARY"
+          gh run download "$prod" --name milestone1-audit-evidence --dir /tmp/production
+          mkdir -p rehearsal
+          cp -r "$(dirname "$(find /tmp/production -path '*dashboard/v62_release_manifest.json' | head -1)")" rehearsal/dashboard
+          cp -r rehearsal/dashboard rehearsal/rollback
+      - name: Confirm the production bundle is the live site (rollback material)
+        run: |
+          python - <<'PY'
+          import os, urllib.request
+          from pathlib import Path
+          base = os.environ["LIVE"]
+          for name in ("index.html", "overview.html", "sectors.html", "v62_release_manifest.json"):
+              live = urllib.request.urlopen(base + name, timeout=20).read()
+              local = (Path("rehearsal/rollback") / name).read_bytes()
+              print(name, "matches live" if live == local else "DIFFERS from live (later redeploy)", len(live))
+          PY
+      - name: Show the real monthly V7 gate
+        run: cat /tmp/economic-monthly/audit-output/v7-site/v7_release_manifest.json | python -c "import json,sys; m=json.load(sys.stdin); m.pop('pages'); print(json.dumps(m, indent=1))"
+      - name: Rehearse daily publication (first V7 promotion against the live site)
+        run: |
+          python scripts/v7_release.py publish --source /tmp/economic-monthly --target rehearsal/dashboard --live-base "$LIVE" | tee rehearsal/publish.json
+          grep -q NEW_QUALIFIED rehearsal/publish.json
+          python scripts/v7_release.py verify --directory rehearsal/dashboard
+      - name: Rehearse public verification, preservation, old-bundle notice and fail-closed behaviour
+        run: |
+          (cd rehearsal/dashboard && python -m http.server 8765 >/dev/null 2>&1 &) ; sleep 2
+          python - <<'PY'
+          import json, shutil, subprocess
+          from datetime import date, timedelta
+          from pathlib import Path
+          from scripts import v7_release as rel
+          d, served = Path("rehearsal/dashboard"), "http://127.0.0.1:8765/"
+          # Same checks the Milestone 1 workflow runs after deployment.
+          for name in ["index.html", "overview.html", "historical.html", "monthly-research.html", "v5_legacy_index.html",
+                       "v62_release_manifest.json", "v6_sector_report.json"] + [f"sector-{i:02d}.html" for i in range(1, 12)]:
+              assert (d / name).is_file(), name
+          assert (d / "index.html").read_bytes() != (d / "v5_legacy_index.html").read_bytes()
+          print("served:", rel.verify_live(d, served))
+          # A later day with no qualified monthly bundle keeps the accepted V7 bundle unchanged.
+          keep = Path("rehearsal/preserved")
+          r = rel.publish(None, keep, served, date.today())
+          assert r["outcome"] == "PRESERVED_PREVIOUS", r
+          assert all((keep / n).read_bytes() == (d / n).read_bytes() for n in rel.files_of(rel.validate_manifest(json.loads((d / rel.MANIFEST).read_text()))))
+          print("preserve:", r)
+          old = Path("rehearsal/old")
+          r = rel.publish(None, old, served, date.today() + timedelta(days=60))
+          assert r["stale_notice"] and "has not yet passed our checks" in (old / "index.html").read_text()
+          print("old bundle:", r)
+          # Unreachable previous publication must block deployment.
+          try:
+              rel.publish(None, Path("rehearsal/down"), "http://127.0.0.1:9/", date.today())
+              raise SystemExit("expected a deployment block")
+          except Exception as exc:
+              print("unreachable live site blocks deployment:", type(exc).__name__)
+          PY
+      - name: Rehearse rollback (restore the pre-V7 production bundle)
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.v62_release_manifest import validate_manifest
+          r = Path("rehearsal/rollback")
+          m = validate_manifest(json.loads((r / "v62_release_manifest.json").read_text()))
+          assert m["promotion_outcome"] in ("NEW_QUALIFIED", "PRESERVED_PREVIOUS")
+          assert (r / "index.html").read_bytes() == (r / "overview.html").read_bytes()
+          assert not (r / "v7_release_manifest.json").exists()
+          assert len(json.loads((r / "v6_sector_report.json").read_text())["sectors"]) == 11
+          print("Rollback bundle valid: V6.2 manifest", m["build_commit"], m["assessment_date"], m["promotion_outcome"])
+          PY
+      - name: Print rehearsed V7 pages (compressed, checksummed) for screenshot review
+        run: |
+          python - <<'PY'
+          import base64, gzip, hashlib, io, json, tarfile
+          from pathlib import Path
+          d = Path("rehearsal/dashboard")
+          m = json.loads((d / "v7_release_manifest.json").read_text())
+          buf = io.BytesIO()
+          with tarfile.open(fileobj=buf, mode="w") as t:
+              for n in sorted(m["pages"]) + ["forecast_archive.csv", "v7_release_manifest.json"]:
+                  t.add(d / n, arcname=n)
+          raw = buf.getvalue(); b = base64.b64encode(gzip.compress(raw, mtime=0)).decode()
+          chunks = [b[i:i + 20000] for i in range(0, len(b), 20000)]
+          print("V7SITE-BEGIN", hashlib.sha256(raw).hexdigest(), len(chunks))
+          for c in chunks:
+              print("V7CHUNK", c)
+          print("V7SITE-END")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v7-release-rehearsal
+          path: rehearsal/
+          retention-days: 30

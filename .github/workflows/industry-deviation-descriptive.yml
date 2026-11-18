@@ -237,6 +237,50 @@ jobs:
           else
             echo "Stale research only; no new V6.2 release manifest stamped."
           fi
+      - name: Fetch V7 forecast and sector inputs (FRED, French Data Library, Damodaran, ALFRED)
+        id: v7_inputs
+        # V7 failures never block the V6 monthly artifact; the daily publisher then keeps the
+        # last accepted V7 publication.
+        continue-on-error: true
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          set -euo pipefail
+          for series in GS10 TB3MS BAA USREC UNRATE CPIAUCSL INDPRO PAYEMS; do
+            python scripts/fetch_industry_observations.py "$series" --start 1948-01-01 --end "$(date -u +%F)" --output-dir data/v7_fresh
+          done
+          python scripts/v7_fetch_research_data.py --output-dir data/v7_research_fresh
+      - name: Build and gate the V7 dashboard (monthly conclusions)
+        id: v7_build
+        if: steps.v7_inputs.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_v7_*.py'
+          python scripts/v7_release.py monthly --fred-dir data/v7_fresh --research-dir data/v7_research_fresh \
+            --gate audit-output/weekly_release_acceptance.json --output audit-output/v7-site \
+            --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      - name: Summarize V7 monthly gate
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          from pathlib import Path
+          f = Path("audit-output/v7-site/v7_release_manifest.json")
+          print("## Version 7 monthly gate")
+          if not f.is_file():
+              print("**V7:** NOT BUILT. The daily publisher keeps the last accepted V7 publication.")
+          else:
+              m = json.loads(f.read_text())
+              print(f"**V7 promotion:** {m['promotion_outcome']} · assessment {m['assessment_date']} · data through {m['observation_cutoff']}")
+              print(f"**Condition:** {m['condition']} ({m['direction']})")
+              print("**Published outlooks:** " + (", ".join(f"{o['target']} {o['horizon_months']}m {o['probability']:.0%}" for o in m['published_outlooks']) or "none"))
+              print("**Held for owner review:** " + (json.dumps(m['held_for_review']) if m['held_for_review'] else "none"))
+              print("**Worth researching now:** " + (", ".join(m['worth_researching_now']) or "none"))
+              for r in m["research_gate"]["reasons"]:
+                  print(f"- Not qualified: {r}")
+          PY
       - name: Persist assessment history
         uses: actions/cache/save@v4
         with:
@@ -274,4 +318,6 @@ jobs:
           path: |
             audit-output/
             data/industry_observations/
+            data/v7_fresh/
+            data/v7_research_fresh/
           retention-days: 30

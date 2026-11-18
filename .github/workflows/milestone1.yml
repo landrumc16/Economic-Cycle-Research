@@ -588,6 +588,17 @@ jobs:
               if index.read_bytes() != (target / "overview.html").read_bytes():
                   raise RuntimeError("V6 home page does not match accepted overview")
           PY
+      - name: Publish qualified V7 dashboard or preserve last accepted V7 publication
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+        shell: bash
+        run: |
+          set -euo pipefail
+          # DAILY DATA. MONTHLY CONCLUSIONS. ONE DASHBOARD. V7 conclusions change only when a
+          # qualified monthly V7 bundle exists; otherwise the accepted live V7 bundle is kept.
+          # Until V7 is first published, the accepted V6 dashboard remains the home page.
+          python scripts/v7_release.py publish --source /tmp/economic-monthly --target audit-output/dashboard \
+            --live-base "https://${{ github.repository_owner }}.github.io/Economic-Cycle-Research/" | tee -a "$GITHUB_STEP_SUMMARY"
+          python scripts/v7_release.py verify --directory audit-output/dashboard
       - name: Configure GitHub Pages
         if: github.ref == 'refs/heads/main' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
         uses: actions/configure-pages@v5
@@ -654,8 +665,9 @@ jobs:
                       if attempt == 11:
                           raise RuntimeError(f"Public deployment check failed: {url}: {exc}") from exc
                       time.sleep(10)
+          v7 = Path("audit-output/dashboard/v7_release_manifest.json").is_file()
           if "overview.html" in published:
-              if published["index.html"] != published["overview.html"]:
+              if not v7 and published["index.html"] != published["overview.html"]:
                   raise RuntimeError("Live homepage does not match approved V6 overview")
               if published["v5_legacy_index.html"] == published["index.html"]:
                   raise RuntimeError("Legacy V5 archive was replaced by the V6 homepage")
@@ -669,9 +681,19 @@ jobs:
                   raise RuntimeError("Live V6.2 manifest does not match accepted publication")
               if actual["promotion_outcome"] not in ("NEW_QUALIFIED", "PRESERVED_PREVIOUS"):
                   raise RuntimeError("Live V6.2 manifest is not an accepted release")
-              if published["index.html"] != published["overview.html"]:
+              if not v7 and published["index.html"] != published["overview.html"]:
                   raise RuntimeError("Live V6.2 home page mismatch")
               print("PUBLIC VERIFIED: V6.2 source commit", actual["build_commit"])
+          if v7:
+              from scripts.v7_release import verify_live
+              for attempt in range(12):
+                  try:
+                      print("PUBLIC VERIFIED:", verify_live(Path("audit-output/dashboard"), base))
+                      break
+                  except RuntimeError as exc:
+                      if attempt == 11:
+                          raise
+                      time.sleep(10)
 
           PY
       - name: Preserve source evidence even on failure
