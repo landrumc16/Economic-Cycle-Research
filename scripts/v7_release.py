@@ -26,6 +26,7 @@ import hashlib
 import json
 import re
 import shutil
+import tempfile
 import sys
 import urllib.error
 import urllib.request
@@ -390,6 +391,56 @@ def publish(source: Path | None, target: Path, live_base: str, today: date, fetc
             **({"rejected_candidate": rejected} if rejected else {})}
 
 
+def refresh_market(source: Path, target: Path, crash_dir: Path, today: date, commit: str, built_at: str) -> dict:
+    """DAILY DATA. MONTHLY CONCLUSIONS. Rebuild the published V7 pages with fresh market observations while every
+    monthly conclusion (economy, outlooks, sectors) stays exactly as accepted. Writes nothing unless all checks pass."""
+    target = Path(target)
+    if not (target / MANIFEST).is_file():
+        return {"status": "SKIPPED", "reason": "No V7 publication to refresh"}
+    pub = validate_manifest(json.loads((target / MANIFEST).read_text()))
+    if pub.get("stale_notice"):
+        return {"status": "SKIPPED", "reason": "Accepted bundle is old; market data are not refreshed under a stale notice"}
+    bundle = find_bundle(source)
+    if not bundle:
+        return {"status": "SKIPPED", "reason": "Monthly inputs unavailable"}
+    src = validate_manifest(json.loads((bundle / MANIFEST).read_text()))
+    if src["build_time_utc"] != pub["build_time_utc"] or src["build_commit"] != pub["build_commit"]:
+        return {"status": "SKIPPED", "reason": "Monthly artifact is not the published bundle"}
+    root = bundle.parent.parent  # artifact root holding audit-output/ and data/
+    fred_dir = root / "data" / "v7_fresh"
+    needed = [bundle / "v7_forecast_evaluation.json", bundle / "v7_sectors.json", bundle / "forecast_archive.csv"]
+    if not fred_dir.is_dir() or not all(f.is_file() for f in needed):
+        return {"status": "SKIPPED", "reason": "Monthly inputs incomplete"}
+    cman = json.loads((Path(crash_dir) / "MANIFEST.json").read_text())
+    sp_last = cman.get("fred", {}).get("SP500", {}).get("last")
+    if cman.get("gaps") or not sp_last or (today - date.fromisoformat(sp_last)).days > MAX_MARKET_LAG_DAYS:
+        return {"status": "SKIPPED", "reason": f"Market data not fresh or incomplete (S&P 500 through {sp_last})"}
+    work = Path(tempfile.mkdtemp(prefix="v7-refresh-"))
+    crash_path = work / "v7_crash_research.json"
+    with contextlib.redirect_stdout(io.StringIO()):
+        crash.analyze(Path(crash_dir), crash_path)
+    inp = site.load_inputs(needed[0], Path(RESEARCH_EVIDENCE), needed[1], needed[2], fred_dir, crash_path)
+    site_dir = work / "site"
+    site.build(site_dir, inp)
+    published = [{"target": r["target"], "horizon_months": r["h"], "probability": r["p"], "band": r["band"],
+                  "forecast_origin": r["origin"]} for r in site.outlook_matrix(inp) if r["published"]]
+    if published != pub["published_outlooks"] or inp["assessment"]["assessment_date"] != pub["assessment_date"]:
+        raise ValueError("Daily refresh changed a monthly conclusion; refusing")
+    new = dict(pub)
+    new["pages"] = {p_.name: sha(p_.read_bytes()) for p_ in sorted(site_dir.glob("*.html"))}
+    new["market_warnings"] = [{k: w.get(k) for k in ("key", "title", "status", "value", "date", "frequency")}
+                              for w in inp["crash"]["site"]["warnings"]]
+    new["market_refresh"] = {"market_data_through": sp_last, "refreshed_at_utc": built_at, "refresh_commit": commit}
+    validate_manifest(new)
+    validate_site(site_dir, new)
+    for name in files_of(new):  # all checks passed: write pages, then the manifest last
+        shutil.copy(site_dir / name, target / name)
+    (target / MANIFEST).write_text(json.dumps(new, indent=2, sort_keys=True) + "\n")
+    shutil.rmtree(work, ignore_errors=True)
+    return {"status": "REFRESHED", "market_data_through": sp_last,
+            "warnings": {w["key"]: w["status"] for w in new["market_warnings"]}}
+
+
 def verify_live(target: Path, live_base: str, fetch=http_get) -> dict:
     """Compare the live site with the assembled publication, page by page."""
     target = Path(target)
@@ -424,6 +475,12 @@ def main(argv=None):
     p.add_argument("--source", type=Path)
     p.add_argument("--target", type=Path, required=True)
     p.add_argument("--live-base", required=True)
+    r = sub.add_parser("refresh-market")
+    r.add_argument("--source", type=Path, required=True)
+    r.add_argument("--target", type=Path, required=True)
+    r.add_argument("--crash-dir", type=Path, required=True)
+    r.add_argument("--commit", required=True)
+    r.add_argument("--built-at", required=True)
     v = sub.add_parser("verify")
     v.add_argument("--directory", type=Path, required=True)
     v.add_argument("--live-base")
@@ -433,6 +490,11 @@ def main(argv=None):
         print(json.dumps({k: r[k] for k in ("promotion_outcome", "assessment_date", "observation_cutoff", "condition",
                                             "published_outlooks", "held_for_review", "market_warnings", "worth_researching_now",
                                             "research_gate")}, indent=1))
+    elif a.cmd == "refresh-market":
+        try:  # never block the daily deployment: on any failure the accepted pages stay untouched
+            print(json.dumps(refresh_market(a.source, a.target, a.crash_dir, date.today(), a.commit, a.built_at)))
+        except Exception as exc:  # noqa: BLE001 — reported, not swallowed silently
+            print(json.dumps({"status": "FAILED", "reason": f"{type(exc).__name__}: {exc}"[:300]}))
     elif a.cmd == "publish":
         print(json.dumps(publish(a.source, a.target, a.live_base, date.today())))
     else:

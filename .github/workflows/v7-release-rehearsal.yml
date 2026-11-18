@@ -62,6 +62,15 @@ jobs:
           python scripts/v7_release.py publish --source /tmp/economic-monthly --target rehearsal/dashboard --live-base "$LIVE" | tee rehearsal/publish.json
           grep -q NEW_QUALIFIED rehearsal/publish.json
           python scripts/v7_release.py verify --directory rehearsal/dashboard
+      - name: Rehearse the daily market refresh (fresh market data, monthly conclusions unchanged)
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          python scripts/v7_crash_research.py fetch --out /tmp/v7-market > /dev/null
+          python scripts/v7_release.py refresh-market --source /tmp/economic-monthly --target rehearsal/dashboard \
+            --crash-dir /tmp/v7-market --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee rehearsal/refresh.json
+          grep -q REFRESHED rehearsal/refresh.json
+          python scripts/v7_release.py verify --directory rehearsal/dashboard
       - name: Rehearse public verification, preservation, old-bundle notice and fail-closed behaviour
         run: |
           (cd rehearsal/dashboard && python -m http.server 8765 >/dev/null 2>&1 &) ; sleep 2

@@ -193,6 +193,22 @@ class SiteTests(unittest.TestCase):
         last = crash["site"]["charts"]["drawdown"][-1][0]
         self.assertIn(site._fmt_month(last), html)  # charts state the date of their data
 
+    def test_charts_are_interactive_and_theme_aware(self):
+        html = (self.out / "market-risk.html").read_text()
+        figs = html.count("<figure class=\"fig\" data-chart>")
+        self.assertGreaterEqual(figs, 8)
+        configs = re.findall(r'<script type="application/json">(.*?)</script>', html)
+        self.assertEqual(len(configs), figs)
+        for raw in configs:
+            cfg = json.loads(raw.replace("<\\/", "</"))
+            for sr in cfg["series"]:  # every interactive value is a dated observation from the evidence
+                self.assertTrue(all(re.fullmatch(r"\d{4}-\d{2}(-\d{2})?", t) and isinstance(v, (int, float)) for t, v in sr["pts"]))
+        self.assertIn('data-years="10"', html)
+        self.assertIn(":root[data-theme=\"dark\"]", html)
+        self.assertIn(":root:not([data-theme=\"light\"])", html)
+        self.assertIn('class="theme"', html)
+        self.assertNotRegex(html, r"<script[^>]+src=")  # no external scripts
+
     def test_charts_are_drawn_from_dated_evidence(self):
         ch = self.inp["crash"]["site"]["charts"]
         dd = ch["drawdown"]

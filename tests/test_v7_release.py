@@ -222,6 +222,42 @@ class HttpTests(unittest.TestCase):
             rel.http_get("u", opener=self.opener([403]), sleep=lambda s: None)
 
 
+class RefreshTests(_Fixture):
+    def setUp(self):
+        root = self.bundle.parent.parent
+        if not (root / "data" / "v7_fresh").exists():
+            (root / "data").mkdir(exist_ok=True)
+            shutil.copytree(ROOT / "data/v7", root / "data" / "v7_fresh")
+        self.t = self.tmp / "refresh-target"
+        if self.t.exists():
+            shutil.rmtree(self.t)
+        self.t.mkdir()
+        rel.publish(root, self.t, "https://x", date(2026, 11, 18), fetch=lambda u: None)
+
+    def test_daily_refresh_updates_market_data_but_never_monthly_conclusions(self):
+        before = self.manifest(self.t)
+        r = rel.refresh_market(self.bundle.parent.parent, self.t, ROOT / "data/v7_crash", date(2026, 11, 18), COMMIT,
+                               "2026-11-19T12:20:00Z")
+        self.assertEqual(r["status"], "REFRESHED")
+        after = self.manifest(self.t)
+        for k in ("build_commit", "build_time_utc", "assessment_date", "published_outlooks", "promotion_outcome"):
+            self.assertEqual(after[k], before[k], k)
+        self.assertEqual(after["market_refresh"]["market_data_through"], "2026-11-16")
+        self.assertEqual(rel.validate_site(self.t, after)["status"], "V7_SITE_CONTRACT_PASS")
+        # The refreshed publication is preserved byte for byte on a later day.
+        keep = self.tmp / "refresh-keep"
+        rel.publish(None, keep, "https://x", date(2026, 11, 20), fetch=self.live_from(self.t))
+        self.assertEqual((keep / "market-risk.html").read_bytes(), (self.t / "market-risk.html").read_bytes())
+
+    def test_refresh_skips_stale_market_data_or_a_different_bundle(self):
+        r = rel.refresh_market(self.bundle.parent.parent, self.t, ROOT / "data/v7_crash", date(2026, 12, 15), COMMIT, "x")
+        self.assertEqual(r["status"], "SKIPPED")
+        other = self.build("PASS", "2026-11-18", "other", built_at="2026-11-18T07:00:00Z")
+        r = rel.refresh_market(other.parent.parent, self.t, ROOT / "data/v7_crash", date(2026, 11, 18), COMMIT, "x")
+        self.assertEqual(r["status"], "SKIPPED")
+        self.assertNotIn("market_refresh", self.manifest(self.t))
+
+
 class ContractTests(_Fixture):
     def test_manifest_rejects_unapproved_outlook_and_bad_commit(self):
         m = self.manifest(self.bundle)
