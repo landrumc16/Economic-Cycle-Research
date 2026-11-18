@@ -48,6 +48,13 @@ OUTCOMES = frozenset({"NEW_QUALIFIED", "PRESERVED_PREVIOUS", "FAILED"})
 CORE_PAGES = ("index.html", "market-risk.html", "forecast.html", "sectors.html", "research.html", "track-record.html")
 NAV_PAGES = ("index.html", "market-risk.html", "forecast.html", "sectors.html", "research.html")
 MAX_MARKET_LAG_DAYS = 7      # daily market observations older than this are stale
+# Series the market warnings, index table and charts depend on; a gap elsewhere is reported, not blocking.
+CRITICAL_MARKET = ("FRED SP500", "FRED NASDAQCOM", "FRED DJIA", "FRED VIXCLS", "FRED GS10", "FRED TB3MS", "FRED BAA",
+                   "FRED NFCI", "FRED USREC", "FRED INDPRO", "French factors_daily", "French industries", "French size")
+
+
+def critical_gaps(gaps):
+    return [g for g in gaps or [] if any(g.startswith(c + ":") for c in CRITICAL_MARKET)]
 DISCLAIMER = "not personalized financial advice"
 MAX_FRED_LAG_MONTHS = 3      # unemployment data older than this is stale for a monthly conclusion
 MAX_FRENCH_LAG_MONTHS = 4    # French Data Library publishes with about a 1–2 month lag
@@ -251,8 +258,8 @@ def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_o
         with contextlib.redirect_stdout(io.StringIO()):
             crash.analyze(Path(crash_dir), crash_path)
         cman = json.loads((Path(crash_dir) / "MANIFEST.json").read_text())
-        if cman.get("gaps"):
-            reasons.append("Market data gaps: " + "; ".join(cman["gaps"])[:300])
+        if critical_gaps(cman.get("gaps")):
+            reasons.append("Market data gaps: " + "; ".join(critical_gaps(cman["gaps"]))[:300])
         sp_last = cman.get("fred", {}).get("SP500", {}).get("last")
         if not sp_last or (date.fromisoformat(as_of[:10]) - date.fromisoformat(sp_last)).days > MAX_MARKET_LAG_DAYS:
             reasons.append(f"Daily market data end {sp_last}; too old for {as_of[:10]}")
@@ -413,8 +420,10 @@ def refresh_market(source: Path, target: Path, crash_dir: Path, today: date, com
         return {"status": "SKIPPED", "reason": "Monthly inputs incomplete"}
     cman = json.loads((Path(crash_dir) / "MANIFEST.json").read_text())
     sp_last = cman.get("fred", {}).get("SP500", {}).get("last")
-    if cman.get("gaps") or not sp_last or (today - date.fromisoformat(sp_last)).days > MAX_MARKET_LAG_DAYS:
-        return {"status": "SKIPPED", "reason": f"Market data not fresh or incomplete (S&P 500 through {sp_last})"}
+    crit = critical_gaps(cman.get("gaps"))
+    if crit or not sp_last or (today - date.fromisoformat(sp_last)).days > MAX_MARKET_LAG_DAYS:
+        return {"status": "SKIPPED", "reason": f"Market data not fresh or incomplete (S&P 500 through {sp_last}; "
+                                               f"missing: {'; '.join(crit) or 'none'})"}
     work = Path(tempfile.mkdtemp(prefix="v7-refresh-"))
     crash_path = work / "v7_crash_research.json"
     with contextlib.redirect_stdout(io.StringIO()):
@@ -437,7 +446,7 @@ def refresh_market(source: Path, target: Path, crash_dir: Path, today: date, com
         shutil.copy(site_dir / name, target / name)
     (target / MANIFEST).write_text(json.dumps(new, indent=2, sort_keys=True) + "\n")
     shutil.rmtree(work, ignore_errors=True)
-    return {"status": "REFRESHED", "market_data_through": sp_last,
+    return {"status": "REFRESHED", "market_data_through": sp_last, "non_critical_gaps": cman.get("gaps", []),
             "warnings": {w["key"]: w["status"] for w in new["market_warnings"]}}
 
 

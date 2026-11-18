@@ -249,6 +249,18 @@ class RefreshTests(_Fixture):
         rel.publish(None, keep, "https://x", date(2026, 11, 20), fetch=self.live_from(self.t))
         self.assertEqual((keep / "market-risk.html").read_bytes(), (self.t / "market-risk.html").read_bytes())
 
+    def test_only_gaps_in_series_the_warnings_use_block_the_refresh(self):
+        for gap, expected in (("FRED UMCSENT: HTTPError: 500", "REFRESHED"), ("FRED SP500: HTTPError: 500", "SKIPPED")):
+            d = self.tmp / "gapdata"
+            if d.exists():
+                shutil.rmtree(d)
+            shutil.copytree(ROOT / "data/v7_crash", d)
+            man = json.loads((d / "MANIFEST.json").read_text())
+            man["gaps"] = [gap]
+            (d / "MANIFEST.json").write_text(json.dumps(man))
+            r = rel.refresh_market(self.bundle.parent.parent, self.t, d, date(2026, 11, 18), COMMIT, "2026-11-19T12:20:00Z")
+            self.assertEqual(r["status"], expected, gap)
+
     def test_refresh_skips_stale_market_data_or_a_different_bundle(self):
         r = rel.refresh_market(self.bundle.parent.parent, self.t, ROOT / "data/v7_crash", date(2026, 12, 15), COMMIT, "x")
         self.assertEqual(r["status"], "SKIPPED")
