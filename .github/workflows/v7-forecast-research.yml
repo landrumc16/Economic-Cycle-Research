@@ -98,6 +98,28 @@ jobs:
           print("Reproduced committed sector evidence for 11 sectors")
           PY
           python scripts/v7_site.py --output audit-output/v7-site
+      - name: Market-crash vulnerability research (pre-registered; research only)
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: |
+          set -euo pipefail
+          python scripts/v7_crash_research.py fetch --out data/v7_crash_fresh
+          python scripts/v7_crash_research.py analyze --data data/v7_crash_fresh --out audit-output/v7_crash_research.json > /dev/null
+          python - <<'PY'
+          import base64, gzip, hashlib, io, json, tarfile
+          from pathlib import Path
+          buf = io.BytesIO()
+          with tarfile.open(fileobj=buf, mode="w") as t:
+              t.add("audit-output/v7_crash_research.json", arcname="v7_crash_research.json")
+              for f in sorted(Path("data/v7_crash_fresh").iterdir()):
+                  t.add(f, arcname="data/" + f.name)
+          raw = buf.getvalue(); b = base64.b64encode(gzip.compress(raw, 9, mtime=0)).decode()
+          chunks = [b[i:i + 20000] for i in range(0, len(b), 20000)]
+          print("V7CRASH-BEGIN", hashlib.sha256(raw).hexdigest(), len(chunks))
+          for c in chunks:
+              print("V7CHUNK", c)
+          print("V7CRASH-END")
+          PY
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -106,4 +128,5 @@ jobs:
             data/industry_observations/
             data/v7_research_fresh/
             audit-output/
+            data/v7_crash_fresh/
           retention-days: 30
