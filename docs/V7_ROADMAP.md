@@ -1,6 +1,6 @@
 # Economic Cycle Research — Version 7 Roadmap
 
-**Status:** IN DEVELOPMENT on `v7-development`. Pass A (M1 + M2) complete; **Pass B (M3 + M4) complete** — see `docs/V7_PROGRESS.md`. Next: Pass C (M5 integration + M6 release preparation).
+**Status:** RELEASE CANDIDATE on `v7-development`, **awaiting owner evaluation and explicit merge approval**. Passes A, B and C (M1–M6 preparation) are complete; see `docs/V7_RELEASE_CANDIDATE.md` and `docs/V7_PROGRESS.md`. Human device and screen-reader testing remain unverified.
 **Production baseline:** V6.3, `main` merge commit `7dfc811e765fd8ca927f082c2fa0c63948799bb3`. It stays production and the rollback target until the owner explicitly approves a V7 merge.
 **Operating rule:** DAILY DATA. MONTHLY CONCLUSIONS. ONE DASHBOARD.
 
