@@ -3,6 +3,8 @@ name: V7 Release Rehearsal
 # the real Monthly Economic Cycle Assessment artifact from v7-development, the actual
 # last-deployed production bundle from main, then publish, verify, preserve, fail and rollback.
 on:
+  push:
+    branches: [v7-development]
   workflow_dispatch:
     inputs:
       monthly_run_id:
