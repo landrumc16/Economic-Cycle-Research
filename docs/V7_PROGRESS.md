@@ -191,3 +191,51 @@ All 11 sectors: investment attractiveness **Insufficient evidence**; `is_recomme
 - Integrate the V7 site into the production monthly and daily pipelines (M5): page set, publisher acceptance, manifest, rollback.
 - Owner decision on a licensed valuation and earnings source.
 - Human accessibility evaluation (screen readers, real devices, plain-language review).
+
+## Pass C — mobile-first UX acceptance (2026-11-18)
+Presentation only. The data, publication gate, Insufficient-evidence states, attractiveness fail-close and disclaimers are unchanged; tests still assert that only the gated 12-month labour outlook shows a number.
+
+**Changes (`scripts/v7_site.py`)**
+- **Home:** conclusions first. A compact condition card, then three one-line horizon rows with mini bars, then a sector preview listing only "Worth researching now" sectors. Drivers, counterevidence and reversal conditions moved into three collapsed sections, followed by a one-line reliability link. The long lede now shows on desktop only, and there are no tables.
+- **Forecast:** the published outlook, with its inputs behind a disclosure. All 12 outlooks are grouped by target with horizon badges and one plain reason. Skill and ranking figures were removed because they live on Track Record (one feature, one location).
+- **Sectors:** one compact list per priority group, with the 12-month strength bar inline. The duplicate relative-strength chart was removed, and the method is behind a disclosure.
+- **Sector detail:** the conclusions stay visible (why, against, what would change). Behaviour, valuation, contrary case and method are in collapsible sections.
+- **Track Record:** the timeline and headline metrics come first, and calibration sits behind a disclosure. The per-outlook list has ✓/✗ marks with screen-reader text. The notes are collapsed.
+- **Research & Data:** one card of collapsible sections, and long file paths wrap.
+- Touch targets are at least 48 px for rows and summaries and 32 px for header links (inline sentence links are exempt under WCAG 2.5.8). `overflow-wrap` and `min-width:0` were added so 200% text reflows, and bottom padding accounts for the tab bar and the safe-area inset.
+
+**Mobile height at 390×844 (screens = page height ÷ 844)**
+| Page | Before | After |
+|---|---|---|
+| Home | 3225 (3.8) | 2026 (2.4) |
+| Forecast | 3105 | 1686 |
+| Sectors | 3305 | 1771 |
+| Track Record | 3092 | 1712 |
+| Research & Data | 1257 | 1240 |
+| Sector (Energy) | 2434 | 1459 |
+
+On Home, the condition card ends at 424 px, the outlook at 874 px and the sector preview at 1406 px (1558 px at 320 wide), so all three conclusions fit within two screen heights (1688 px) at 320, 375, 390 and 430 px.
+
+**Verification**
+- `docs/evidence/v7_passc_mobile_measurements_2026-11-18.txt` covers 320/375/390/430 px × light/dark × 100%/200% text × 6 pages, with all disclosures expanded. It found no horizontal overflow, and the bottom navigation never covers the last content.
+- axe-core 4.10.2 (WCAG 2.0/2.1/2.2 A/AA): 16 pages × 3 widths × 2 schemes, **0 violations**. Full keyboard reach on Home, Sectors and a sector page.
+- `docs/evidence/v7-passc-screenshots/`:
+  - all five experiences at 390 px, both initial-viewport and full-page;
+  - Home with all sections expanded and a full-page sector page;
+  - Home and Sectors in dark mode;
+  - Home at 320 and 430 px;
+  - desktop at 1280 px.
+- Tests: 509 OK. Site tests were updated for the new structure, and new tests check:
+  - no tables on Home;
+  - three disclosures on Home;
+  - previews link to the canonical pages;
+  - each sector is listed once, with no duplicate chart;
+  - there are no skill/ranking metrics on Forecast.
+
+**30-second test (390 px, first screen and one scroll)**
+1. *What is the economy doing?* "Expanding" and the gauge are visible on the first screen without scrolling.
+2. *Where is it heading?* The first screen shows the three horizon rows: two say "Not enough evidence" and one says "About 30%, typical vs 28% average". The third row sits at the fold.
+3. *Where should I research?* Four named sectors, each with recent strength, appear after one scroll and end at 1.7 screens.
+4. *Can I trust it?* "1 of 12 outlooks pass our reliability test" links to Track Record.
+
+Limits: automated checks and a self-evaluation only. Real-device and screen-reader testing by a person is still outstanding.

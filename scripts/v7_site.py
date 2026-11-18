@@ -112,7 +112,47 @@ ul.dbars li{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 4.8em;gap:8px
 .db-zero{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--muted)}
 .db-fill{position:absolute;top:0;bottom:0;border-radius:7px}.db-fill.pos{background:var(--good)}.db-fill.neg{background:var(--bad)}
 th[scope=row]{text-transform:none;letter-spacing:0;font-size:.92rem;color:var(--ink);font-weight:600}
-@media(min-width:720px){nav.primary{display:flex}nav.tabs{display:none}main{padding-bottom:40px}footer{padding-bottom:30px}
+/* Pass C compact mobile components */
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.desk{display:none}
+.stack{display:grid;gap:12px}
+.card.hero svg{max-width:420px}
+.card h2.big{font-size:1.9rem;line-height:1.1}
+.row-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.row-head a{font-weight:600;font-size:.92rem;white-space:nowrap}
+ul.rows{list-style:none;margin:8px 0 0;padding:0}
+ul.rows li{border-top:1px solid var(--line)}ul.rows li:first-child{border-top:0}
+.rowlink,.rowstatic{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:9px 0;min-height:48px;color:inherit;text-decoration:none}
+.rowlink:hover .rname{text-decoration:underline}
+.rname{font-weight:700}.rsub{grid-column:1/-1;font-size:.88rem;color:var(--muted)}
+.rval{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+.mini{position:relative;height:8px;border-radius:4px;background:var(--chip);grid-column:1/-1}
+.mini .fill{position:absolute;top:0;bottom:0;left:0;border-radius:4px;background:var(--brand2)}
+.mini .base{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.mini.hatch{background:repeating-linear-gradient(45deg,var(--hatch) 0 3px,transparent 3px 7px)}
+.mini.rs .zero{position:absolute;top:-3px;bottom:-3px;left:50%;width:2px;background:var(--muted)}
+.mini.rs .pos{position:absolute;top:0;bottom:0;left:50%;border-radius:4px;background:var(--good)}
+.mini.rs .neg{position:absolute;top:0;bottom:0;border-radius:4px;background:var(--bad)}
+.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.b{font-size:.8rem;font-weight:700;border-radius:8px;padding:3px 8px;background:var(--chip);color:var(--muted);overflow-wrap:anywhere}
+.b:not(.ok){background:none;border:1px dashed var(--hatch)}
+.b.ok{background:#e3f4ea;color:#14563a}
+@media (prefers-color-scheme:dark){.b.ok{background:#163a2a;color:#8ee0b4}}
+details.fold{margin:0;border-radius:0;border:0;border-top:1px solid var(--line);padding:0;background:none}
+details.fold:first-of-type{border-top:0}
+details.fold>summary{padding:12px 0;min-height:48px;display:flex;align-items:center;justify-content:space-between;list-style:none}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:"+";font-size:1.3rem;color:var(--muted);margin-left:8px}
+details.fold[open]>summary::after{content:"−"}
+details.fold>div{padding:0 0 12px}
+.oneline{margin:.4em 0 0}
+.grid>*,.stack>*,.rowlink>*,.rowstatic>*{min-width:0}
+main h1,main h2,main p,main li,main summary,.rname,.rsub{overflow-wrap:anywhere}
+.row-head a{display:inline-flex;align-items:center;min-height:32px}
+code{font-size:.9em;overflow-wrap:anywhere}
+@media(max-width:719px){main{padding:12px 14px calc(84px + env(safe-area-inset-bottom))}.card{padding:14px;border-radius:14px}
+h1{font-size:1.35rem;margin:.1em 0 .4em}footer{padding:0 14px calc(90px + env(safe-area-inset-bottom))}}
+@media(min-width:720px){.desk{display:block}nav.primary{display:flex}nav.tabs{display:none}main{padding-bottom:40px}footer{padding-bottom:30px}
 .cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:repeat(3,1fr)}.horizons{grid-template-columns:repeat(3,1fr)}h1{font-size:2rem}}
 """
 
@@ -147,7 +187,7 @@ def page(title: str, active: str, body: str, description: str) -> str:
 # --------------------------------------------------------------------------
 def cycle_gauge(condition: str, direction: str) -> str:
     zones = (("Deteriorating", "var(--bad)"), ("Slowing", "var(--warn)"), ("Expanding", "var(--good)"))
-    w, x0, seg = 320, 10, 100
+    w, x0, seg = 320, 10, 100  # compact: 64px tall
     pos = {"Deteriorating": 0, "Slowing": 1, "Expanding": 2}
     parts = []
     for i, (name, col) in enumerate(zones):
@@ -292,133 +332,146 @@ PRIORITY_CLASS = {"Worth researching now": "p-now", "Monitor": "p-mon", "Lower p
 # --------------------------------------------------------------------------
 # Pages
 # --------------------------------------------------------------------------
+def mini_prob(p, base):
+    if p is None:
+        return '<span class="mini hatch" aria-hidden="true"></span>'
+    return (f'<span class="mini" aria-hidden="true"><span class="fill" style="width:{100 * p:.0f}%"></span>'
+            f'<span class="base" style="left:{100 * base:.0f}%"></span></span>')
+
+
+def mini_rs(v, top):
+    if v is None:
+        return '<span class="mini" aria-hidden="true"></span>'
+    w = 50 * min(1, abs(v) / top)
+    bar = (f'<span class="pos" style="width:{w:.0f}%"></span>' if v >= 0
+           else f'<span class="neg" style="left:{50 - w:.0f}%;width:{w:.0f}%"></span>')
+    return f'<span class="mini rs" aria-hidden="true"><span class="zero"></span>{bar}</span>'
+
+
+def fold(title, inner, open_=False):
+    return f'<details class="fold"{" open" if open_ else ""}><summary>{esc(title)}</summary><div>{inner}</div></details>'
+
+
 def home(inp, matrix):
     v, a = inp["view"], inp["assessment"]
-    pub = [r for r in matrix if r["published"]]
     labor = {r["h"]: r for r in matrix if r["target"] == "labor_deterioration"}
-    hz = []
+    rows = []
     for h in (3, 6, 12):
         r = labor[h]
-        state = (f'<strong>{esc(r["text"]).capitalize()}</strong> chance — {esc(r["band"]).lower()} vs history'
-                 if r["published"] else "Not enough evidence yet")
-        hz.append(f'<div class="hz"><div class="label">Next {h} months</div><div class="state">{state}</div>'
-                  f'{probability_bar(r["p"], r["base"] or 0, f"Job market weakens within {h} months")}</div>')
-    sectors = sorted(inp["sectors"]["sectors"], key=lambda s: ("Worth researching now", "Monitor", "Lower priority for now").index(s["research_priority"]))
-    top = [s for s in sectors if s["research_priority"] == "Worth researching now"]
-    chips = "".join(f'<a class="chip good" href="sector-{s["slug"]}.html">{esc(s["sector"])}</a>' for s in top) or \
-        '<span class="muted">No sector currently stands out.</span>'
-    drivers = "".join(f"<li>{esc(d)}</li>" for d in v["drivers"][:3])
-    against = "".join(f"<li>{esc(d)}</li>" for d in (v["counterevidence"] + v.get("evidence_gaps", []))[:3])
-    reversal = "".join(f"<li>{esc(d)}</li>" for d in v["reversal_conditions"][1:4] or v["reversal_conditions"])
+        val = esc(r["text"]).capitalize() if r["published"] else "Not enough evidence"
+        sub = f'{esc(r["band"])} vs the {r["base"]:.0%} historical average' if r["published"] else "Not yet reliable enough to publish"
+        aria = (f"Next {h} months: {r['text']} chance, {r['band']} versus a {r['base']:.0%} average" if r["published"]
+                else f"Next {h} months: not enough evidence")
+        rows.append(f'<li><div class="rowstatic" aria-label="{esc(aria)}"><span class="rname">Next {h} months</span>'
+                    f'<span class="rval">{val}</span><span class="rsub">{sub}</span>{mini_prob(r["p"], r["base"] or 0)}</div></li>')
+    secs = inp["sectors"]["sectors"]
+    top = max(abs(x["relative_strength_12m_pp"] or 0) for x in secs) or 1
+    picks = [x for x in secs if x["research_priority"] == "Worth researching now"]
+    picks.sort(key=lambda x: -(x["relative_strength_12m_pp"] or 0))
+    srows = "".join(
+        f'<li><a class="rowlink" href="sector-{x["slug"]}.html"><span class="rname">{esc(x["sector"])}</span>'
+        f'<span class="rval">{x["relative_strength_12m_pp"]:+.0f} pts</span>'
+        f'<span class="rsub">{esc(x["cycle_class"])} · backdrop {esc(x["economic_backdrop"]).lower()} · past 12 months vs market</span></a></li>'
+        for x in picks) or '<li><div class="rowstatic"><span class="rname">No sector stands out right now</span></div></li>'
+    pub = [r for r in matrix if r["published"]]
     n_eval = len([r for r in matrix if r["eval"]])
+    lst = lambda items: "<ul class=\"clean\">" + "".join(f"<li>{esc(i)}</li>" for i in items) + "</ul>"
+    headline = v["headline"].replace("Our assessment: ", "")
     body = (
-        '<h1>The economy, in plain English</h1>'
-        '<p class="lede">Where the U.S. economy is today, where the evidence suggests it may be heading, how much to trust that, '
-        'and which sectors deserve a closer look.</p>'
+        '<h1>The economy today</h1>'
+        '<p class="lede desk">Where the U.S. economy stands, where the evidence suggests it may be heading, and which sectors deserve a closer look.</p>'
         '<div class="grid cols-2">'
         f'<section class="card hero" aria-labelledby="now"><p class="eyebrow">Where we are</p><h2 id="now" class="big">{esc(v["condition"])}</h2>'
         f'{cycle_gauge(v["condition"], v["direction"])}'
-        f'<p>{esc(v["headline"].replace("Our assessment: ", "")[:1].upper() + v["headline"].replace("Our assessment: ", "")[1:])}</p>'
-        f'<p><span class="chip">Direction: {esc(v["direction"])}</span><span class="chip">Evidence: {esc(v["evidence_confidence"])}</span></p>'
-        f'<small>Based on official data through {esc(a["sources"]["UNRATE"]["latest_used_month"])}. '
-        '"Evidence" describes how complete and consistent the data are — not the odds of any event.</small></section>'
+        f'<p class="oneline">{esc(headline[:1].upper() + headline[1:])}</p>'
+        f'<p class="oneline"><span class="chip">Direction: {esc(v["direction"])}</span><span class="chip">Evidence: {esc(v["evidence_confidence"])}</span></p>'
+        f'<small>Data through {esc(a["sources"]["UNRATE"]["latest_used_month"])}. "Evidence" rates data quality, not the odds of any event.</small></section>'
         '<section class="card" aria-labelledby="next"><p class="eyebrow">Where we may be heading</p>'
-        '<h2 id="next">Chance the job market weakens</h2>'
-        f'<div class="horizons">{"".join(hz)}</div>'
-        '<p><small>The vertical line marks the historical average. We publish a number only when it has passed our reliability test; '
-        'recession and inflation outlooks have not, so we do not show them as forecasts.</small></p>'
-        '<p><a href="forecast.html">See every outlook and why →</a></p></section>'
-        '</div><div class="grid cols-3" style="margin-top:14px">'
-        f'<section class="card" aria-labelledby="sup"><p class="eyebrow">What supports this view</p><h2 id="sup" class="muted" style="font-size:1rem">Evidence for</h2><ul class="clean">{drivers}</ul></section>'
-        f'<section class="card" aria-labelledby="ag"><p class="eyebrow">What challenges it</p><h2 id="ag" class="muted" style="font-size:1rem">Evidence against</h2><ul class="clean">{against}</ul></section>'
-        f'<section class="card" aria-labelledby="chg"><p class="eyebrow">What would change our view</p><h2 id="chg" class="muted" style="font-size:1rem">Watch for</h2><ul class="clean">{reversal}</ul></section>'
-        '</div><div class="grid cols-2" style="margin-top:14px">'
-        f'<section class="card" aria-labelledby="sec"><p class="eyebrow">Where to look</p><h2 id="sec">Sectors worth researching now</h2><p>{chips}</p>'
-        '<p><small>Based on how each sector has behaved in similar conditions and its recent strength. Not a recommendation; '
-        'current valuation data are not yet qualified.</small></p><p><a href="sectors.html">Explore all 11 sectors →</a></p></section>'
-        f'<section class="card" aria-labelledby="tr"><p class="eyebrow">How reliable is this?</p><h2 id="tr">{len(pub)} of {n_eval} outlooks pass our test</h2>'
-        '<p>We test every outlook against decades of history, using only data that would have been available at the time. '
-        'The job-market outlook for the next 12 months passed — including on data as first published. Recession and inflation outlooks did not.</p>'
-        '<p><a href="track-record.html">See the full track record →</a></p></section></div>')
+        '<div class="row-head"><h2 id="next">Chance the job market weakens</h2><a href="forecast.html">Details →</a></div>'
+        f'<ul class="rows">{"".join(rows)}</ul>'
+        '<p class="oneline"><small>Recession and inflation outlooks: not enough evidence yet. <a href="forecast.html">Why</a></small></p></section>'
+        f'<section class="card" aria-labelledby="sec"><p class="eyebrow">Where to look</p>'
+        f'<div class="row-head"><h2 id="sec">Sectors worth researching</h2><a href="sectors.html">All 11 →</a></div>'
+        f'<ul class="rows">{srows}</ul>'
+        '<p class="oneline"><small>Research guidance, not a recommendation. Valuations are not yet qualified.</small></p></section>'
+        '<section class="card" aria-labelledby="ev"><h2 id="ev" class="sr-only">Supporting evidence</h2>'
+        + fold("Why we think this", lst(v["drivers"][:3]))
+        + fold("What could prove us wrong", lst((v["counterevidence"] + v.get("evidence_gaps", []))[:3]))
+        + fold("What would change our view", lst(v["reversal_conditions"][1:4] or v["reversal_conditions"]))
+        + f'<div class="row-head" style="padding-top:12px;border-top:1px solid var(--line)"><span><strong>{len(pub)} of {n_eval}</strong> outlooks pass our reliability test</span>'
+        '<a href="track-record.html">Track record →</a></div></section></div>')
     return page("Economic Outlook", "home", body, "Where the economy is, where it may be heading, and which sectors deserve research.")
 
-
 def forecast(inp, matrix):
-    rows = []
-    for r in matrix:
-        e = r["eval"]
-        skill = "" if not e else f'{e["full_sample"]["model"]["bss_vs_base_rate"]:+.2f}'
-        auc = "" if not e else f'{e["full_sample"]["model"]["auc"]:.2f}'
-        state = (f'<span class="chip good">Published: {esc(r["text"])}</span>' if r["published"]
-                 else '<span class="chip muted">Not enough evidence</span>')
-        rows.append(f'<tr><th scope="row">{esc(TARGET_LABEL[r["target"]])}</th><td>{r["h"]} months</td><td>{state}</td>'
-                    f'<td>{skill}</td><td>{auc}</td></tr>')
     pub = next((r for r in matrix if r["published"]), None)
+    names = {"term_spread": ("Yield curve", "10-year minus 3-month rate; positive is historically calmer."),
+             "term_spread_min12": ("Lowest yield curve, past year", "Below zero (inverted) has preceded downturns."),
+             "credit_spread": ("Corporate borrowing premium", "Wider means lenders see more risk."),
+             "unemp_rise": ("Unemployment rise from yearly low", "0.5 or more has signalled trouble."),
+             "payrolls_6m": ("Job growth, 6 months (%)", "Shrinking payrolls are a warning sign.")}
     detail = ""
     if pub:
-        names = {"term_spread": ("Yield curve (10-year minus 3-month, pts)", "Positive means long rates above short rates — historically a calmer sign."),
-                 "term_spread_min12": ("Lowest yield-curve reading in the past year", "Inversions (below zero) have preceded past downturns."),
-                 "credit_spread": ("Corporate borrowing premium (pts)", "A wider premium signals lenders see more risk."),
-                 "unemp_rise": ("Unemployment rise from its yearly low (pts)", "A rise of 0.5 or more has historically signalled trouble."),
-                 "payrolls_6m": ("Job growth over 6 months (%)", "Shrinking payrolls are a warning sign.")}
-        inputs = "".join(f'<tr><th scope="row">{esc(names[k][0])}</th><td>{v:.2f}</td><td>{esc(names[k][1])}</td></tr>'
+        inputs = "".join(f'<li><div class="rowstatic"><span class="rname">{esc(names[k][0])}</span><span class="rval">{v:.2f}</span>'
+                         f'<span class="rsub">{esc(names[k][1])}</span></div></li>'
                          for k, v in (pub["inputs"] or {}).items() if k in names)
-        detail = (f'<section class="card"><p class="eyebrow">Published outlook</p><h2>{esc(TARGET_PLAIN[pub["target"]])} within {pub["h"]} months: {esc(pub["text"])}</h2>'
+        detail = (f'<section class="card" aria-labelledby="pub"><p class="eyebrow">Published outlook · data through {esc(pub["origin"])}</p>'
+                  f'<h2 id="pub">{esc(TARGET_PLAIN[pub["target"]])} within {pub["h"]} months: {esc(pub["text"])}</h2>'
                   f'{probability_bar(pub["p"], pub["base"], "Job market weakens within 12 months")}'
-                  f'<p>That is <strong>{esc(pub["band"]).lower()}</strong> compared with the long-run average of {pub["base"]:.0%}. '
-                  f'Forecast made with data through {esc(pub["origin"])}.</p>'
-                  f'<h3>What the model is reading</h3><div class="scroll" tabindex="0" role="region" aria-label="Model inputs table"><table><thead><tr><th scope="col">Signal</th><th scope="col">Now</th><th scope="col">Why it matters</th></tr></thead>'
-                  f'<tbody>{inputs}</tbody></table></div></section>')
-    onset = inp["research"]["recession_onset"]
+                  f'<p class="oneline"><strong>{esc(pub["band"])}</strong> compared with the long-run average of {pub["base"]:.0%} (the vertical line).</p>'
+                  + fold("What the model is reading", f'<ul class="rows">{inputs}</ul>') + '</section>')
+    groups = []
+    for target in ("labor_deterioration", "recession_onset", "recession", "inflation_rising"):
+        rs = [r for r in matrix if r["target"] == target]
+        badges = "".join(f'<span class="b ok">{r["h"]} months: {esc(r["text"])}</span>' if r["published"] else
+                         f'<span class="b">{r["h"]} months<span class="sr-only">: not enough evidence</span></span>'
+                         for r in rs)
+        failed = sorted({f for r in rs if not r["published"] for f in r["failed"]})
+        why = plain_reason(failed) if failed else "Published: it passed our test."
+        if failed and any(r["published"] for r in rs):
+            gaps = " and ".join(f'{r["h"]}' for r in rs if not r["published"])
+            why = f"{gaps} months — " + why[:1].lower() + why[1:]
+        groups.append(f'<li><div class="rowstatic"><span class="rname">{esc(TARGET_LABEL[target])}</span>'
+                      f'<span class="rsub">{esc(TARGET_PLAIN[target])} within 3, 6 or 12 months.</span>'
+                      f'<span class="badges" style="grid-column:1/-1;justify-content:flex-start">{badges}</span>'
+                      f'<span class="rsub">{esc(why)}</span></div></li>')
     body = (
-        '<h1>Forecast</h1><p class="lede">Our forward-looking outlooks for 3, 6 and 12 months. Each one is tested against history '
-        'before we publish it. If it fails, we say so instead of showing a number.</p>'
-        f'{detail}'
-        '<section class="card" style="margin-top:14px"><h2>All outlooks</h2><p class="muted">Skill above 0 means better than the long-run average; '
-        'the ranking score runs from 0.5 (coin flip) to 1.0.</p><div class="scroll" tabindex="0" role="region" aria-label="All outlooks table">'
-        '<table><thead><tr><th scope="col">Outlook</th><th scope="col">Horizon</th>'
-        '<th scope="col">Status</th><th scope="col">Skill</th><th scope="col">Ranking</th></tr></thead>'
-        f'<tbody>{"".join(rows)}</tbody></table></div>'
-        '<h3>Why most outlooks are not published</h3><ul class="clean">'
-        f'<li><strong>Recession:</strong> {esc(plain_reason([k for k, ok in onset[1]["gate_checks"].items() if not ok]))} '
-        'Our models do rank recession risk well, but when they said "very likely", recessions followed much less often than claimed.</li>'
-        '<li><strong>Inflation:</strong> no reliable skill with the data we use.</li>'
-        '<li><strong>Job market, 3 and 6 months:</strong> probabilities too confident historically.</li></ul>'
-        '<p><a href="track-record.html">How we test these →</a></p></section>')
+        '<h1>Forecast</h1><p class="lede">Each outlook is tested against history before we publish it. If it fails, we say so instead of showing a number.</p>'
+        f'<div class="stack">{detail}'
+        f'<section class="card" aria-labelledby="all"><div class="row-head"><h2 id="all">All outlooks</h2><a href="track-record.html">Test results →</a></div>'
+        f'<ul class="rows">{"".join(groups)}</ul></section></div>')
     return page("Forecast", "forecast", body, "Tested 3-, 6- and 12-month economic outlooks.")
-
 
 def sectors_page(inp):
     order = ("Worth researching now", "Monitor", "Lower priority for now")
-    s = sorted(inp["sectors"]["sectors"], key=lambda x: (order.index(x["research_priority"]), -(x["relative_strength_12m_pp"] or 0)))
+    items = inp["sectors"]["sectors"]
+    top = max(abs(x["relative_strength_12m_pp"] or 0) for x in items) or 1
     test = inp["sectors"]["relative_strength_test"]
-    cards = []
-    for x in s:
-        rs = x["relative_strength_12m_pp"]
-        cards.append(f'<a class="card sector-card" href="sector-{x["slug"]}.html"><span class="pill {PRIORITY_CLASS[x["research_priority"]]}">{esc(x["research_priority"])}</span>'
-                     f'<h2 style="margin:.4em 0 .2em">{esc(x["sector"])}</h2>'
-                     f'<p class="muted" style="margin:0">{esc(x["cycle_class"])} · backdrop: {esc(x["economic_backdrop"])}</p>'
-                     f'<p style="margin:.4em 0 0">Past 12 months vs market: <strong>{"n/a" if rs is None else f"{rs:+.1f} pts"}</strong></p></a>')
-    bars = diverging_bars([(x["sector"], x["relative_strength_12m_pp"]) for x in s], unit=" pts")
+    groups = []
+    for pr in order:
+        xs = sorted((x for x in items if x["research_priority"] == pr), key=lambda x: -(x["relative_strength_12m_pp"] or 0))
+        if not xs:
+            continue
+        rows = "".join(
+            f'<li><a class="rowlink" href="sector-{x["slug"]}.html"><span class="rname">{esc(x["sector"])}</span>'
+            f'<span class="rval">{"n/a" if x["relative_strength_12m_pp"] is None else f"{x["relative_strength_12m_pp"]:+.0f} pts"}</span>'
+            f'<span class="rsub">{esc(x["cycle_class"])} · backdrop {esc(x["economic_backdrop"]).lower()}</span>'
+            f'{mini_rs(x["relative_strength_12m_pp"], top)}</a></li>' for x in xs)
+        groups.append(f'<section class="card" aria-labelledby="g-{PRIORITY_CLASS[pr]}"><div class="row-head">'
+                      f'<h2 id="g-{PRIORITY_CLASS[pr]}"><span class="pill {PRIORITY_CLASS[pr]}">{esc(pr)}</span></h2>'
+                      f'<small>{len(xs)} sector{"s" if len(xs) != 1 else ""}</small></div><ul class="rows">{rows}</ul></section>')
+    method = ('<ul class="clean">'
+              '<li><strong>Backdrop</strong>: how the sector did versus the market in past recessions and expansions, matched to today\'s economy.</li>'
+              f'<li><strong>Recent strength</strong> (bars: past 12 months vs market, skipping the latest month) counts because our pre-registered test found it has persisted: '
+              f'{test["mean_spread_pp_per_6m"]:+.1f} pts per 6 months, t={test["t_stat"]}, {test["periods"]} periods since {test["first_period"][:4]}.</li>'
+              '<li>"Worth researching now" means the evidence points the same way. It is never a recommendation.</li>'
+              '<li>Investment attractiveness needs current, licensed valuation data, which is not yet available, so every sector shows "Insufficient evidence".</li>'
+              '<li>Sectors are approximated with Kenneth R. French industry portfolios, not official GICS indices.</li></ul>')
     body = (
-        '<h1>Sectors</h1><p class="lede">Which of the 11 market sectors deserve further research right now, and why. '
-        'We look at how each sector has behaved in today\'s kind of economy and whether its recent strength is holding. '
-        'This is research guidance, not a buy or sell recommendation.</p>'
-        f'<div class="note">Current economy: <strong>{esc(inp["view"]["condition"])}</strong>. '
-        f'Recent-strength signal: {"historically informative" if test["historically_informative"] else "context only"} '
-        f'(tested on {test["periods"]} six-month periods since {test["first_period"][:4]}). '
-        'Investment attractiveness: not enough current valuation evidence for any sector.</div>'
-        f'<div class="grid cols-3">{"".join(cards)}</div>'
-        f'<section class="card" style="margin-top:14px"><h2>Recent strength versus the market</h2><p class="muted">Return over the 12 months ending '
-        f'{esc(inp["sectors"]["as_of_month"])} (skipping the latest month), minus the market\'s.</p>{bars}</section>'
-        '<details><summary>How sectors are ranked</summary><ul class="clean">'
-        '<li><strong>Economic backdrop</strong> comes from how the sector performed relative to the market in past recessions and expansions, matched to today\'s conditions.</li>'
-        '<li><strong>Recent strength</strong> counts only because our pre-registered test found it has historically persisted (top minus bottom third: '
-        f'{test["mean_spread_pp_per_6m"]:+.1f} pts per 6 months, t={test["t_stat"]}).</li>'
-        '<li>"Worth researching now" means both point the same way, or one is clearly positive. It is never a recommendation.</li>'
-        '<li>Sectors are approximated with industry portfolios from the Kenneth R. French Data Library, not official GICS indices.</li></ul></details>')
+        '<h1>Sectors</h1>'
+        f'<p class="lede">Which sectors deserve research in today\'s <strong>{esc(inp["view"]["condition"]).lower()}</strong> economy, '
+        f'based on cycle behaviour and recent strength (to {esc(inp["sectors"]["as_of_month"])}). Not a buy or sell recommendation.</p>'
+        f'<div class="stack">{"".join(groups)}<section class="card">{fold("How sectors are ranked", method)}</section></div>')
     return page("Sectors", "sectors", body, "Evidence-based research guidance for all 11 market sectors.")
-
 
 def sector_detail(x, inp):
     sens, val = x["sensitivities"], x["valuation_context"]
@@ -429,88 +482,98 @@ def sector_detail(x, inp):
     sup = "".join(f"<li>{esc(t)}</li>" for t in x["supports"]) or "<li>No strong supporting evidence right now.</li>"
     ch = "".join(f"<li>{esc(t)}</li>" for t in x["challenges"]) or "<li>No major contrary evidence flagged.</li>"
     wc = "".join(f"<li>{esc(t)}</li>" for t in x["what_would_change"])
-    vrow = ("Not available" if val["forward_pe_median"] is None else
-            f'{val["forward_pe_median"]} (market {val["market_forward_pe"]}; {val["forward_pe_vs_market"]:+.0%})')
     rate = sens["rate_beta_pct_per_pp"]
+    vrow = ("not available" if val["forward_pe_median"] is None else
+            f'{val["forward_pe_median"]} vs market {val["market_forward_pe"]} ({val["forward_pe_vs_market"]:+.0%})')
+    rs = x["relative_strength_12m_pp"]
+    behaved = (f'<p class="muted oneline">Average yearly return vs the market, {esc(sens["period"])}.</p>{bars}'
+               f'<p>Each 1-point rise in the 10-year yield: {"n/a" if rate is None else f"{rate:+.1f}%"} relative return (monthly).</p>')
+    priced = (f'<p><strong>{esc(x["investment_attractiveness"])}.</strong> {esc(x["attractiveness_reason"])}</p>'
+              f'<p>Forward P/E: {esc(vrow)}. Expected 5-year earnings growth: '
+              f'{"n/a" if val["expected_growth_5y_median_pct"] is None else str(val["expected_growth_5y_median_pct"]) + "%"}.</p>'
+              f'<p><small>{esc(val["vintage"])}. Source: Aswath Damodaran, NYU Stern.</small></p>')
+    method = (f'<p>Sector proxy: equal-weighted Kenneth R. French industry portfolios ({esc(", ".join(x["proxy_industries"]))}). '
+              f'Relative strength as of {esc(x["relative_strength_as_of"])}. Recession months follow NBER dating. Educational research, not investment advice.</p>')
     body = (
-        f'<p><a href="sectors.html">← All sectors</a></p><h1>{esc(x["sector"])}</h1>'
+        f'<p class="oneline"><a href="sectors.html">← All sectors</a></p><h1>{esc(x["sector"])}</h1>'
         f'<p><span class="pill {PRIORITY_CLASS[x["research_priority"]]}">{esc(x["research_priority"])}</span> '
-        f'<span class="chip">{esc(x["cycle_class"])}</span><span class="chip">Backdrop: {esc(x["economic_backdrop"])}</span></p>'
+        f'<span class="chip">{esc(x["cycle_class"])}</span><span class="chip">Backdrop: {esc(x["economic_backdrop"])}</span>'
+        f'<span class="chip">12 months: {"n/a" if rs is None else f"{rs:+.1f} pts vs market"}</span></p>'
         '<div class="grid cols-2">'
         f'<section class="card"><h2>Why it may deserve attention</h2><ul class="clean">{sup}</ul></section>'
         f'<section class="card"><h2>What argues against it</h2><ul class="clean">{ch}</ul></section>'
-        f'<section class="card"><h2>How it has behaved</h2><p class="muted">Average yearly return versus the market, {esc(sens["period"])}.</p>{bars}'
-        f'<p>Interest rates: {"n/a" if rate is None else f"{rate:+.1f}% relative return for each 1-point rise in the 10-year yield (monthly average)"}.</p></section>'
-        '<section class="card"><h2>Is it attractively priced?</h2>'
-        f'<p><strong>{esc(x["investment_attractiveness"])}.</strong> {esc(x["attractiveness_reason"])}</p>'
-        f'<table><tbody><tr><th scope="row">Forward P/E (median of industries)</th><td>{esc(vrow)}</td></tr>'
-        f'<tr><th scope="row">Expected earnings growth, 5 years</th><td>{"n/a" if val["expected_growth_5y_median_pct"] is None else str(val["expected_growth_5y_median_pct"]) + "%"}</td></tr>'
-        f'</tbody></table><p><small>{esc(val["vintage"])}. Source: Aswath Damodaran, NYU Stern.</small></p></section>'
-        f'<section class="card"><h2>What would change this view</h2><ul class="clean">{wc}</ul>'
-        f'<p><strong>What to watch:</strong> {esc(x["watch"])}</p></section>'
-        f'<section class="card"><h2>When the usual pattern failed</h2><p>{esc(x["contrary_case"])}</p></section></div>'
-        f'<details><summary>Data and method</summary><p>Sector proxy: equal-weighted Kenneth R. French industry portfolios '
-        f'({esc(", ".join(x["proxy_industries"]))}). Relative strength as of {esc(x["relative_strength_as_of"])}. '
-        'Recession months follow NBER dating. This page is educational research, not investment advice.</p></details>')
+        f'<section class="card"><h2>What would change this view</h2><ul class="clean">{wc}</ul><p class="oneline"><strong>Watch:</strong> {esc(x["watch"])}</p></section>'
+        '<section class="card"><h2 class="sr-only">More evidence</h2>'
+        + fold("How it has behaved", behaved) + fold("Is it attractively priced?", priced)
+        + fold("When the usual pattern failed", f'<p>{esc(x["contrary_case"])}</p>') + fold("Data and method", method)
+        + '</section></div>')
     return page(x["sector"], "sectors", body, f"Economic exposure and research evidence for the {x['sector']} sector.")
-
 
 def track_page(inp, matrix):
     lab = sorted((r for r in inp["archive"] if r["target"] == "labor_deterioration" and r["h"] == 12), key=lambda r: r["origin"])
     ev = next(e for e in inp["forecast"]["evaluations"] if e["target"] == "labor_deterioration" and e["horizon_months"] == 12)
     fr = next(e for e in inp["research"]["first_release_labor_robustness"] if e["horizon_months"] == 12)
     m, f = ev["full_sample"]["model"], fr["full_sample"]["model"]
-    rows = "".join(f'<tr><th scope="row">{esc(TARGET_LABEL[r["target"]])}</th><td>{r["h"]}m</td>'
-                   f'<td>{"✓ Passed" if r["published"] else "✗ " + esc(", ".join(CHECK_SHORT.get(k, k) for k in r["failed"]))}</td></tr>' for r in matrix if r["eval"])
+    rows = []
+    for target in ("labor_deterioration", "recession_onset", "recession", "inflation_rising"):
+        rs = [r for r in matrix if r["target"] == target and r["eval"]]
+        badges = "".join(
+            f'<span class="b{" ok" if r["published"] else ""}">{r["h"]}m <span aria-hidden="true">{"✓" if r["published"] else "✗"}</span>'
+            f'<span class="sr-only">{" passes" if r["published"] else " fails"}</span></span>' for r in rs)
+        detail = "; ".join(
+            f'{r["h"]}m: skill {r["eval"]["full_sample"]["model"]["bss_vs_base_rate"]:+.2f}, ranking {r["eval"]["full_sample"]["model"]["auc"]:.2f}'
+            + ("" if r["published"] else " — " + ", ".join(CHECK_SHORT.get(k, k) for k in r["failed"])) for r in rs)
+        rows.append(f'<li><div class="rowstatic"><span class="rname">{esc(TARGET_LABEL[target])}</span><span class="badges">{badges}</span>'
+                    f'<span class="rsub">{esc(detail)}</span></div></li>')
     test = inp["sectors"]["relative_strength_test"]
+    notes = ('<ul class="clean">'
+             '<li>The recession-start outlook was registered in advance and evaluated once; it ranks risk well but is too confident, so it is not published.</li>'
+             '<li>We added one recalibration step after our first test showed overconfidence — a data-snooping risk we disclose.</li>'
+             '<li>Only a handful of recessions since 1972, so recession results are uncertain.</li>'
+             f'<li>Sector recent-strength signal: {test["mean_spread_pp_per_6m"]:+.1f} pts per 6 months over {test["periods"]} periods '
+             f'(t={test["t_stat"]}; weaker in recent decades: {test["first_half_mean"]:+.1f} then {test["second_half_mean"]:+.1f}).</li></ul>')
     body = (
-        '<h1>Track Record</h1><p class="lede">How our outlooks would have performed in the past, using only information '
-        'available at each moment. We show failures as well as successes.</p>'
-        '<section class="card"><p class="eyebrow">Our one published outlook</p><h2>Job market weakens within 12 months</h2>'
+        '<h1>Track Record</h1><p class="lede">How each outlook would have performed in the past, using only information available at the time. Failures included.</p>'
+        '<div class="stack">'
+        '<section class="card" aria-labelledby="lab"><p class="eyebrow">Our published outlook</p><h2 id="lab">Job market weakens within 12 months</h2>'
         f'{track_timeline(lab)}'
-        f'<p>Out-of-sample from {esc(ev["evaluation_start"])}: skill <strong>{m["bss_vs_base_rate"]:+.2f}</strong> vs the long-run average, '
-        f'ranking score <strong>{m["auc"]:.2f}</strong>, {m["episodes"]} separate episodes. On data <em>as first published</em> '
-        f'(no later revisions): skill {f["bss_vs_base_rate"]:+.2f}, ranking {f["auc"]:.2f} — it still passes.</p></section>'
-        '<div class="grid cols-2" style="margin-top:14px">'
-        f'<section class="card"><h2>Do our probabilities mean what they say?</h2>{calibration_chart(ev["calibration"])}'
-        '<p class="muted">Dots near the dashed line mean forecasts of, say, 40% came true about 40% of the time.</p></section>'
-        f'<section class="card"><h2>Every outlook we test</h2><div class="scroll" tabindex="0" role="region" aria-label="Outlook test results table"><table><thead><tr><th scope="col">Outlook</th><th scope="col">Horizon</th>'
-        f'<th scope="col">Result</th></tr></thead><tbody>{rows}</tbody></table></div>'
-        '<p><small>Tests: beats the long-run average, ranks risk well, enough episodes, and probabilities not overconfident.</small></p></section></div>'
-        '<section class="card" style="margin-top:14px"><h2>Honest notes</h2><ul class="clean">'
-        '<li>The recession-start outlook was registered in advance and evaluated once. It ranks risk well but fails on overconfidence, so it is not published.</li>'
-        '<li>We added one recalibration step after our first test showed overconfidence; we flag that as a data-snooping risk.</li>'
-        '<li>Only a handful of recessions exist since 1972, so recession results are uncertain.</li>'
-        f'<li>Sector recent-strength signal: top-third minus bottom-third {test["mean_spread_pp_per_6m"]:+.1f} pts per 6 months over {test["periods"]} periods '
-        f'(t={test["t_stat"]}; sign hit rate {test["sign_hit_rate"]:.0%}).</li></ul>'
-        '<p><a href="forecast_archive.csv">Download every past forecast (CSV)</a></p></section>')
+        f'<p class="oneline">Since {esc(ev["evaluation_start"][:4])}: skill <strong>{m["bss_vs_base_rate"]:+.2f}</strong>, ranking <strong>{m["auc"]:.2f}</strong>, '
+        f'{m["episodes"]} episodes. On data as first published: {f["bss_vs_base_rate"]:+.2f} / {f["auc"]:.2f} — still passes.</p>'
+        + fold("Do our probabilities mean what they say?", calibration_chart(ev["calibration"])
+               + '<p class="muted">Dots near the dashed line: forecasts of 40% came true about 40% of the time.</p>')
+        + '</section>'
+        '<section class="card" aria-labelledby="tests"><h2 id="tests">Every outlook we test</h2>'
+        '<p class="muted oneline">Skill above 0 beats the long-run average; ranking runs from 0.5 (coin flip) to 1.0.</p>'
+        f'<ul class="rows">{"".join(rows)}</ul></section>'
+        f'<section class="card"><h2 class="sr-only">Notes and data</h2>{fold("Honest notes", notes)}'
+        '<p class="oneline"><a href="forecast_archive.csv">Download every past forecast (CSV)</a></p></section></div>')
     return page("Track Record", "track", body, "Historical performance of every outlook, including failures.")
-
 
 def research_page(inp):
     body = (
         '<h1>Research &amp; Data</h1><p class="lede">Methods, sources and evidence behind every number on this site.</p>'
-        '<details open><summary>How the outlooks work</summary><ul class="clean">'
+        '<section class="card">'
+        '<details class="fold" open><summary>How the outlooks work</summary><div><ul class="clean">'
         '<li>A small logistic model reads the yield curve, corporate borrowing premium, unemployment trend and job growth.</li>'
         '<li>It is re-fitted once a year using only past data, then tested month by month from 1972 against the long-run average, a yield-curve-only model and our earlier descriptive rules.</li>'
         '<li>Market data are used for the current month; government data only once published (one-month lag). Recession dates are used only to score.</li>'
-        '<li>An outlook is published only if it beats the average (skill ≥ 0.05), ranks risk well (≥ 0.70), has at least 3 episodes and is not overconfident.</li></ul></details>'
-        '<details><summary>How sectors are assessed</summary><ul class="clean">'
+        '<li>An outlook is published only if it beats the average (skill ≥ 0.05), ranks risk well (≥ 0.70), has at least 3 episodes and is not overconfident.</li></ul></div></details>'
+        '<details class="fold"><summary>How sectors are assessed</summary><div><ul class="clean">'
         '<li>Economic sensitivity: each sector\'s return versus the market in recessions, expansions, high-inflation months and when the 10-year yield changes, since 1953.</li>'
         '<li>Recent strength: 12-month return versus the market, skipping the latest month; pre-registered persistence test.</li>'
-        '<li>Valuation and earnings: Damodaran annual data shown as dated context. A rating needs current, licensed data, so attractiveness stays "not enough evidence".</li></ul></details>'
-        '<details><summary>Data sources and attribution</summary><ul class="clean">'
+        '<li>Valuation and earnings: Damodaran annual data shown as dated context. A rating needs current, licensed data, so attractiveness stays "not enough evidence".</li></ul></div></details>'
+        '<details class="fold"><summary>Data sources and attribution</summary><div><ul class="clean">'
         '<li>Federal Reserve Bank of St. Louis — FRED and ALFRED (economic data, first releases).</li>'
         '<li>Kenneth R. French Data Library, Tuck School of Business at Dartmouth — industry portfolio and market returns.</li>'
         '<li>Aswath Damodaran, NYU Stern — US industry P/E and expected growth (annual).</li>'
-        '<li>NBER — U.S. business-cycle dates (scoring only).</li></ul></details>'
-        '<details><summary>Limitations</summary><ul class="clean">'
+        '<li>NBER — U.S. business-cycle dates (scoring only).</li></ul></div></details>'
+        '<details class="fold"><summary>Limitations</summary><div><ul class="clean">'
         '<li>Most history uses today\'s revised data; the job-market outlook was re-checked on data as first published.</li>'
         '<li>Few recessions since 1972; recession outlooks remain unpublished.</li>'
         '<li>Sector figures use industry proxies, not official sector indices.</li>'
-        '<li>Educational research, not personalized investment advice.</li></ul></details>'
-        '<details><summary>Pre-registration and evidence files</summary><p>Pass B analyses were registered in advance '
-        '(docs/V7_PREREGISTRATION_PASS_B.md) and evaluated once. Full evidence: docs/evidence/ in the repository.</p></details>')
+        '<li>Educational research, not personalized investment advice.</li></ul></div></details>'
+        '<details class="fold"><summary>Pre-registration and evidence files</summary><div><p>Pass B analyses were registered in advance '
+        '(<code>docs/V7_PREREGISTRATION_PASS_B.md</code>) and evaluated once. Full evidence: <code>docs/evidence/</code> in the repository.</p></div></details></section>')
     return page("Research & Data", "research", body, "Methodology, data sources, limitations and evidence.")
 
 

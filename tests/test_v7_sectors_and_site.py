@@ -152,10 +152,15 @@ class SiteTests(unittest.TestCase):
 
     def test_homepage_summarises_without_publishing_unsupported_numbers(self):
         html = (self.out / "index.html").read_text()
-        for text in ("Where we are", "Where we may be heading", "What supports this view", "What challenges it",
-                     "What would change our view", "Sectors worth researching now", "How reliable is this?",
-                     "Not enough evidence yet", "not the odds of any event"):
+        for text in ("Where we are", "Where we may be heading", "Where to look", "Why we think this",
+                     "What could prove us wrong", "What would change our view", "Sectors worth researching",
+                     "outlooks pass our reliability test", "Not enough evidence", "not the odds of any event"):
             self.assertIn(text, html)
+        # Pass C: conclusions first, detail behind disclosure, previews link to the canonical page.
+        self.assertNotIn("<table", html)
+        self.assertEqual(html.count('<details class="fold">'), 3)
+        for href in ("forecast.html", "sectors.html", "track-record.html"):
+            self.assertIn(f'href="{href}"', html.split("<footer>")[0].split('<main id="main">')[1])
         # Only the gated outlook may show a probability.
         published = [r for r in site.outlook_matrix(self.inp) if r["published"]]
         self.assertEqual([(r["target"], r["h"]) for r in published], [("labor_deterioration", 12)])
@@ -163,8 +168,19 @@ class SiteTests(unittest.TestCase):
 
     def test_unpublished_outlooks_explained_on_forecast_page(self):
         html = (self.out / "forecast.html").read_text()
-        self.assertEqual(html.count('chip muted">Not enough evidence<'), 11)  # every unpublished row
+        self.assertEqual(html.count('<span class="b">'), 11)  # every unpublished outlook
+        self.assertEqual(html.count("not enough evidence</span>"), 11)
+        self.assertEqual(html.count('<span class="b ok">'), 1)
+        # One feature, one location: skill/ranking metrics live on the Track Record page only.
+        self.assertNotIn("ranking", html.lower().split("<footer>")[0])
         self.assertIn("too confident", html)
+
+    def test_sectors_page_lists_each_sector_once_without_duplicate_chart(self):
+        html = (self.out / "sectors.html").read_text()
+        for x in self.inp["sectors"]["sectors"]:
+            self.assertEqual(html.count(f'href="sector-{x["slug"]}.html"'), 1, x["slug"])
+        self.assertNotIn("<svg", html.split('<main id="main">')[1].split("</main>")[0])
+        self.assertNotIn('class="dbars"', html)
 
     def test_sector_pages_separate_exposure_from_attractiveness(self):
         for name in (p for p in self.pages if p.startswith("sector-")):
