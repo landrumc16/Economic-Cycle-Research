@@ -1,120 +1,120 @@
-# Economic Cycle Research — Version 7 Release Candidate
+# Economic Cycle Research — Version 7 Release Candidate (market-vulnerability edition)
 
 **Status:** RELEASE CANDIDATE. **Not merged into `main`. Not deployed.** It awaits owner visual and technical evaluation and explicit approval.
-**Candidate code commit (`v7-development`):** `d57358d87990998345ae5f44366f63f2fbd5718c`. Later commits on the branch add only this report and evidence files; there are no code changes. The exact branch head to merge is given in the owner's approval request.
+**Candidate code commit (`v7-development`):** `{CANDIDATE}`
 **Production baseline (unchanged):** V6.3, `main` at `7dfc811e765fd8ca927f082c2fa0c63948799bb3`. It remains production and the rollback target.
+**Research basis:** `docs/V7_CRASH_RESEARCH_REPORT_2026-11-18.md` and the pre-registration `docs/V7_PREREGISTRATION_CRASH_RESEARCH.md`. This release implements P1–P4 of that report.
 
-## 1. Recommendation
-**Ready for owner evaluation.** M5 integration and M6 release preparation are complete and verified. The outstanding items are testing by a person:
-- real-device checks (iOS and Android, including the safe area);
-- screen readers (VoiceOver and TalkBack);
-- a plain-language review.
+## 1. What the application now answers (actual pipeline output)
+The homepage leads with **"How vulnerable is the stock market to a major decline?"**
 
-None of these could be performed by the development agent, so they are listed as **unverified**, not passed. There are no technical release blockers. A licensed valuation-data subscription is **not** a blocker.
-
-## 2. What the application currently shows (actual pipeline output of the candidate commit)
-Real data from FRED, the French Data Library and Damodaran were fetched in CI on 2026-11-18. The pipeline is monthly assessment run `44307600691`, published through the rehearsal of the daily publisher.
-
-| Question | Answer shown |
+| Question | What the site shows (monthly run `{MONTHLY}`, real data fetched 2026-11-18) |
 |---|---|
-| Where is the economy? | **Expanding**, direction **Firming**, evidence **Moderate**. Assessment dated 2026-10-20, using data through 2026-09. |
-| Where may it be heading? | **Job market weakens within 12 months: about 30%**. That is *Typical* against the 28% historical average (origin 2026-10). This is the only published number. |
-| What is not published | 3- and 6-month job-market outlooks, all recession-under-way and new-recession outlooks, and all inflation outlooks. Each shows **"Not enough evidence"** with a plain reason: *too confident*, *no better than the long-run average* or *weak at ranking risk*. 11 of 12 outlooks are unpublished. |
-| Sectors worth researching now | **Energy** (+31 pts vs market over 12 months, cyclical, supportive backdrop), **Information Technology** (+26), **Materials** (+6), **Industrials** (+2). |
-| Monitor | **Real Estate** (−21 pts, cyclical, supportive backdrop). |
-| Lower priority for now | Financials (−6), Health Care (−3), Consumer Staples (−12), Utilities (−12), Consumer Discretionary (−17), Communication Services (−27). |
-| Investment attractiveness | **Insufficient evidence** for all 11 sectors. Only an annual Damodaran valuation vintage is available; a licensed current source is required. |
-| Track record | The 12-month job-market outlook since 1972: skill +0.33, ranking 0.83, 15 episodes. On data as first published: +0.31 / 0.82. Failures are shown with ✗. |
+| Are historical warning conditions present? | **0 of 5 tested warning signs are on, and 2 are close to their trigger.** Market trend: the S&P 500 is +0.9% above its 10-month average (Nov 16); the Nasdaq is −3.0% below its own. Market breadth: 41% of industries are above trend against a 40% trigger (Sep). Clear: yield curve +1.08 (12-month low +0.31, Oct); financial conditions −0.48 (Nov 13); credit spread 1.46 points (Oct). Valuation: **not current** (the latest CAPE is from 2023-09), so it is not counted. |
+| Why they matter | Each warning shows its record since 1927–1971: how much more often a 20% fall followed (1.3–2.3×), the bear markets it missed, and the share of false alarms. |
+| How today compares with past pre-crash environments | A table of the median at 14 past bear-market peaks against today. Breadth is far weaker (41% vs 69%). The yield curve and credit spreads look calmer. The market trend is weaker than at a typical peak. |
+| What would raise or ease concern | Each warning's trigger, plus what would reverse the near-trigger readings. |
+| What the evidence cannot predict | Timing, depth, or whether a decline happens at all. The combined model failed out of sample, so no crash probability or overall score is published. Sudden shocks (1987, 2020) gave little warning. |
+| Supporting context | The economy is "Expanding" (data through Sep 2026) on its own Economy page, with a real production chart. The 12-month job-market outlook remains the only published number: about 30%, typical. Sector research is unchanged. |
 
-"Worth researching" is research guidance, never a recommendation. Every page carries "not personalized financial advice".
+Concerns listed on Home:
+- the S&P 500 is near its trend line and the Nasdaq is below its own;
+- the Nasdaq is 11.8% below its high;
+- breadth is near its trigger;
+- small companies are lagging large ones;
+- VIX is 22.9, up 51% in 3 months;
+- stock value relative to GDP is at a record (labelled as not yet a tested warning).
 
-## 3. M5 — production integration (complete)
-| Requirement | Evidence |
-|---|---|
-| Connected to the monthly assessment | The `Monthly Economic Cycle Assessment` workflow fetches V7 inputs and runs `scripts/v7_release.py monthly`. The steps are `continue-on-error`, so a V7 failure never blocks V6. |
-| Connected to the daily publisher | The `Milestone 1` workflow's publish step promotes a qualified bundle, preserves the accepted one, or leaves V6 as home. A new post-deploy check (`verify_live`) compares every V7 file byte for byte. |
-| DAILY DATA. MONTHLY CONCLUSIONS. ONE DASHBOARD. | Conclusions change only when a monthly bundle qualifies. Daily runs republish the accepted bundle, and V7 owns `index.html` (one home page). |
-| Forecasts and sectors update only when appropriate | The manifest is `NEW_QUALIFIED` only if: the V6 monthly gate is PASS; unemployment data are ≤3 months old; French data are ≤4 months old; 11 sectors are covered with no rating; and the site contract passes. Otherwise it is `FAILED`. An older bundle never replaces a newer one. |
-| Approved-outlook allowlist | Only job market at 12 months may show a number. A newly passing outlook is **held for owner review** (tested). |
-| Stale-data handling | A preserved bundle accepted more than 45 days ago carries a visible notice on every page. The notice is never stacked, and is removed by the next qualified bundle (tested). |
-| Provenance and manifest | `v7_release_manifest.json` records the build commit, build time, assessment date, observation cutoff, source months, gate reasons, published and held outlooks, and SHA-256 hashes of every page. See `docs/evidence/v7_rc_release_manifest_2026-11-18.json`. |
-| Acceptance checks | The V7 site contract checks: 16 pages; doctype, viewport, `lang`, `main` and one `h1` on each; the disclaimer; exactly five nav destinations; every internal link; no recession percentage on Home; published badges equal to the manifest; and an unrated attractiveness. |
-| Fail closed | An unreachable, incomplete, tampered or unqualified live V7 bundle means **deployment refused**. Transient 5xx and network errors are retried a bounded number of times. This change came from a real Pages 503 seen during the rehearsal. |
-| V6.3 not broken | The V6 steps are unchanged. The V6 post-deploy checks are relaxed only for `index.html == overview.html` when a V7 manifest is present. All V6, V6.2 and V6.3 tests pass. |
-| Actual data, whole process | The real monthly run on `v7-development` was `44307600691`, followed by **V7 Release Rehearsal** run `44307784658`. The rehearsal took the actual last-deployed production bundle from `main` and showed: `NEW_QUALIFIED`, then `V7_SITE_CONTRACT_PASS` (16 pages), then `V7_LIVE_VERIFIED` (17 files served), then `PRESERVED_PREVIOUS` (identical bytes), then the old-bundle notice, then unreachable site → deployment blocked, then the rollback bundle valid (V6.2 manifest `7dfc811`, 2026-11-17). |
+Reassurances listed: the yield curve is not inverted, credit spreads are narrow, financial conditions are loose, and the economy is expanding.
 
-## 4. M6 — release readiness (complete, except testing by a person)
+## 2. Charts (all data-driven, dated, with text alternatives)
+- **A century of market declines** (1926–2026): U.S. total market drawdown, with recessions shaded and the deepest declines labelled. A compact version since 1950 appears on Home.
+- **Index performance:** S&P 500, Nasdaq, Nasdaq-100 and Dow returns and distance from high (daily closes). A one-year chart is rebased to 100.
+- **Breadth and leadership:** the share of industries above trend since 2000, with its 40% trigger; leaders and laggards over 12 months; small versus large companies.
+- **Credit and financial conditions:** the BAA − 10-year spread since 1960 with its stress threshold; the Chicago Fed NFCI since 1971.
+- **Warnings before past bear markets:** which of the six warnings were on in the 12 months before each bear-market peak since 1954.
+- **Economy versus market:** production growth against market drawdown since 1985. Markets fell 20% or more in 1987, 1998, 2018 and 2022 while production was growing.
+- **The decorative cycle gauge was removed.** No hypothetical forecast is drawn anywhere.
+
+## 3. Daily data versus monthly conclusions
+- Every warning shows its own date and frequency: daily (S&P 500 trend), weekly (NFCI) or monthly (curve, credit, breadth).
+- Economic conclusions remain monthly.
+- Market data are refreshed in each monthly build. The build gate requires daily market data no more than 7 days old and no fetch gaps, and records the warnings in `v7_release_manifest.json` (`market_warnings`).
+- **Limitation:** the published market readings are as of the monthly build. They are not refreshed every day; daily refresh of the market panel is a possible follow-up.
+
+## 4. Scientific integrity (preserved)
+- The failed combined crash model is unpublished. Its out-of-sample results are disclosed on the Market Risk page (skill −0.20 to −0.35).
+- No historical frequency is presented as today's odds. Records are shown as "about N× as often as usual", together with misses and false alarms.
+- The site contract requires both market-risk pages to state that no crash probability is published, and rejects "chance/probability of a crash … %".
+- Unchanged:
+  - the job-market outlook gate;
+  - the approved-outlook allowlist;
+  - unrated sector attractiveness;
+  - all disclaimers.
+
+## 5. Production integration and release safety
+- **Monthly assessment:** fetches market data (`v7_crash_research.py fetch`), runs the analysis inside `v7_release.py monthly` and gates on freshness.
+- **Daily publisher:** unchanged in design: promote, preserve or leave V6 as home; verify live; rollback.
+- **New during this pass:** an invalid candidate bundle is now rejected and the accepted publication kept, instead of aborting the whole deployment. This was found when the rehearsal met a pre-change bundle.
+- **Rehearsal** `{REHEARSAL}` on the real monthly artifact:
+  - `NEW_QUALIFIED`;
+  - `V7_SITE_CONTRACT_PASS` (17 pages);
+  - `V7_LIVE_VERIFIED` (18 files);
+  - `PRESERVED_PREVIOUS`;
+  - old-bundle notice added;
+  - unreachable live site → deployment blocked;
+  - rollback bundle valid (V6.2 manifest `7dfc811`).
+
+## 6. Verification
 | Check | Result |
 |---|---|
-| Forecast evidence integrity | The CI `V7 Forecast Research` run `44307784651` (code identical to the candidate) runs the full suite and reproduces the committed forecast and sector evidence from the dated snapshot. The monthly pipeline re-evaluates on fresh data with the same gate. |
-| Daily and monthly publication | Rehearsed as above. Daily source acquisition is unchanged. |
-| Data freshness and failure recovery | Freshness gate, preserve-previous, old-bundle notice and blocked deployment are tested, and rehearsed on real infrastructure. |
-| Navigation and generated pages | Site contract plus tests: 16 pages and every internal link. |
-| Mobile and desktop layout | 320/375/390/430 px × light/dark × 100%/200% text × 6 pages, with all sections expanded: **0 problems** (`docs/evidence/v7_rc_layout_sweep_2026-11-18.txt`). Home conclusions end at 1406 px at 390×844, within two screens. |
-| Accessibility | axe-core 4.10.2 (WCAG 2.0/2.1/2.2 A/AA), 16 pages × 3 widths × 2 schemes = 96 page checks: **0 violations** in every rule except `target-size`. That rule shows 3 position-dependent findings (dark, 640 px: two sector pages; 320 px: Research). In each, a 56 px-tall, full-width section heading sits under the sticky tab bar at the initial scroll position. Re-tested with the element scrolled clear of the bar, each passes. These are disclosed rather than suppressed. Keyboard: every link and section reachable. Focus is never hidden behind the tab bar (474 focus checks). |
-| Security and dependencies | Pages contain no JavaScript, forms, iframes or external resources. Generators use the standard library only. Content is HTML-escaped. Workflows use pinned major versions of GitHub-owned actions only. The rehearsal workflow has read-only permissions and never deploys. |
-| Build reproducibility | Deterministic generators; the committed evidence is reproduced in CI. The real-data pages matched the snapshot build except for one revised FRED value (industrial production growth 2.22% → 2.12%), which is a current-vintage revision as expected. |
-| Rollback readiness | `docs/V7_RELEASE_RUNBOOK.md`. The pre-V7 production bundle is preserved as a Milestone 1 artifact, and the rehearsal validated it. |
-| Tests | `python -m unittest discover -s tests`: **524 OK**. |
+| Tests | `python -m unittest discover -s tests`: **532 OK** |
+| Historical evidence | Crash research reproduces exactly from `data/v7_crash/`. Forecast and sector evidence reproduce in CI run `{RESEARCH}`. |
+| Layout | 7 pages × 320/375/390/430 px × light/dark × 100%/200% text, all sections expanded: **0 problems** (`docs/evidence/v7_rc_layout_sweep_2026-11-18.txt`) |
+| Accessibility | axe-core 4.10.2, WCAG 2.2 A/AA, 17 pages × 3 widths × 2 schemes: **0 violations** apart from position-dependent `target-size` findings. These are 56 px section headings sitting under the sticky tab bar at load, and each passes when scrolled clear. |
+| Keyboard | Every link and section is reachable. Focus is never hidden behind the tab bar, except the bear-market matrix scroll region, which is taller than a phone screen and so only partly visible when focused (allowed by WCAG 2.4.11). |
+| Security | No JavaScript, forms or external resources; standard-library generators; read-only rehearsal workflow |
 
-Defects found and fixed during M6:
-1. Pages 503 handling: added bounded retries.
-2. Bottom-tab labels clipped at 200% text: labels now wrap and hyphenate.
-3. The wrapped tab bar covered the last content at 200% text: the bar is now sticky instead of fixed.
-4. Focus visibility next to the sticky bar: added scroll padding.
+## 7. Screenshots (actual pipeline output)
+Folder: [`docs/evidence/v7-rc-screenshots/`](evidence/v7-rc-screenshots/). Captures at 390 px are at 2× (first screen) and 1× (full page); desktop is 1280 px.
+- **Home:**
+  - [390 first screen](evidence/v7-rc-screenshots/390-light-index-first-screen.png) · [390 full page](evidence/v7-rc-screenshots/390-light-index-full-page.png)
+  - [390 dark first screen](evidence/v7-rc-screenshots/390-dark-index-first-screen.png) · [390 dark full page](evidence/v7-rc-screenshots/390-dark-index-full-page.png)
+  - [1280 first screen](evidence/v7-rc-screenshots/1280-index-first-screen.png) · [1280 light full page](evidence/v7-rc-screenshots/1280-light-index-full-page.png) · [1280 dark full page](evidence/v7-rc-screenshots/1280-dark-index-full-page.png)
+- **Market Risk:**
+  - [390 first screen](evidence/v7-rc-screenshots/390-light-market-risk-first-screen.png) · [390 full page](evidence/v7-rc-screenshots/390-light-market-risk-full-page.png) · [390 all sections expanded](evidence/v7-rc-screenshots/390-light-market-risk-expanded.png)
+  - [390 dark first screen](evidence/v7-rc-screenshots/390-dark-market-risk-first-screen.png) · [390 dark full page](evidence/v7-rc-screenshots/390-dark-market-risk-full-page.png)
+  - [1280 first screen](evidence/v7-rc-screenshots/1280-market-risk-first-screen.png) · [1280 light full page](evidence/v7-rc-screenshots/1280-light-market-risk-full-page.png) · [1280 dark full page](evidence/v7-rc-screenshots/1280-dark-market-risk-full-page.png)
+- **Economy:**
+  - [390 first screen](evidence/v7-rc-screenshots/390-light-forecast-first-screen.png) · [390 full page](evidence/v7-rc-screenshots/390-light-forecast-full-page.png)
+  - [390 dark first screen](evidence/v7-rc-screenshots/390-dark-forecast-first-screen.png) · [390 dark full page](evidence/v7-rc-screenshots/390-dark-forecast-full-page.png)
+  - [1280](evidence/v7-rc-screenshots/1280-forecast-first-screen.png)
+- **Sectors:**
+  - [390 first screen](evidence/v7-rc-screenshots/390-light-sectors-first-screen.png) · [390 full page](evidence/v7-rc-screenshots/390-light-sectors-full-page.png)
+  - [390 dark first screen](evidence/v7-rc-screenshots/390-dark-sectors-first-screen.png) · [390 dark full page](evidence/v7-rc-screenshots/390-dark-sectors-full-page.png)
+  - [1280](evidence/v7-rc-screenshots/1280-sectors-first-screen.png)
+  - Energy detail: [390 full page](evidence/v7-rc-screenshots/390-light-sector-energy-full-page.png) · [390 expanded](evidence/v7-rc-screenshots/390-light-sector-energy-expanded.png) · [1280](evidence/v7-rc-screenshots/1280-sector-energy-first-screen.png)
+- **Research & Data:** [390 first screen](evidence/v7-rc-screenshots/390-light-research-first-screen.png) · [390 full page](evidence/v7-rc-screenshots/390-light-research-full-page.png) · [1280](evidence/v7-rc-screenshots/1280-research-first-screen.png)
+- **Track Record:** [390 first screen](evidence/v7-rc-screenshots/390-light-track-record-first-screen.png) · [390 full page](evidence/v7-rc-screenshots/390-light-track-record-full-page.png)
+- **Other:**
+  - Home: [320 px](evidence/v7-rc-screenshots/320-light-index-first-screen.png) · [430 px](evidence/v7-rc-screenshots/430-light-index-first-screen.png) · [200% text](evidence/v7-rc-screenshots/390-light-index-200pct-text.png) · [expanded](evidence/v7-rc-screenshots/390-light-index-expanded.png)
+  - [Bottom navigation at the end of a page](evidence/v7-rc-screenshots/390-light-sectors-scrolled-to-end.png)
 
-## 5. Visual acceptance package — actual pipeline output
-Screenshots: [`docs/evidence/v7-rc-screenshots/`](evidence/v7-rc-screenshots/) (rendered with Chromium; phone captures at 2× pixel density).
-- **Five experiences at 390 px, first screen and full page:**
-  - Home: [first](evidence/v7-rc-screenshots/390-light-index-first-screen.png) · [full](evidence/v7-rc-screenshots/390-light-index-full-page.png)
-  - Forecast: [first](evidence/v7-rc-screenshots/390-light-forecast-first-screen.png) · [full](evidence/v7-rc-screenshots/390-light-forecast-full-page.png)
-  - Sectors: [first](evidence/v7-rc-screenshots/390-light-sectors-first-screen.png) · [full](evidence/v7-rc-screenshots/390-light-sectors-full-page.png)
-  - Track Record: [first](evidence/v7-rc-screenshots/390-light-track-record-first-screen.png) · [full](evidence/v7-rc-screenshots/390-light-track-record-full-page.png)
-  - Research & Data: [first](evidence/v7-rc-screenshots/390-light-research-first-screen.png) · [full](evidence/v7-rc-screenshots/390-light-research-full-page.png)
-- **Dark mode:**
-  - Home: [first](evidence/v7-rc-screenshots/390-dark-index-first-screen.png) · [full](evidence/v7-rc-screenshots/390-dark-index-full-page.png)
-  - Forecast: [first](evidence/v7-rc-screenshots/390-dark-forecast-first-screen.png) · [full](evidence/v7-rc-screenshots/390-dark-forecast-full-page.png)
-  - Sectors: [first](evidence/v7-rc-screenshots/390-dark-sectors-first-screen.png) · [full](evidence/v7-rc-screenshots/390-dark-sectors-full-page.png)
-- **Sector detail:** [Energy, full page](evidence/v7-rc-screenshots/390-light-sector-energy-full-page.png) · [all sections expanded](evidence/v7-rc-screenshots/390-light-sector-energy-expanded.png)
-- **Expanded sections and charts:**
-  - [Home expanded](evidence/v7-rc-screenshots/390-light-index-expanded.png)
-  - [Track Record with the calibration chart](evidence/v7-rc-screenshots/390-light-track-record-expanded.png)
-- **Bottom navigation:**
-  - [Sectors scrolled to the end](evidence/v7-rc-screenshots/390-light-sectors-scrolled-to-end.png)
-  - [200% text](evidence/v7-rc-screenshots/390-light-index-200pct-text.png)
-- **Other widths:** [Home at 320 px](evidence/v7-rc-screenshots/320-light-index-first-screen.png) · [Home at 430 px](evidence/v7-rc-screenshots/430-light-index-first-screen.png)
-- **Desktop 1280 px:**
-  - [Home](evidence/v7-rc-screenshots/1280-index-first-screen.png) · [Home, full page](evidence/v7-rc-screenshots/1280-index-full-page.png)
-  - [Forecast](evidence/v7-rc-screenshots/1280-forecast-first-screen.png) · [Sectors](evidence/v7-rc-screenshots/1280-sectors-first-screen.png)
-  - [Track Record](evidence/v7-rc-screenshots/1280-track-record-first-screen.png) · [Research](evidence/v7-rc-screenshots/1280-research-first-screen.png)
-  - [Energy](evidence/v7-rc-screenshots/1280-sector-energy-first-screen.png)
+## 8. Limitations and outstanding items
+- **Unverified (needs a person):** real iOS and Android devices; VoiceOver and TalkBack; a plain-language review; the 30-second comprehension test with a real reader.
+- **Data:**
+  - CAPE is stale (2023-09), and equity/GDP is not yet back-tested.
+  - Earnings revisions, margin debt, advance/decline breadth and Russell 2000 data are unlicensed.
+  - French market data lag 1–2 months.
+  - FRED keeps only about one year of S&P 500 and three years of high-yield spread history.
+- **Method:** there are 16 bear markets in 100 years, and overlapping monthly origins are not independent. Warning thresholds are conventional, fixed in advance and not optimised.
+- **Market readings** refresh with each monthly build, not daily.
 
-**30-second test (automated self-evaluation at 390 px, not a human usability test):**
-1. "Expanding" with the cycle gauge appears on the first screen.
-2. The three outlook rows are on the first screen (two say "Not enough evidence"; one says "About 30%, typical vs 28% average").
-3. Four named sectors appear after one scroll.
-4. "1 of 12 outlooks pass our reliability test" sits next to them.
+## 9. CI and links
+- Monthly assessment with V7 (candidate code): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{MONTHLY}>
+- V7 Release Rehearsal: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{REHEARSAL}>
+- V7 Forecast Research (full suite, evidence reproduction, crash research): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{RESEARCH}>
+- Runbook: `docs/V7_RELEASE_RUNBOOK.md` · Owner checklist: `docs/V7_OWNER_EVALUATION_CHECKLIST.md`
 
-Whether an ordinary person grasps all of this in 30 seconds is **unverified until a person tries it** (see the owner checklist).
-
-## 6. Remaining limitations (disclosed, not blockers)
-- **Unverified (human):**
-  - real iOS and Android devices, including safe-area insets (headless Chromium cannot emulate them);
-  - hyphenated tab labels at large text (Linux Chromium lacks hyphenation dictionaries, so labels break mid-word in the screenshots);
-  - VoiceOver and TalkBack;
-  - a plain-language review.
-- Most history uses current-vintage data; only the labour outlook was re-checked on data as first published.
-- Recessions since 1972 are few.
-- Sector figures use French industry proxies, not GICS indices.
-- Valuation is an annual vintage, so attractiveness stays unrated until a licensed current source is chosen (owner decision, optional).
-- After merge, the first Milestone 1 run reports `NOT_PUBLISHED` (V6 stays home) until the merge-triggered monthly run qualifies V7. This is expected, and is described in the runbook.
-- During a revert, the immediate Milestone 1 run may briefly carry the V7 `sectors.html` and `research.html` until the monthly-triggered V6 republication completes. See the runbook.
-
-## 7. CI and links
-- Real monthly assessment with V7, candidate code: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44307600691>
-- V7 Release Rehearsal: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44307784658>
-- V7 Forecast Research (tests and evidence reproduction): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44307784651>
-- Owner checklist: `docs/V7_OWNER_EVALUATION_CHECKLIST.md` · Runbook: `docs/V7_RELEASE_RUNBOOK.md`
-
-## 8. Release authorization
-`v7-development` has **not** been merged into `main`, and nothing has been deployed. Merge and deployment require explicit owner approval after visual and technical evaluation.
+## 10. Release authorization
+`v7-development` has **not** been merged into `main`, and nothing has been deployed. Merge and deployment require explicit owner approval.
