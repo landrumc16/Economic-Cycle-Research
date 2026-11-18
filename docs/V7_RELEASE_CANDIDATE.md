@@ -1,14 +1,14 @@
 # Economic Cycle Research — Version 7 Release Candidate (market-vulnerability edition)
 
 **Status:** RELEASE CANDIDATE. **Not merged into `main`. Not deployed.** It awaits owner visual and technical evaluation and explicit approval.
-**Candidate code commit (`v7-development`):** `{CANDIDATE}`
+**Candidate code commit (`v7-development`):** `c70d48aa7cab650964f374eb34b6eb78f282aa63` (later commits add only documents and evidence; no code changes)
 **Production baseline (unchanged):** V6.3, `main` at `7dfc811e765fd8ca927f082c2fa0c63948799bb3`. It remains production and the rollback target.
 **Research basis:** `docs/V7_CRASH_RESEARCH_REPORT_2026-11-18.md` and the pre-registration `docs/V7_PREREGISTRATION_CRASH_RESEARCH.md`. This release implements P1–P4 of that report.
 
 ## 1. What the application now answers (actual pipeline output)
 The homepage leads with **"How vulnerable is the stock market to a major decline?"**
 
-| Question | What the site shows (monthly run `{MONTHLY}`, real data fetched 2026-11-18) |
+| Question | What the site shows (monthly run `44326670757`, real data fetched 2026-11-18) |
 |---|---|
 | Are historical warning conditions present? | **0 of 5 tested warning signs are on, and 2 are close to their trigger.** Market trend: the S&P 500 is +0.9% above its 10-month average (Nov 16); the Nasdaq is −3.0% below its own. Market breadth: 41% of industries are above trend against a 40% trigger (Sep). Clear: yield curve +1.08 (12-month low +0.31, Oct); financial conditions −0.48 (Nov 13); credit spread 1.46 points (Oct). Valuation: **not current** (the latest CAPE is from 2023-09), so it is not counted. |
 | Why they matter | Each warning shows its record since 1927–1971: how much more often a 20% fall followed (1.3–2.3×), the bear markets it missed, and the share of false alarms. |
@@ -56,7 +56,7 @@ Reassurances listed: the yield curve is not inverted, credit spreads are narrow,
 - **Monthly assessment:** fetches market data (`v7_crash_research.py fetch`), runs the analysis inside `v7_release.py monthly` and gates on freshness.
 - **Daily publisher:** unchanged in design: promote, preserve or leave V6 as home; verify live; rollback.
 - **New during this pass:** an invalid candidate bundle is now rejected and the accepted publication kept, instead of aborting the whole deployment. This was found when the rehearsal met a pre-change bundle.
-- **Rehearsal** `{REHEARSAL}` on the real monthly artifact:
+- **Rehearsal** `44326671926` on the real monthly artifact:
   - `NEW_QUALIFIED`;
   - `V7_SITE_CONTRACT_PASS` (17 pages);
   - `V7_LIVE_VERIFIED` (18 files);
@@ -69,7 +69,7 @@ Reassurances listed: the yield curve is not inverted, credit spreads are narrow,
 | Check | Result |
 |---|---|
 | Tests | `python -m unittest discover -s tests`: **532 OK** |
-| Historical evidence | Crash research reproduces exactly from `data/v7_crash/`. Forecast and sector evidence reproduce in CI run `{RESEARCH}`. |
+| Historical evidence | Crash research reproduces exactly from `data/v7_crash/`. Forecast and sector evidence reproduce in CI run `44326671198`. |
 | Layout | 7 pages × 320/375/390/430 px × light/dark × 100%/200% text, all sections expanded: **0 problems** (`docs/evidence/v7_rc_layout_sweep_2026-11-18.txt`) |
 | Accessibility | axe-core 4.10.2, WCAG 2.2 A/AA, 17 pages × 3 widths × 2 schemes: **0 violations** apart from position-dependent `target-size` findings. These are 56 px section headings sitting under the sticky tab bar at load, and each passes when scrolled clear. |
 | Keyboard | Every link and section is reachable. Focus is never hidden behind the tab bar, except the bear-market matrix scroll region, which is taller than a phone screen and so only partly visible when focused (allowed by WCAG 2.4.11). |
@@ -111,9 +111,9 @@ Folder: [`docs/evidence/v7-rc-screenshots/`](evidence/v7-rc-screenshots/). Captu
 - **Market readings** refresh with each monthly build, not daily.
 
 ## 9. CI and links
-- Monthly assessment with V7 (candidate code): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{MONTHLY}>
-- V7 Release Rehearsal: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{REHEARSAL}>
-- V7 Forecast Research (full suite, evidence reproduction, crash research): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{RESEARCH}>
+- Monthly assessment with V7 (candidate code): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44326670757>
+- V7 Release Rehearsal: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44326671926>
+- V7 Forecast Research (full suite, evidence reproduction, crash research): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44326671198>
 - Runbook: `docs/V7_RELEASE_RUNBOOK.md` · Owner checklist: `docs/V7_OWNER_EVALUATION_CHECKLIST.md`
 
 ## 10. Release authorization

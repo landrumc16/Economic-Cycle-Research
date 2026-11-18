@@ -249,3 +249,21 @@ Limits: automated checks and a self-evaluation only. Real-device and screen-read
 - **Release candidate:** `docs/V7_RELEASE_CANDIDATE.md`; screenshots in `docs/evidence/v7-rc-screenshots/` (31, from the actual pipeline output); runbook and owner checklist.
 - **Unverified (needs a person):** real devices and safe area; VoiceOver and TalkBack; plain-language review.
 - **Not merged, not deployed.**
+
+## Market-vulnerability correction (2026-11-18)
+- **Research:** see `docs/V7_CRASH_RESEARCH_REPORT_2026-11-18.md`. The study was pre-registered and run in CI (44314037141). Single warning signals have modest records (1.3–2.3×, with many misses), and every combined model failed the gate, so it is unpublished.
+- **Implementation (P1–P4):**
+  - Home leads with "How vulnerable is the stock market to a major decline?": six tested warnings with dates, status and records; what is concerning and reassuring; what would change the view; what cannot be predicted.
+  - A new Market Risk page and data-driven charts.
+  - Economy becomes supporting context.
+  - Market data enter the monthly V7 gate, which checks freshness and writes the manifest.
+  - Invalid candidate bundles are now rejected without blocking deployment.
+- **Evidence:**
+  - monthly run 44326670757 (`NEW_QUALIFIED`, code `c70d48a`);
+  - rehearsal 44326671926 (all stages pass);
+  - research run 44326671198;
+  - 532 tests;
+  - layout sweep 0 problems;
+  - axe: only position-dependent `target-size` findings;
+  - 38 screenshots in `docs/evidence/v7-rc-screenshots/`.
+- **Not merged, not deployed.**

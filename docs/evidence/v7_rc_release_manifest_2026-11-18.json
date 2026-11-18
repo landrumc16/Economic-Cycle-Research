@@ -1,7 +1,7 @@
 {
   "assessment_date": "2026-10-20",
-  "build_commit": "dc038c5f6daf9a1523c8b566078426e4af5fd956",
-  "build_time_utc": "2026-11-18T14:25:58Z",
+  "build_commit": "c70d48aa7cab650964f374eb34b6eb78f282aa63",
+  "build_time_utc": "2026-11-18T14:41:42Z",
   "condition": "Expanding",
   "direction": "Firming",
   "held_for_review": [],
@@ -58,8 +58,8 @@
   "observation_cutoff": "2026-09",
   "pages": {
     "forecast.html": "a849d55692f9ed0e428766e62f945fa519165610cca98b359ca8a3610a760aa8",
-    "index.html": "b316ed656be0013bf682725794a60263b572ee4d1a116a06b0987351bf58e82a",
-    "market-risk.html": "2c76391c33e1047ad8d691a73aaf9129c056d46695d40dffcef1a192206faadf",
+    "index.html": "98c54b174844885d4317adf8bc34d53940ace84588e42dd7a909daec3973f234",
+    "market-risk.html": "074a658cf981f5b856ac7c2f4e00804ad0526879d19a599189600d878e403d8e",
     "research.html": "d7e23ebeedef28ee5740f08ae8d66049845b2f36215cfc1ec5d5ae1b4174e9a6",
     "sector-communication-services.html": "6f4563cbc9651fdc854805e1d031c917827d394ed1db2a991c3aa1041062a922",
     "sector-consumer-discretionary.html": "38d793d30e2d26979b19f5f5cebe3c2ab3251e5953ab09e16ec15c0e548ce0d2",
