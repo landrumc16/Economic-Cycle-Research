@@ -156,7 +156,7 @@ def load(data: Path):
             try:
                 if r.get("PE10") not in ("", "0", "0.0", None):
                     D["cape"][m] = float(r["PE10"])
-                if r.get("Earnings") not in ("", None):
+                if r.get("Earnings") not in ("", None) and float(r["Earnings"]) > 0:  # 0.0 = placeholder
                     D["earn"][m] = float(r["Earnings"])
             except ValueError:
                 pass
@@ -493,6 +493,8 @@ def current(D, panel):
     if D["cape"]:
         cm = max(D["cape"])
         out["earnings_valuation"]["CAPE_Shiller"] = {"month": cm, "value": D["cape"][cm],
+                                                    "age_months": mdiff(cm, max(D["mkt_m"])) if D["mkt_m"] else None,
+                                                    "current": bool(D["mkt_m"]) and mdiff(cm, max(D["mkt_m"])) <= 2,
                                                     "history_pctile": pctile(list(D["cape"].values()), D["cape"][cm]),
                                                     "history_from": min(D["cape"])}
         em = max(D["earn"]) if D["earn"] else None
