@@ -150,7 +150,7 @@ details.fold>div{padding:0 0 12px}
 main h1,main h2,main p,main li,main summary,.rname,.rsub{overflow-wrap:anywhere}
 .row-head a{display:inline-flex;align-items:center;min-height:32px}
 code{font-size:.9em;overflow-wrap:anywhere}
-@media(max-width:719px){main{padding:12px 14px 16px}.card{padding:14px;border-radius:14px}
+@media(max-width:719px){html{scroll-padding-bottom:calc(6rem + env(safe-area-inset-bottom))}main{padding:12px 14px 16px}.card{padding:14px;border-radius:14px}
 h1{font-size:1.35rem;margin:.1em 0 .4em}footer{padding:0 14px 12px}}
 @media(min-width:720px){.desk{display:block}nav.primary{display:flex}nav.tabs{display:none}main{padding-bottom:40px}footer{padding-bottom:30px}
 .cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:repeat(3,1fr)}.horizons{grid-template-columns:repeat(3,1fr)}h1{font-size:2rem}}

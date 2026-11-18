@@ -1,45 +1,25 @@
-320 index.html H 2224 2.64scr now 439 next 962 sec 1558 over false false covered false smallTargets 1 
-320 forecast.html H 1886 2.23scr  over false false covered false smallTargets 0 
-320 sectors.html H 1841 2.18scr  over false false covered false smallTargets 0 
-320 track-record.html H 2001 2.37scr  over false false covered false smallTargets 0 
-320 research.html H 1402 1.66scr  over false false covered false smallTargets 0 
-320 sector-energy.html H 1677 1.99scr  over false false covered false smallTargets 1 
-375 index.html H 2023 2.40scr now 420 next 870 sec 1403 over false false covered false smallTargets 1 
-375 forecast.html H 1757 2.08scr  over false false covered false smallTargets 0 
-375 sectors.html H 1771 2.10scr  over false false covered false smallTargets 0 
-375 track-record.html H 1732 2.05scr  over false false covered false smallTargets 1 
-375 research.html H 1240 1.47scr  over false false covered false smallTargets 0 
-375 sector-energy.html H 1509 1.79scr  over false false covered false smallTargets 1 
-390 index.html H 2026 2.40scr now 424 next 874 sec 1406 over false false covered false smallTargets 1 
-390 forecast.html H 1686 2.00scr  over false false covered false smallTargets 0 
-390 sectors.html H 1771 2.10scr  over false false covered false smallTargets 0 
-390 track-record.html H 1714 2.03scr  over false false covered false smallTargets 1 
-390 research.html H 1240 1.47scr  over false false covered false smallTargets 0 
-390 sector-energy.html H 1459 1.73scr  over false false covered false smallTargets 1 
-430 index.html H 1949 2.31scr now 433 next 883 sec 1350 over false false covered false smallTargets 1 
-430 forecast.html H 1600 1.90scr  over false false covered false smallTargets 0 
-430 sectors.html H 1750 2.07scr  over false false covered false smallTargets 0 
-430 track-record.html H 1596 1.89scr  over false false covered false smallTargets 1 
-430 research.html H 1194 1.41scr  over false false covered false smallTargets 0 
-430 sector-energy.html H 1408 1.67scr  over false false covered false smallTargets 1 
-PROBLEMS 48
-{"w":320,"scheme":"light","zoom":2,"f":"index.html","H":6629,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":1238,"next":3454,"sec":5038}
-{"w":320,"scheme":"light","zoom":2,"f":"forecast.html","H":6022,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"light","zoom":2,"f":"sectors.html","H":5048,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"light","zoom":2,"f":"track-record.html","H":8337,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"light","zoom":2,"f":"research.html","H":4561,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"light","zoom":2,"f":"sector-energy.html","H":5030,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"dark","zoom":2,"f":"index.html","H":6629,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":1238,"next":3454,"sec":5038}
-{"w":320,"scheme":"dark","zoom":2,"f":"forecast.html","H":6022,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"dark","zoom":2,"f":"sectors.html","H":5048,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"dark","zoom":2,"f":"track-record.html","H":8337,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"dark","zoom":2,"f":"research.html","H":4561,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":320,"scheme":"dark","zoom":2,"f":"sector-energy.html","H":5030,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":375,"scheme":"light","zoom":2,"f":"index.html","H":5733,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":1095,"next":3114,"sec":4452}
-{"w":375,"scheme":"light","zoom":2,"f":"forecast.html","H":5038,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":375,"scheme":"light","zoom":2,"f":"sectors.html","H":4207,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":375,"scheme":"light","zoom":2,"f":"track-record.html","H":7429,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":375,"scheme":"light","zoom":2,"f":"research.html","H":3738,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":375,"scheme":"light","zoom":2,"f":"sector-energy.html","H":4155,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
-{"w":375,"scheme":"dark","zoom":2,"f":"index.html","H":5733,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":1095,"next":3114,"sec":4452}
-{"w":375,"scheme":"dark","zoom":2,"f":"forecast.html","H":5038,"over":false,"overOpen":false,"wide":[],"covered":true,"small":0,"now":null,"next":null,"sec":null}
+320 index.html H 2147 2.54scr now 439 next 962 sec 1558 over false false covered false smallTargets 1 
+320 forecast.html H 1809 2.14scr  over false false covered false smallTargets 0 
+320 sectors.html H 1765 2.09scr  over false false covered false smallTargets 0 
+320 track-record.html H 1925 2.28scr  over false false covered false smallTargets 0 
+320 research.html H 1325 1.57scr  over false false covered false smallTargets 0 
+320 sector-energy.html H 1600 1.90scr  over false false covered false smallTargets 1 
+375 index.html H 1946 2.31scr now 420 next 870 sec 1403 over false false covered false smallTargets 1 
+375 forecast.html H 1680 1.99scr  over false false covered false smallTargets 0 
+375 sectors.html H 1694 2.01scr  over false false covered false smallTargets 0 
+375 track-record.html H 1656 1.96scr  over false false covered false smallTargets 1 
+375 research.html H 1163 1.38scr  over false false covered false smallTargets 0 
+375 sector-energy.html H 1432 1.70scr  over false false covered false smallTargets 1 
+390 index.html H 1950 2.31scr now 424 next 874 sec 1406 over false false covered false smallTargets 1 
+390 forecast.html H 1609 1.91scr  over false false covered false smallTargets 0 
+390 sectors.html H 1694 2.01scr  over false false covered false smallTargets 0 
+390 track-record.html H 1638 1.94scr  over false false covered false smallTargets 1 
+390 research.html H 1163 1.38scr  over false false covered false smallTargets 0 
+390 sector-energy.html H 1383 1.64scr  over false false covered false smallTargets 1 
+430 index.html H 1872 2.22scr now 433 next 883 sec 1350 over false false covered false smallTargets 1 
+430 forecast.html H 1524 1.81scr  over false false covered false smallTargets 0 
+430 sectors.html H 1673 1.98scr  over false false covered false smallTargets 0 
+430 track-record.html H 1519 1.80scr  over false false covered false smallTargets 1 
+430 research.html H 1117 1.32scr  over false false covered false smallTargets 0 
+430 sector-energy.html H 1331 1.58scr  over false false covered false smallTargets 1 
+PROBLEMS 0
