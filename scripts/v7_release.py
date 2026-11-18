@@ -19,7 +19,9 @@ evidence gate is held as "not enough evidence" and listed for owner review in th
 from __future__ import annotations
 
 import argparse
+import contextlib
 import csv
+import io
 import hashlib
 import json
 import re
@@ -33,16 +35,18 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 try:
-    from . import v7_forecast_engine as engine, v7_sectors as sectors, v7_site as site
+    from . import v7_crash_research as crash, v7_forecast_engine as engine, v7_sectors as sectors, v7_site as site
 except ImportError:  # executed as a script
     sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import v7_forecast_engine as engine, v7_sectors as sectors, v7_site as site  # type: ignore
+    import v7_crash_research as crash, v7_forecast_engine as engine, v7_sectors as sectors, v7_site as site  # type: ignore
 
 VERSION = "7.0"
 MANIFEST = "v7_release_manifest.json"
 APPROVED_OUTLOOKS = frozenset({("labor_deterioration", 12)})
 OUTCOMES = frozenset({"NEW_QUALIFIED", "PRESERVED_PREVIOUS", "FAILED"})
-CORE_PAGES = ("index.html", "forecast.html", "sectors.html", "track-record.html", "research.html")
+CORE_PAGES = ("index.html", "market-risk.html", "forecast.html", "sectors.html", "research.html", "track-record.html")
+NAV_PAGES = ("index.html", "market-risk.html", "forecast.html", "sectors.html", "research.html")
+MAX_MARKET_LAG_DAYS = 7      # daily market observations older than this are stale
 DISCLAIMER = "not personalized financial advice"
 MAX_FRED_LAG_MONTHS = 3      # unemployment data older than this is stale for a monthly conclusion
 MAX_FRENCH_LAG_MONTHS = 4    # French Data Library publishes with about a 1–2 month lag
@@ -142,7 +146,7 @@ def validate_site(root: Path, manifest: dict | None = None) -> dict:
         if DISCLAIMER not in html.lower():
             raise ValueError("Missing educational disclaimer: " + name)
         nav = re.search(r'<nav class="primary"[^>]*>(.*?)</nav>', html, re.S)
-        if not nav or re.findall(r'href="([^"]+)"', nav.group(1)) != list(CORE_PAGES):
+        if not nav or re.findall(r'href="([^"]+)"', nav.group(1)) != list(NAV_PAGES):
             raise ValueError("Primary navigation must have exactly the five V7 destinations: " + name)
         for href in p.links:
             u = urlsplit(href)
@@ -155,6 +159,10 @@ def validate_site(root: Path, manifest: dict | None = None) -> dict:
     home = (root / "index.html").read_text()
     if re.search(r"recession[^<]{0,40}\d+%", home, re.I):
         raise ValueError("Home page shows a recession probability")
+    for name in ("index.html", "market-risk.html"):
+        txt = (root / name).read_text()
+        if "crash probability" not in txt or re.search(r"(chance|probability|odds) of a (crash|decline)[^<]{0,20}\d+%", txt, re.I):
+            raise ValueError("Market-risk pages must state that no crash probability is published: " + name)
     forecast = (root / "forecast.html").read_text()
     published_badges = forecast.count('<span class="b ok">')
     if manifest is not None:
@@ -192,7 +200,8 @@ def hold_unapproved(report: dict) -> list:
 
 
 def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_of: str,
-            commit: str, built_at: str, research_evidence: Path = Path(RESEARCH_EVIDENCE)) -> dict:
+            commit: str, built_at: str, research_evidence: Path = Path(RESEARCH_EVIDENCE),
+            crash_dir: Path | None = None) -> dict:
     out = Path(out)
     work = out.parent / "v7-work"
     site_dir = out
@@ -232,7 +241,21 @@ def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_o
     if any(s["investment_attractiveness"] != "Insufficient evidence" for s in sector_report["sectors"]):
         reasons.append("A sector attractiveness rating appeared without qualified valuation data")
 
-    inp = site.load_inputs(forecast_path, research_evidence, sectors_path, archive_path, fred_dir)
+    # Market-risk research on freshly fetched market data (daily observations; monthly conclusions).
+    crash_path = work / "v7_crash_research.json"
+    if crash_dir is None or not (Path(crash_dir) / "MANIFEST.json").is_file():
+        reasons.append("Market data were not fetched")
+        crash_path = Path(site.CRASH_EVIDENCE)
+    else:
+        with contextlib.redirect_stdout(io.StringIO()):
+            crash.analyze(Path(crash_dir), crash_path)
+        cman = json.loads((Path(crash_dir) / "MANIFEST.json").read_text())
+        if cman.get("gaps"):
+            reasons.append("Market data gaps: " + "; ".join(cman["gaps"])[:300])
+        sp_last = cman.get("fred", {}).get("SP500", {}).get("last")
+        if not sp_last or (date.fromisoformat(as_of[:10]) - date.fromisoformat(sp_last)).days > MAX_MARKET_LAG_DAYS:
+            reasons.append(f"Daily market data end {sp_last}; too old for {as_of[:10]}")
+    inp = site.load_inputs(forecast_path, research_evidence, sectors_path, archive_path, fred_dir, crash_path)
     site.build(site_dir, inp)
     published = [{"target": r["target"], "horizon_months": r["h"], "probability": r["p"], "band": r["band"],
                   "forecast_origin": r["origin"]} for r in site.outlook_matrix(inp) if r["published"]]
@@ -243,6 +266,8 @@ def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_o
         "observation_cutoff": inp["assessment"]["sources"]["UNRATE"]["latest_used_month"],
         "condition": inp["view"]["condition"], "direction": inp["view"]["direction"],
         "sector_as_of": sector_report["as_of_month"],
+        "market_warnings": [{k: w.get(k) for k in ("key", "title", "status", "value", "date", "frequency")}
+                            for w in inp["crash"]["site"]["warnings"]],
         "worth_researching_now": [s["sector"] for s in sector_report["sectors"]
                                   if s["research_priority"] == "Worth researching now"],
         "source_status": {"monthly_gate": gate.get("status"), "fred_latest_month": fred_latest,
@@ -261,7 +286,7 @@ def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_o
         manifest["promotion_outcome"] = "NEW_QUALIFIED"
     validate_manifest(manifest)
     (site_dir / MANIFEST).write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    for f in (forecast_path, sectors_path):
+    for f in (forecast_path, sectors_path) + ((crash_path,) if crash_path.parent == work else ()):
         shutil.copy(f, site_dir / f.name)
     return manifest
 
@@ -382,6 +407,7 @@ def main(argv=None):
     m = sub.add_parser("monthly")
     m.add_argument("--fred-dir", type=Path, default=Path("data/industry_observations"))
     m.add_argument("--research-dir", type=Path, required=True)
+    m.add_argument("--crash-dir", type=Path, required=True)
     m.add_argument("--gate", type=Path, default=Path("audit-output/weekly_release_acceptance.json"))
     m.add_argument("--output", type=Path, default=Path("audit-output/v7-site"))
     m.add_argument("--as-of", default=date.today().isoformat())
@@ -396,9 +422,9 @@ def main(argv=None):
     v.add_argument("--live-base")
     a = ap.parse_args(argv)
     if a.cmd == "monthly":
-        r = monthly(a.fred_dir, a.research_dir, a.gate, a.output, a.as_of, a.commit, a.built_at)
+        r = monthly(a.fred_dir, a.research_dir, a.gate, a.output, a.as_of, a.commit, a.built_at, crash_dir=a.crash_dir)
         print(json.dumps({k: r[k] for k in ("promotion_outcome", "assessment_date", "observation_cutoff", "condition",
-                                            "published_outlooks", "held_for_review", "worth_researching_now",
+                                            "published_outlooks", "held_for_review", "market_warnings", "worth_researching_now",
                                             "research_gate")}, indent=1))
     elif a.cmd == "publish":
         print(json.dumps(publish(a.source, a.target, a.live_base, date.today())))

@@ -42,7 +42,7 @@ class _Fixture(unittest.TestCase):
         out = cls.tmp / name / "audit-output" / "v7-site"
         with mock.patch.object(engine, "run", run):
             rel.monthly(ROOT / "data/v7", ROOT / "data/v7_research", gate, out, as_of, COMMIT, built_at,
-                        ROOT / rel.RESEARCH_EVIDENCE)
+                        ROOT / rel.RESEARCH_EVIDENCE, crash_dir=ROOT / "data/v7_crash")
         return out
 
     @staticmethod
@@ -69,6 +69,17 @@ class MonthlyGateTests(_Fixture):
         self.assertEqual(m["promotion_outcome"], "FAILED")
         self.assertFalse(m["research_gate"]["qualified"])
         self.assertIn("not PASS", " ".join(m["research_gate"]["reasons"]))
+
+    def test_stale_market_data_fail_closed(self):
+        m = self.manifest(self.build("PASS", "2026-12-15", "stale-market"))
+        self.assertEqual(m["promotion_outcome"], "FAILED")
+        self.assertTrue(any("Daily market data" in r for r in m["research_gate"]["reasons"]))
+
+    def test_manifest_records_market_warnings(self):
+        m = self.manifest(self.bundle)
+        self.assertEqual([w["key"] for w in m["market_warnings"]],
+                         ["curve", "trend", "breadth", "conditions", "credit", "valuation"])
+        self.assertIn("market-risk.html", m["pages"])
 
     def test_stale_inputs_fail_closed(self):
         m = self.manifest(self.build("PASS", "2027-06-01", "stale-data"))
@@ -134,7 +145,7 @@ class PublishTests(_Fixture):
         self.assertNotIn("A newer monthly assessment", (t3 / "index.html").read_text())
 
     def test_older_qualified_bundle_never_replaces_newer_live_publication(self):
-        newer = self.build("PASS", "2026-12-20", "newer", built_at="2026-12-20T06:00:00Z")
+        newer = self.build("PASS", "2026-11-20", "newer", built_at="2026-12-20T06:00:00Z")
         t = self.target("monotonic")
         r = rel.publish(self.bundle.parent.parent, t, "https://x", date(2026, 12, 21), fetch=self.live_from(newer))
         self.assertEqual(r["outcome"], "PRESERVED_PREVIOUS")

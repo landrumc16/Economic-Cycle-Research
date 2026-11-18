@@ -342,7 +342,7 @@ def signal_tests(panel, y, bears, start="1927-01"):
                      "rate_when_no_warning": round(sum(y[m] for m in off) / len(off), 3) if off else None,
                      "lift": None if hit is None or not base else round(hit / base, 2),
                      "false_alarm_share": None if hit is None else round(1 - hit, 3),
-                     "bears_caught": len(caught), "bears_missed": len(missed), "missed": missed,
+                     "bears_caught": len(caught), "bears_missed": len(missed), "missed": missed, "caught": caught,
                      "median_lead_months": sorted(leads)[len(leads) // 2] if leads else None}
     return {"base_rate_all": round(base_all, 3), "signals": out}
 
@@ -507,6 +507,156 @@ def current(D, panel):
     return out
 
 
+
+# ---------------------------------------------------------------------------
+# Site data: dated chart series and current warning status (single source of truth)
+# ---------------------------------------------------------------------------
+WARNINGS = (
+    # key, rule name in RULES, title
+    ("curve", "Yield curve inverted (past 12m)", "Yield curve"),
+    ("trend", "Trend break (below 10m average)", "Market trend"),
+    ("breadth", "Weak breadth (<40% industries above 10m avg)", "Market breadth"),
+    ("conditions", "Financial conditions tight (NFCI > 0)", "Financial conditions"),
+    ("credit", "Credit stress", "Credit spreads"),
+    ("valuation", "Valuation extreme (CAPE >= 80th pct)", "Valuation"),
+)
+
+
+def _monthly(F, s):
+    return {k[:7]: v for k, v in F.get(s, {}).items()}
+
+
+def _status(on, near):
+    return "warning" if on else "near" if near else "clear"
+
+
+def warnings_now(D, panel, rep):
+    F = D["fred"]
+    gs10, tb3, baa = _monthly(F, "GS10"), _monthly(F, "TB3MS"), _monthly(F, "BAA")
+    out = []
+    rec = rep["signals_T12"]["signals"]
+
+    def record(name):
+        r = rec.get(name, {})
+        total = (r.get("bears_caught") or 0) + (r.get("bears_missed") or 0)
+        return {"since": (r.get("from") or "")[:4], "lift_12m": r.get("lift"), "lift_6m":
+                rep["signals_T6"]["signals"].get(name, {}).get("lift"), "bears_total": total,
+                "bears_missed": r.get("bears_missed"), "false_alarm_share": r.get("false_alarm_share"),
+                "warning_share": r.get("warning_share"), "median_lead_months": r.get("median_lead_months")}
+    # Yield curve (GS10 - TB3MS, monthly).
+    common = sorted(set(gs10) & set(tb3))
+    m = common[-1]
+    last12 = [gs10[k] - tb3[k] for k in common[-12:]]
+    mn = round(min(last12), 2)
+    out.append({"key": "curve", "value": round(gs10[m] - tb3[m], 2), "detail": f"now; lowest in the past 12 months {mn:+.2f}",
+                "unit": "pts", "date": m, "frequency": "monthly", "source": "FRED GS10 − TB3MS", "low12": mn,
+                "status": _status(mn < 0, mn < 0.25), "trigger": "Below 0 (inverted) at any point in the past 12 months",
+                "near_rule": "lowest reading under +0.25"})
+    # Market trend: S&P 500 daily close vs its last 10 month-end closes (tested on the total market).
+    def gap10(ser):
+        me = {}
+        for d in sorted(ser):
+            me[d[:7]] = (d, ser[d])
+        ms = sorted(me)[-10:]
+        if len(ms) < 10:
+            return None, None
+        return me[ms[-1]][0], round(100 * (me[ms[-1]][1] / (sum(me[k][1] for k in ms) / 10) - 1), 2)
+    others = {}
+    for s, lab in (("NASDAQCOM", "Nasdaq Composite"), ("DJIA", "Dow Jones Industrial Average")):
+        d_, g_ = gap10(F.get(s, {}))
+        if g_ is not None:
+            others[lab] = {"date": d_, "gap_pct": g_}
+    trend = None
+    if F.get("SP500"):
+        last_d, trend = gap10(F["SP500"])
+        if trend is not None:
+            out.append({"key": "trend", "value": trend, "unit": "%", "date": last_d, "frequency": "daily", "others": others,
+                        "source": "FRED SP500 (tested historically on the total U.S. market)",
+                        "detail": "S&P 500 versus its 10-month average",
+                        "status": _status(trend < 0, trend < 2), "trigger": "Market below its 10-month average",
+                        "near_rule": "less than 2% above it"})
+    if trend is None:
+        out.append({"key": "trend", "status": "not current", "detail": "S&P 500 data unavailable"})
+    # Breadth (French 49 industries, monthly, 1-2 month publication lag).
+    bm = max(m for m in panel if "breadth" in panel[m])
+    b = panel[bm]["breadth"]
+    out.append({"key": "breadth", "value": round(100 * b, 1), "unit": "%", "date": bm, "frequency": "monthly",
+                "source": "Kenneth R. French 49 industry portfolios", "detail": "of 49 industries above their 10-month average",
+                "status": _status(b < 0.40, b < 0.45), "trigger": "Fewer than 40% of industries above trend",
+                "near_rule": "under 45%"})
+    # Financial conditions (Chicago Fed NFCI, weekly).
+    nf = F.get("NFCI", {})
+    d = max(nf)
+    out.append({"key": "conditions", "value": round(nf[d], 2), "unit": "", "date": d, "frequency": "weekly",
+                "source": "Chicago Fed NFCI (FRED)", "detail": "0 = average; below 0 = looser than average",
+                "status": _status(nf[d] > 0, nf[d] > -0.2), "trigger": "Above 0 (tighter than average)",
+                "near_rule": "above −0.20"})
+    # Credit spread (BAA - GS10, monthly).
+    common = sorted(set(baa) & set(gs10))
+    m, m6 = common[-1], common[-7]
+    c, chg = round(baa[m] - gs10[m], 2), round((baa[m] - gs10[m]) - (baa[m6] - gs10[m6]), 2)
+    out.append({"key": "credit", "value": c, "unit": "pts", "date": m, "frequency": "monthly",
+                "source": "FRED BAA − GS10", "detail": f"points now; 6-month change {chg:+.2f}",
+                "status": _status(c >= 2.5 or chg >= 0.5, c >= 2.2 or chg >= 0.35),
+                "trigger": "At least 2.5 points, or up 0.5 points in 6 months", "near_rule": "2.2 points, or up 0.35"})
+    # Valuation (CAPE; tested signal). Not counted when the source is stale.
+    cape = rep["current"]["earnings_valuation"].get("CAPE_Shiller", {})
+    eg = rep["current"]["earnings_valuation"].get("equity_value_to_GDP", {})
+    out.append({"key": "valuation", "value": cape.get("value"), "unit": "", "date": cape.get("month"),
+                "frequency": "monthly", "source": "Shiller CAPE (public mirror)",
+                "detail": (f"latest available CAPE is from {cape.get('month')}; context: equity value ÷ GDP "
+                           f"{eg.get('value')} ({eg.get('date', '')[:7]}), the highest since {eg.get('history_from', '')[:4]}"),
+                "status": "warning" if cape.get("current") and cape.get("history_pctile", 0) >= 80 else
+                          "not current" if not cape.get("current") else "clear",
+                "trigger": "CAPE at or above the 80th percentile of its history", "near_rule": None,
+                "context_equity_to_gdp": eg})
+    names = {k: (rule, title) for k, rule, title in WARNINGS}
+    for w in out:
+        rule, title = names[w["key"]]
+        w["title"] = title
+        w["record"] = record(rule)
+    return out
+
+
+def site_data(D, panel, rep):
+    F = D["fred"]
+    idx = D["mkt_daily"]
+    peak, dd = 0.0, {}
+    for d in sorted(idx):
+        peak = max(peak, idx[d])
+        dd[d[:7]] = round(100 * (idx[d] / peak - 1), 2)
+    rec = _monthly(F, "USREC")
+    ip = _monthly(F, "INDPRO")
+    ipg = {m: round(100 * math.log(ip[m] / ip[sh(m, 12)]), 2) for m in ip if sh(m, 12) in ip and m >= "1950-01"}
+    series = lambda key: [[m, panel[m][key]] for m in sorted(panel) if key in panel[m]]
+
+    def daily_tail(s, n=260, step=3):
+        x = F.get(s, {})
+        ds = sorted(x)[-n:]
+        return [[d, x[d]] for d in ds[::step]] + ([[ds[-1], x[ds[-1]]]] if ds and (len(ds) - 1) % step else [])
+    warns = warnings_now(D, panel, rep)
+    peaks = [p for p in rep["at_peaks"]]
+    med = lambda vals: (sorted(vals)[len(vals) // 2] if vals else None)
+    compare = {}
+    for f in ("curve_min12", "credit", "trend_gap", "breadth", "ret12"):
+        vals = [p["t-0"][f] for p in peaks if p["t-0"].get(f) is not None]
+        compare[f] = {"median_at_peaks": med(vals), "n": len(vals)}
+    by_bear = {}
+    for _, rule, title in WARNINGS:
+        r = rep["signals_T12"]["signals"].get(rule, {})
+        for pk in r.get("caught", []):
+            by_bear.setdefault(pk, {})[title] = True
+        for pk in r.get("missed", []):
+            by_bear.setdefault(pk, {})[title] = False
+    return {"warnings": warns,
+            "charts": {"drawdown": [[m, v] for m, v in sorted(dd.items())],
+                       "recession_months": sorted(m for m, v in rec.items() if v >= 1),
+                       "breadth": series("breadth"), "credit": series("credit"), "curve": series("curve"),
+                       "nfci": series("nfci"), "ip_growth": sorted(ipg.items()), "market_ret12": series("ret12"),
+                       "index_1y": {s: daily_tail(s) for s in ("SP500", "NASDAQCOM", "DJIA")}},
+            "compare_today": compare, "warning_matrix": by_bear}
+
+
 def analyze(data: Path, out_path: Path):
     D = load(data)
     panel = feature_panel(D)
@@ -529,6 +679,7 @@ def analyze(data: Path, out_path: Path):
                         **{f"t-{k}": {f: panel.get(sh(b["peak"][:7], k), {}).get(f) for f in
                                       ("curve_min12", "credit", "unemp_rise", "cape_pct", "trend_gap", "breadth", "ret12")}
                            for k in (12, 6, 3, 0)}} for b in bears if b["peak"] >= "1953"]
+    rep["site"] = site_data(D, panel, rep)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(rep, indent=1, default=str) + "\n")
     print(json.dumps(rep, default=str))

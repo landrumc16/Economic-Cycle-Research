@@ -127,7 +127,7 @@ class SiteTests(unittest.TestCase):
         cls.tmp.cleanup()
 
     def test_five_experiences_and_eleven_sector_pages(self):
-        for p in ("index.html", "forecast.html", "sectors.html", "track-record.html", "research.html"):
+        for p in ("index.html", "market-risk.html", "forecast.html", "sectors.html", "track-record.html", "research.html"):
             self.assertIn(p, self.pages)
         self.assertEqual(len([p for p in self.pages if p.startswith("sector-")]), 11)
 
@@ -142,29 +142,68 @@ class SiteTests(unittest.TestCase):
             self.assertIn("not personalized financial advice", html)
             for href in parser.links:
                 if not href.startswith(("http", "#", "mailto:")):
-                    self.assertTrue((self.out / href).is_file(), f"{name}: broken link {href}")
+                    path, _, frag = href.partition("#")
+                    self.assertTrue((self.out / path).is_file(), f"{name}: broken link {href}")
+                    if frag:
+                        self.assertIn(f'id="{frag}"', (self.out / path).read_text(), f"{name}: broken anchor {href}")
 
     def test_primary_navigation_has_exactly_five_destinations(self):
         html = (self.out / "index.html").read_text()
         nav = re.search(r'<nav class="primary"[^>]*>(.*?)</nav>', html).group(1)
         self.assertEqual(re.findall(r'href="([^"]+)"', nav),
-                         ["index.html", "forecast.html", "sectors.html", "track-record.html", "research.html"])
+                         ["index.html", "market-risk.html", "forecast.html", "sectors.html", "research.html"])
 
-    def test_homepage_summarises_without_publishing_unsupported_numbers(self):
+    def test_homepage_leads_with_market_vulnerability_not_a_probability(self):
         html = (self.out / "index.html").read_text()
-        for text in ("Where we are", "Where we may be heading", "Where to look", "Why we think this",
-                     "What could prove us wrong", "What would change our view", "Sectors worth researching",
-                     "outlooks pass our reliability test", "Not enough evidence", "not the odds of any event"):
-            self.assertIn(text, html)
-        # Pass C: conclusions first, detail behind disclosure, previews link to the canonical page.
-        self.assertNotIn("<table", html)
-        self.assertEqual(html.count('<details class="fold">'), 3)
-        for href in ("forecast.html", "sectors.html", "track-record.html"):
-            self.assertIn(f'href="{href}"', html.split("<footer>")[0].split('<main id="main">')[1])
-        # Only the gated outlook may show a probability.
+        main = html.split('<main id="main">')[1].split("</main>")[0]
+        self.assertIn('<h1 id="q" class="hero-q">How vulnerable is the stock market to a major decline?</h1>', main)
+        self.assertLess(main.index("How vulnerable"), main.index("The economy:"))  # economy is supporting context
+        ws = self.inp["crash"]["site"]["warnings"]
+        tested = [w for w in ws if w["status"] != "not current"]
+        on = sum(w["status"] == "warning" for w in tested)
+        self.assertIn(f"{on} of {len(tested)} tested warning signs", main)
+        for w in ws:
+            self.assertIn(w["title"], main)
+            self.assertIn(f'href="market-risk.html#w-{w["key"]}"', main)
+        for text in ("Not a crash probability", "Concerning", "Reassuring", "What would raise concern",
+                     "What would ease concern", "What this cannot predict", "Supporting context", "Sectors worth researching"):
+            self.assertIn(text, main)
+        self.assertEqual(main.count('<details class="fold">'), 3)
+        self.assertNotRegex(main, r"(chance|probability|odds) of a (crash|decline)[^<]{0,20}\d+%")
+        self.assertNotRegex(html, r"recession[^<]{0,40}\d+%")
+        # Only the gated economic outlook may show a probability.
         published = [r for r in site.outlook_matrix(self.inp) if r["published"]]
         self.assertEqual([(r["target"], r["h"]) for r in published], [("labor_deterioration", 12)])
-        self.assertNotRegex(html, r"recession[^<]{0,40}\d+%")
+        self.assertNotIn("We are here", html)  # the decorative gauge is gone
+
+    def test_market_risk_page_discloses_records_and_the_failed_model(self):
+        html = (self.out / "market-risk.html").read_text()
+        crash = self.inp["crash"]
+        for w in crash["site"]["warnings"]:
+            self.assertIn(f'id="w-{w["key"]}"', html)
+            self.assertIn(f'Missed {w["record"]["bears_missed"]} of {w["record"]["bears_total"]} bear markets', html)
+        self.assertIn("Why we publish no crash probability", html)
+        skill = crash["model_T12_core"]["full_sample"]["bss_vs_base_rate"]
+        self.assertIn(f"skill {skill:+.2f}", html)
+        self.assertFalse(crash["model_T12_core"]["passes_gate"])
+        self.assertIn("Which warnings came before past bear markets", html)
+        self.assertIn("Today versus past market peaks", html)
+        self.assertIn("When the economy and the market disagree", html)
+        self.assertEqual(html.count("<li>") >= 16, True)
+        last = crash["site"]["charts"]["drawdown"][-1][0]
+        self.assertIn(site._fmt_month(last), html)  # charts state the date of their data
+
+    def test_charts_are_drawn_from_dated_evidence(self):
+        ch = self.inp["crash"]["site"]["charts"]
+        dd = ch["drawdown"]
+        self.assertEqual(dd[0][0], "1926-07")
+        self.assertTrue(all(v <= 0 for _, v in dd))
+        self.assertEqual(min(v for _, v in dd if _ < "1933"), min(v for _, v in dd))  # 1929-32 is the deepest
+        for name in ("index.html", "market-risk.html", "forecast.html"):
+            html = (self.out / name).read_text()
+            self.assertIn('class="chart ts"', html)
+            for label in re.findall(r'<svg class="chart ts"[^>]*aria-label="([^"]+)"', html):
+                self.assertRegex(label, r"\d{4}")
 
     def test_unpublished_outlooks_explained_on_forecast_page(self):
         html = (self.out / "forecast.html").read_text()

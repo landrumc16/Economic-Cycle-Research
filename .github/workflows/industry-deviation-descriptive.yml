@@ -250,6 +250,7 @@ jobs:
             python scripts/fetch_industry_observations.py "$series" --start 1948-01-01 --end "$(date -u +%F)" --output-dir data/v7_fresh
           done
           python scripts/v7_fetch_research_data.py --output-dir data/v7_research_fresh
+          python scripts/v7_crash_research.py fetch --out data/v7_crash_fresh
       - name: Build and gate the V7 dashboard (monthly conclusions)
         id: v7_build
         if: steps.v7_inputs.outcome == 'success'
@@ -258,6 +259,7 @@ jobs:
           set -euo pipefail
           python -m unittest discover -s tests -p 'test_v7_*.py'
           python scripts/v7_release.py monthly --fred-dir data/v7_fresh --research-dir data/v7_research_fresh \
+            --crash-dir data/v7_crash_fresh \
             --gate audit-output/weekly_release_acceptance.json --output audit-output/v7-site \
             --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
       - name: Summarize V7 monthly gate
@@ -277,6 +279,7 @@ jobs:
               print(f"**Condition:** {m['condition']} ({m['direction']})")
               print("**Published outlooks:** " + (", ".join(f"{o['target']} {o['horizon_months']}m {o['probability']:.0%}" for o in m['published_outlooks']) or "none"))
               print("**Held for owner review:** " + (json.dumps(m['held_for_review']) if m['held_for_review'] else "none"))
+              print("**Market warnings:** " + ", ".join(f"{w['title']}: {w['status']}" for w in m.get('market_warnings', [])))
               print("**Worth researching now:** " + (", ".join(m['worth_researching_now']) or "none"))
               for r in m["research_gate"]["reasons"]:
                   print(f"- Not qualified: {r}")
@@ -320,4 +323,5 @@ jobs:
             data/industry_observations/
             data/v7_fresh/
             data/v7_research_fresh/
+            data/v7_crash_fresh/
           retention-days: 30

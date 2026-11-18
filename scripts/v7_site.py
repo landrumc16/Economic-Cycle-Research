@@ -1,8 +1,9 @@
-"""V7 M4: human-first economic intelligence site (static, dependency-free).
+"""V7: human-first market-risk and economic intelligence site (static, dependency-free).
 
-Five experiences, one home per feature:
-  index.html (Home: economic outlook summary) · forecast.html · sectors.html (+11
-  sector pages) · track-record.html · research.html (Research & Data).
+Five destinations, one home per feature:
+  index.html (Home: stock-market warning check) · market-risk.html (evidence) ·
+  forecast.html (Economy: conditions and tested outlooks; track-record.html linked from it) ·
+  sectors.html (+11 sector pages) · research.html (Research & Data).
 The homepage summarises and links; detail lives in exactly one place.
 All numbers come from gated evidence files; unpublished outlooks render as
 "Not enough evidence yet". Nothing here is investment advice.
@@ -26,8 +27,8 @@ except ImportError:
     from v63_historical_replay import assessment_at
     from v63_interpretation import interpret
 
-NAV = (("Home", "index.html", "home"), ("Forecast", "forecast.html", "forecast"), ("Sectors", "sectors.html", "sectors"),
-       ("Track Record", "track-record.html", "track"), ("Research & Data", "research.html", "research"))
+NAV = (("Home", "index.html", "home"), ("Market Risk", "market-risk.html", "market"), ("Economy", "forecast.html", "forecast"),
+       ("Sectors", "sectors.html", "sectors"), ("Research & Data", "research.html", "research"))
 TARGET_LABEL = {"labor_deterioration": "Job market weakens", "recession": "Recession under way",
                 "recession_onset": "New recession starts", "inflation_rising": "Inflation picks up"}
 TARGET_PLAIN = {
@@ -45,6 +46,7 @@ REASON_PLAIN = {
     "episodes": "there are too few past episodes to judge",
 }
 ICONS = {
+    "market": '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/><path d="M4 10l6-6 6 9 5-5"/>',
     "home": '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
     "forecast": '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
     "sectors": '<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>',
@@ -92,7 +94,7 @@ ul.clean{padding-left:1.1em;margin:.3em 0}ul.clean li{margin:.35em 0}
 .hz .label{font-weight:700}.hz .state{font-size:.9rem;color:var(--muted)}
 table{width:100%;border-collapse:collapse;font-size:.92rem}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
-.scroll{overflow-x:auto}
+.scroll{overflow-x:auto;position:relative}
 .sector-card{display:block;text-decoration:none;color:inherit}
 .sector-card:hover{border-color:var(--brand2)}
 .pill{font-size:.78rem;font-weight:700;border-radius:8px;padding:2px 8px;display:inline-block}
@@ -112,6 +114,28 @@ ul.dbars li{display:grid;grid-template-columns:minmax(0,9.5em) 1fr 4.8em;gap:8px
 .db-zero{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--muted)}
 .db-fill{position:absolute;top:0;bottom:0;border-radius:7px}.db-fill.pos{background:var(--good)}.db-fill.neg{background:var(--bad)}
 th[scope=row]{text-transform:none;letter-spacing:0;font-size:.92rem;color:var(--ink);font-weight:600}
+/* Market-risk dashboard */
+.fig{margin:8px 0 0}.fig figcaption{font-size:.85rem;color:var(--muted);margin-top:4px}
+.chart.ts{max-width:760px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.85rem;color:var(--muted);margin:6px 0 0;padding:0;list-style:none}
+.legend li{display:flex;align-items:center;gap:6px}.legend i{display:inline-block;width:14px;height:4px;border-radius:2px}
+.st{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.85rem;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.st::before{content:"";width:9px;height:9px;border-radius:50%;background:currentColor}
+.st-warning{background:#fde8e6;color:#8f1d16}.st-near{background:#fff2dc;color:#7a4300}
+.st-clear{background:#e3f4ea;color:#14563a}.st-nc{background:var(--chip);color:var(--muted)}
+@media (prefers-color-scheme:dark){.st-warning{background:#3d1a18;color:#ffb4ab}.st-near{background:#3b2a12;color:#ffcf8a}
+.st-clear{background:#163a2a;color:#8ee0b4}}
+.hero-q{font-size:1.5rem;line-height:1.2;margin:0 0 6px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0 0}
+.kpi div{background:var(--chip);border-radius:12px;padding:8px 10px}
+.kpi b{display:block;font-size:1.15rem;font-variant-numeric:tabular-nums}.kpi span{font-size:.8rem;color:var(--muted)}
+.neg{color:var(--bad)}.pos{color:var(--good)}
+table.grid7{border-collapse:collapse;width:100%;font-size:.85rem}
+table.grid7 th,table.grid7 td{padding:6px 3px;text-align:center;border-bottom:1px solid var(--line)}
+table.grid7 th[scope=row]{text-align:left;white-space:nowrap}
+.on{color:var(--bad);font-weight:800}.off{color:var(--muted)}
+.two{display:grid;gap:12px}.two>*{min-width:0}@media(min-width:720px){.two{grid-template-columns:1fr 1fr}
+ul.rows.wgrid{display:grid;grid-template-columns:repeat(3,1fr);column-gap:22px}ul.rows.wgrid li{border-top:1px solid var(--line)}}
 /* Pass C compact mobile components */
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .desk{display:none}
@@ -152,7 +176,7 @@ main h1,main h2,main p,main li,main summary,.rname,.rsub{overflow-wrap:anywhere}
 code{font-size:.9em;overflow-wrap:anywhere}
 @media(max-width:719px){html{scroll-padding-bottom:calc(6rem + env(safe-area-inset-bottom))}main{padding:12px 14px 16px}.card{padding:14px;border-radius:14px}
 h1{font-size:1.35rem;margin:.1em 0 .4em}footer{padding:0 14px 12px}}
-@media(min-width:720px){.desk{display:block}nav.primary{display:flex}nav.tabs{display:none}main{padding-bottom:40px}footer{padding-bottom:30px}
+@media(min-width:720px){.hero-q{font-size:2rem}.desk{display:block}nav.primary{display:flex}nav.tabs{display:none}main{padding-bottom:40px}footer{padding-bottom:30px}
 .cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:repeat(3,1fr)}.horizons{grid-template-columns:repeat(3,1fr)}h1{font-size:2rem}}
 """
 
@@ -185,22 +209,79 @@ def page(title: str, active: str, body: str, description: str) -> str:
 # --------------------------------------------------------------------------
 # Charts (inline SVG, each with a text alternative)
 # --------------------------------------------------------------------------
-def cycle_gauge(condition: str, direction: str) -> str:
-    zones = (("Deteriorating", "var(--bad)"), ("Slowing", "var(--warn)"), ("Expanding", "var(--good)"))
-    w, x0, seg = 320, 10, 100  # compact: 64px tall
-    pos = {"Deteriorating": 0, "Slowing": 1, "Expanding": 2}
-    parts = []
-    for i, (name, col) in enumerate(zones):
-        parts.append(f'<rect x="{x0 + i * seg}" y="30" width="{seg - 4}" height="14" rx="7" fill="{col}" opacity=".85"/>'
-                     f'<text x="{x0 + i * seg + seg / 2 - 2}" y="64" text-anchor="middle" font-size="12">{name}</text>')
-    if condition in pos:
-        cx = x0 + pos[condition] * seg + seg / 2 - 2
-        parts.append(f'<circle cx="{cx}" cy="37" r="11" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>'
-                     f'<text x="{cx}" y="18" text-anchor="middle" font-size="12" font-weight="700">We are here</text>')
-    else:
-        parts.append('<text x="160" y="18" text-anchor="middle" font-size="12" font-weight="700">Signals are mixed</text>')
-    label = f"Economic cycle position: {condition}. Direction: {direction}."
-    return f'<svg class="chart" viewBox="0 0 {w + 20} 76" role="img" aria-label="{esc(label)}">{"".join(parts)}</svg>'
+def _mx(t: str) -> float:
+    """'YYYY-MM' or 'YYYY-MM-DD' to a fractional month index."""
+    y, m = int(t[:4]), int(t[5:7])
+    return y * 12 + m - 1 + ((int(t[8:10]) - 1) / 31 if len(t) >= 10 else 0)
+
+
+def _fmt_month(t: str) -> str:
+    return date(int(t[:4]), int(t[5:7]), 1).strftime("%b %Y")
+
+
+def ts_chart(series, *, y0, y1, start, label, caption="", h=170, w=400, shade=(), hlines=(), yfmt="{:.0f}",
+             ann=(), ticks_every=None):
+    """Time-series chart: series = [{"name", "pts": [[t, y]], "color", "area": bool, "dash": bool}]."""
+    L, R, T, B = 34, 8, 8, 20
+    pts_all = [p for sr in series for p in sr["pts"] if p[0] >= start]
+    x0, x1 = _mx(start), max(_mx(p[0]) for p in pts_all)
+    X = lambda t: L + (w - L - R) * (_mx(t) - x0) / max(1e-9, x1 - x0)
+    Y = lambda v: T + (h - T - B) * (y1 - max(y0, min(y1, v))) / (y1 - y0)
+    out = []
+    if shade:  # recession months as bands
+        runs, cur = [], None
+        for m in sorted(m for m in shade if m >= start):
+            if cur and _mx(m) - _mx(cur[1]) <= 1:
+                cur[1] = m
+            else:
+                cur = [m, m]
+                runs.append(cur)
+        for a_, b_ in runs:
+            out.append(f'<rect x="{X(a_):.1f}" y="{T}" width="{max(1.2, X(b_) - X(a_) + 1):.1f}" height="{h - T - B}" '
+                       'fill="var(--hatch)" opacity=".45"/>')
+    for v in (y0, (y0 + y1) / 2, y1):
+        out.append(f'<line x1="{L}" x2="{w - R}" y1="{Y(v):.1f}" y2="{Y(v):.1f}" stroke="var(--line)"/>'
+                   f'<text x="{L - 4}" y="{Y(v) + 4:.1f}" text-anchor="end" font-size="11">{esc(yfmt.format(v))}</text>')
+    span = (x1 - x0) / 12
+    step = ticks_every or next(s_ for s_ in (1, 2, 5, 10, 20, 25) if span / s_ <= 6)
+    y_first = int(start[:4]) + (-int(start[:4]) % step)
+    for yr in range(y_first, int(max(p[0] for p in pts_all)[:4]) + 1, step):
+        x = X(f"{yr}-01")
+        if L <= x <= w - R:
+            out.append(f'<text x="{x:.1f}" y="{h - 5}" text-anchor="middle" font-size="11">{yr}</text>')
+    for v, txt in hlines:
+        out.append(f'<line x1="{L}" x2="{w - R}" y1="{Y(v):.1f}" y2="{Y(v):.1f}" stroke="var(--ink)" stroke-dasharray="4 3" '
+                   f'stroke-width="1.2"/><text x="{w - R}" y="{Y(v) - 4:.1f}" text-anchor="end" font-size="11" '
+                   f'font-weight="700">{esc(txt)}</text>')
+    for sr in series:
+        pts = [(X(t), Y(v)) for t, v in sr["pts"] if t >= start and v is not None]
+        if not pts:
+            continue
+        d = "M" + " L".join(f"{x:.1f},{y:.1f}" for x, y in pts)
+        if sr.get("area"):
+            base = Y(max(y0, min(y1, 0)))
+            out.append(f'<path d="{d} L{pts[-1][0]:.1f},{base:.1f} L{pts[0][0]:.1f},{base:.1f}Z" fill="{sr["color"]}" '
+                       'opacity=".25"/>')
+        out.append(f'<path d="{d}" fill="none" stroke="{sr["color"]}" stroke-width="{sr.get("width", 1.6)}"'
+                   + (' stroke-dasharray="5 3"' if sr.get("dash") else "") + ' stroke-linejoin="round"/>')
+    prev_x = -1e9
+    for t, v, txt in sorted((a_ for a_ in ann if a_[0] >= start), key=lambda a_: a_[0]):
+        x, y = X(t), Y(v)
+        anchor = "end" if x > w * 0.8 else "start" if x < w * 0.2 else "middle"
+        below = v < (y0 + y1) / 2 and x - prev_x > 70  # crowded labels go above the point instead
+        prev_x = x if below else prev_x
+        out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.6" fill="var(--ink)"/>'
+                   f'<text x="{x:.1f}" y="{y + (13 if below else -6):.1f}" text-anchor="{anchor}" '
+                   f'font-size="10.5" font-weight="700">{esc(txt)}</text>')
+    legend = ""
+    if len(series) > 1 or shade:
+        items = "".join(f'<li><i style="background:{sr["color"]}"></i>{esc(sr["name"])}</li>' for sr in series)
+        if shade:
+            items += '<li><i style="background:var(--hatch);height:10px"></i>Recession</li>'
+        legend = f'<ul class="legend" aria-hidden="true">{items}</ul>'
+    svg = (f'<svg class="chart ts" viewBox="0 0 {w} {h}" role="img" aria-label="{esc(label)}">{"".join(out)}</svg>')
+    cap = f"<figcaption>{caption}</figcaption>" if caption else ""
+    return f'<figure class="fig">{svg}{legend}{cap}</figure>'
 
 
 def probability_bar(p, base, label) -> str:
@@ -283,7 +364,10 @@ def current_assessment(fred: dict):
     return a, view
 
 
-def load_inputs(forecast_path, research_path, sectors_path, archive_path, fred_dir):
+CRASH_EVIDENCE = "docs/evidence/v7_crash_research_2026-11-18.json"
+
+
+def load_inputs(forecast_path, research_path, sectors_path, archive_path, fred_dir, crash_path=CRASH_EVIDENCE):
     fred = load_fred(Path(fred_dir))
     a, view = current_assessment(fred)
     archive = []
@@ -294,7 +378,8 @@ def load_inputs(forecast_path, research_path, sectors_path, archive_path, fred_d
     return {"forecast": json.loads(Path(forecast_path).read_text()),
             "research": json.loads(Path(research_path).read_text()),
             "sectors": json.loads(Path(sectors_path).read_text()),
-            "archive": archive, "assessment": a, "view": view, "fred": fred}
+            "archive": archive, "assessment": a, "view": view, "fred": fred,
+            "crash": json.loads(Path(crash_path).read_text())}
 
 
 def outlook_matrix(inp):
@@ -352,55 +437,361 @@ def fold(title, inner, open_=False):
     return f'<details class="fold"{" open" if open_ else ""}><summary>{esc(title)}</summary><div>{inner}</div></details>'
 
 
+# --------------------------------------------------------------------------
+# Market risk: shared pieces
+# --------------------------------------------------------------------------
+STATUS_TEXT = {"warning": "Warning on", "near": "Near trigger", "clear": "Clear", "not current": "Not current"}
+STATUS_CLASS = {"warning": "st-warning", "near": "st-near", "clear": "st-clear", "not current": "st-nc"}
+WHY = {
+    "curve": "When short-term interest rates rise above long-term rates, markets expect weaker growth ahead. "
+             "Inversions came before most U.S. recessions, often a year or more early.",
+    "trend": "When the market slips below its 10-month average, selling has begun to outweigh buying. "
+             "It tends to flag declines early in their course rather than far in advance.",
+    "breadth": "Healthy advances are broad. When fewer industries are rising, gains rest on a narrow group of "
+               "leaders and are more fragile.",
+    "conditions": "A weekly summary of borrowing costs, lending and leverage across the financial system. "
+                  "Tight conditions make shocks harder to absorb.",
+    "credit": "Lenders demand more from riskier companies when they expect trouble. A fast widening signals stress.",
+    "valuation": "High prices relative to long-run earnings leave more room to fall, but valuations can stay high "
+                 "for years. It says “fragile”, not “when”.",
+}
+INDUSTRY = {"Agric": "Agriculture", "Food": "Food products", "Soda": "Soft drinks", "Beer": "Beer & liquor",
+            "Smoke": "Tobacco", "Toys": "Recreation", "Fun": "Entertainment", "Books": "Publishing",
+            "Hshld": "Consumer goods", "Clths": "Apparel", "Hlth": "Healthcare services", "MedEq": "Medical equipment",
+            "Drugs": "Pharmaceuticals", "Chems": "Chemicals", "Rubbr": "Rubber & plastics", "Txtls": "Textiles",
+            "BldMt": "Building materials", "Cnstr": "Construction", "Steel": "Steel", "FabPr": "Fabricated products",
+            "Mach": "Machinery", "ElcEq": "Electrical equipment", "Autos": "Autos", "Aero": "Aircraft",
+            "Ships": "Ships & railcars", "Guns": "Defense", "Gold": "Precious metals", "Mines": "Mining",
+            "Coal": "Coal", "Oil": "Oil & gas", "Util": "Utilities", "Telcm": "Telecom", "PerSv": "Personal services",
+            "BusSv": "Business services", "Hardw": "Computer hardware", "Softw": "Software", "Chips": "Semiconductors",
+            "LabEq": "Lab equipment", "Paper": "Business supplies", "Boxes": "Packaging", "Trans": "Transportation",
+            "Whlsl": "Wholesale", "Rtail": "Retail", "Meals": "Restaurants & hotels", "Banks": "Banks",
+            "Insur": "Insurance", "RlEst": "Real estate", "Fin": "Finance", "Other": "Other"}
+
+
+def num(v, unit="", sign=True, digits=1):
+    if v is None:
+        return "n/a"
+    txt = f"{v:+.{digits}f}" if sign else f"{v:.{digits}f}"
+    return txt.replace("-", "−") + unit
+
+
+def day(d):
+    return date.fromisoformat(d[:10]).strftime("%b %-d, %Y") if len(d) >= 10 else _fmt_month(d)
+
+
+def status_pill(st):
+    return f'<span class="st {STATUS_CLASS[st]}">{STATUS_TEXT[st]}</span>'
+
+
+SHORT = {"curve": lambda w: f'{num(w["value"], digits=2)} pts; 12-month low {num(w.get("low12"), digits=2)}',
+         "trend": lambda w: f'S&P 500 {num(w["value"], "%")} vs 10-month average',
+         "breadth": lambda w: f'{w["value"]:.0f}% of industries above trend',
+         "conditions": lambda w: f'{num(w["value"], digits=2)} (0 = average)',
+         "credit": lambda w: f'{num(w["value"], sign=False, digits=2)} pts BAA spread',
+         "valuation": lambda w: f'CAPE {w["value"]} is the latest available' if w.get("value") else "Data unavailable"}
+
+
+def warn_value(w):
+    if w["status"] == "not current":
+        return f'CAPE {w["value"]} (latest available)' if w.get("value") else "Data unavailable"
+    unit = w.get("unit", "")
+    v = num(w["value"], "%" if unit == "%" else "", digits=1 if unit == "%" else 2)
+    if w["key"] == "breadth":
+        v = f'{w["value"]:.0f}%'
+    return v
+
+
+def record_text(w):
+    r = w["record"]
+    lift = r.get("lift_12m")
+    return (f'Since {r["since"]}: when on, a 20% fall followed within a year about {lift:.1f}× as often as usual. '
+            f'Missed {r["bears_missed"]} of {r["bears_total"]} bear markets; '
+            f'{100 * (r["false_alarm_share"] or 0):.0f}% of warning months were false alarms.')
+
+
+def counts(ws):
+    tested = [w for w in ws if w["status"] != "not current"]
+    return (len([w for w in tested if w["status"] == "warning"]), len([w for w in tested if w["status"] == "near"]),
+            len(tested), [w for w in ws if w["status"] == "not current"])
+
+
+def indexes_table(cur, cols=(("1m", "1 month"), ("from_52w_high", "From high"))):
+    names = (("SP500", "S&P 500"), ("NASDAQCOM", "Nasdaq"), ("NASDAQ100", "Nasdaq-100"), ("DJIA", "Dow"))
+    rows, dates = [], set()
+    for k, lab in names:
+        r = cur.get(k)
+        if not isinstance(r, dict):
+            continue
+        dates.add(day(r["date"]))
+        cells = "".join(f'<td class="{"neg" if (r.get(c) or 0) < 0 else "pos"}">{num(r.get(c), "%")}</td>' for c, _ in cols)
+        rows.append(f'<tr><th scope="row">{lab}</th>{cells}</tr>')
+    head = "".join(f'<th scope="col">{t}</th>' for _, t in cols)
+    return (f'<div class="scroll" tabindex="0" role="region" aria-label="Index performance">'
+            f'<table class="grid7"><caption class="sr-only">Index performance, daily closes</caption>'
+            f'<thead><tr><th scope="col">Index</th>{head}</tr></thead><tbody>{"".join(rows)}</tbody></table></div>'
+            f'<p class="oneline"><small>Daily closes ({esc(" / ".join(sorted(dates)))}), FRED. “From high” = from the 1-year high.</small></p>')
+
+
+def drawdown_chart(c, start, h=160, label_min=-40):
+    dd = c["site"]["charts"]["drawdown"]
+    bears = [b for b in c["bear_markets"] if b["peak"][:7] >= start and b["depth_pct"] <= label_min]
+    ann = [(b["trough"][:7], b["depth_pct"], f'{b["peak"][:4]}: {num(b["depth_pct"], "%", digits=0)}') for b in bears]
+    last = dd[-1]
+    return ts_chart([{"name": "Decline from previous high", "pts": dd, "color": "var(--bad)", "area": True}],
+                    y0=-90 if start < "1940" else -60, y1=0, start=start, h=h, shade=c["site"]["charts"]["recession_months"],
+                    yfmt="{:.0f}%", ann=ann, label=f"U.S. total stock market: decline from its previous high, month-end, "
+                    f"{start[:4]} to {_fmt_month(last[0])}. Largest declines labelled; recessions shaded.",
+                    caption=f'Latest: {num(last[1], "%")} from its high ({_fmt_month(last[0])}). U.S. total market, total return, '
+                            'month-end (Kenneth R. French data). Shaded: recessions.')
+
+
+
 def home(inp, matrix):
-    v, a = inp["view"], inp["assessment"]
-    labor = {r["h"]: r for r in matrix if r["target"] == "labor_deterioration"}
-    rows = []
-    for h in (3, 6, 12):
-        r = labor[h]
-        val = esc(r["text"]).capitalize() if r["published"] else "Not enough evidence"
-        sub = f'{esc(r["band"])} vs the {r["base"]:.0%} historical average' if r["published"] else "Not yet reliable enough to publish"
-        aria = (f"Next {h} months: {r['text']} chance, {r['band']} versus a {r['base']:.0%} average" if r["published"]
-                else f"Next {h} months: not enough evidence")
-        rows.append(f'<li><div class="rowstatic" aria-label="{esc(aria)}"><span class="rname">Next {h} months</span>'
-                    f'<span class="rval">{val}</span><span class="rsub">{sub}</span>{mini_prob(r["p"], r["base"] or 0)}</div></li>')
+    c = inp["crash"]
+    site_ = c["site"]
+    ws, cur, v, a = site_["warnings"], c["current"], inp["view"], inp["assessment"]
+    on, near, tested, stale = counts(ws)
+    w = {x["key"]: x for x in ws}
+    headline = (f"{on} of {tested} tested warning signs {'is' if on == 1 else 'are'} on"
+                + (f", and {near} {'is' if near == 1 else 'are'} close to {'its' if near == 1 else 'their'} trigger" if near else ""))
+    rows = "".join(
+        f'<li><a class="rowlink" href="market-risk.html#w-{x["key"]}"><span class="rname">{esc(x["title"])}</span>'
+        f'{status_pill(x["status"])}<span class="rsub">{esc(SHORT[x["key"]](x))} · '
+        f'{esc(day(x["date"]) if x.get("date") else "")}</span></a></li>' for x in ws)
+    nas = cur.get("NASDAQCOM", {}) if isinstance(cur.get("NASDAQCOM"), dict) else {}
+    vix = cur["volatility"].get("VIXCLS", {})
+    size = cur.get("size_deciles_French", {})
+    eg = w["valuation"].get("context_equity_to_gdp", {})
+    concern, reassure = [], []
+    if w["trend"]["status"] in ("warning", "near"):
+        o = w["trend"].get("others", {}).get("Nasdaq Composite")
+        concern.append(f'Trend: S&P 500 only {num(w["trend"]["value"], "%")} above its 10-month average'
+                       + (f'; Nasdaq {num(o["gap_pct"], "%")} below' if o and o["gap_pct"] < 0 else "") + '.')
+    if nas.get("from_52w_high") is not None and nas["from_52w_high"] <= -10:
+        concern.append(f'Nasdaq {num(abs(nas["from_52w_high"]), "%", sign=False)} below its high: a tech-led correction.')
+    if w["breadth"]["status"] in ("warning", "near"):
+        concern.append(f'Breadth: only {w["breadth"]["value"]:.0f}% of industries above trend (trigger 40%).')
+    if size.get("3m_Lo 10") is not None and size["3m_Lo 10"] < size["3m_Hi 10"]:
+        concern.append(f'Small companies lagging large ones ({num(size["3m_Lo 10"], "%")} vs {num(size["3m_Hi 10"], "%")}, 3 months).')
+    if isinstance(vix, dict) and vix.get("value", 0) >= 20:
+        concern.append(f'Volatility (VIX) {vix["value"]:.1f}, up {vix["chg_3m"]:.0f}% in 3 months.')
+    if eg.get("value"):
+        concern.append(f'Stock value vs GDP highest since {eg["history_from"][:4]} (not yet a tested warning).')
+    for k, txt in (("curve", "Yield curve not inverted"), ("credit", "Credit spreads narrow"),
+                   ("conditions", "Financial conditions looser than average")):
+        if w[k]["status"] == "clear":
+            reassure.append(f'{txt} ({warn_value(w[k])}).')
+    if v["condition"] == "Expanding":
+        reassure.append("Economy expanding; unemployment steady.")
+    raise_ = [f'{x["title"]}: {x["trigger"].lower()}.' for x in ws if x["status"] in ("near", "clear") and x.get("trigger")]
+    ease = []
+    if w["trend"]["status"] != "clear":
+        ease.append("The S&P 500 and Nasdaq move clearly back above their 10-month averages.")
+    if w["breadth"]["status"] != "clear":
+        ease.append("More than 45% of industries rise back above their trend.")
+    ease.append("Credit spreads stay narrow and financial conditions stay loose.")
+    li = lambda xs: '<ul class="clean">' + "".join(f"<li>{esc(t)}</li>" for t in xs) + "</ul>"
+    labor = {r["h"]: r for r in matrix if r["target"] == "labor_deterioration"}[12]
+    ipg = c["site"]["charts"]["ip_growth"]
     secs = inp["sectors"]["sectors"]
-    top = max(abs(x["relative_strength_12m_pp"] or 0) for x in secs) or 1
-    picks = [x for x in secs if x["research_priority"] == "Worth researching now"]
-    picks.sort(key=lambda x: -(x["relative_strength_12m_pp"] or 0))
+    picks = sorted((x for x in secs if x["research_priority"] == "Worth researching now"),
+                   key=lambda x: -(x["relative_strength_12m_pp"] or 0))
     srows = "".join(
         f'<li><a class="rowlink" href="sector-{x["slug"]}.html"><span class="rname">{esc(x["sector"])}</span>'
         f'<span class="rval">{x["relative_strength_12m_pp"]:+.0f} pts</span>'
-        f'<span class="rsub">{esc(x["cycle_class"])} · backdrop {esc(x["economic_backdrop"]).lower()} · past 12 months vs market</span></a></li>'
-        for x in picks) or '<li><div class="rowstatic"><span class="rname">No sector stands out right now</span></div></li>'
-    pub = [r for r in matrix if r["published"]]
-    n_eval = len([r for r in matrix if r["eval"]])
-    lst = lambda items: "<ul class=\"clean\">" + "".join(f"<li>{esc(i)}</li>" for i in items) + "</ul>"
-    headline = v["headline"].replace("Our assessment: ", "")
+        f'<span class="rsub">{esc(x["cycle_class"])} · past 12 months vs market</span></a></li>' for x in picks)
     body = (
-        '<h1>The economy today</h1>'
-        '<p class="lede desk">Where the U.S. economy stands, where the evidence suggests it may be heading, and which sectors deserve a closer look.</p>'
-        '<div class="grid cols-2">'
-        f'<section class="card hero" aria-labelledby="now"><p class="eyebrow">Where we are</p><h2 id="now" class="big">{esc(v["condition"])}</h2>'
-        f'{cycle_gauge(v["condition"], v["direction"])}'
-        f'<p class="oneline">{esc(headline[:1].upper() + headline[1:])}</p>'
-        f'<p class="oneline"><span class="chip">Direction: {esc(v["direction"])}</span><span class="chip">Evidence: {esc(v["evidence_confidence"])}</span></p>'
-        f'<small>Data through {esc(a["sources"]["UNRATE"]["latest_used_month"])}. "Evidence" rates data quality, not the odds of any event.</small></section>'
-        '<section class="card" aria-labelledby="next"><p class="eyebrow">Where we may be heading</p>'
-        '<div class="row-head"><h2 id="next">Chance the job market weakens</h2><a href="forecast.html">Details →</a></div>'
-        f'<ul class="rows">{"".join(rows)}</ul>'
-        '<p class="oneline"><small>Recession and inflation outlooks: not enough evidence yet. <a href="forecast.html">Why</a></small></p></section>'
-        f'<section class="card" aria-labelledby="sec"><p class="eyebrow">Where to look</p>'
-        f'<div class="row-head"><h2 id="sec">Sectors worth researching</h2><a href="sectors.html">All 11 →</a></div>'
-        f'<ul class="rows">{srows}</ul>'
-        '<p class="oneline"><small>Research guidance, not a recommendation. Valuations are not yet qualified.</small></p></section>'
-        '<section class="card" aria-labelledby="ev"><h2 id="ev" class="sr-only">Supporting evidence</h2>'
-        + fold("Why we think this", lst(v["drivers"][:3]))
-        + fold("What could prove us wrong", lst((v["counterevidence"] + v.get("evidence_gaps", []))[:3]))
-        + fold("What would change our view", lst(v["reversal_conditions"][1:4] or v["reversal_conditions"]))
-        + f'<div class="row-head" style="padding-top:12px;border-top:1px solid var(--line)"><span><strong>{len(pub)} of {n_eval}</strong> outlooks pass our reliability test</span>'
-        '<a href="track-record.html">Track record →</a></div></section></div>')
-    return page("Economic Outlook", "home", body, "Where the economy is, where it may be heading, and which sectors deserve research.")
+        '<div class="stack">'
+        '<section class="card hero" aria-labelledby="q"><p class="eyebrow">Stock-market warning check</p>'
+        '<h1 id="q" class="hero-q">How vulnerable is the stock market to a major decline?</h1>'
+        f'<p class="big" style="font-size:1.35rem;line-height:1.25">{esc(headline)}.</p>'
+        f'<p class="oneline">Each sign came before past 20% declines more often than usual, but each also missed many and '
+        f'gave false alarms. <strong>Not a crash probability.</strong></p>'
+        f'<ul class="rows wgrid">{rows}</ul>'
+        + (f'<p class="oneline"><small>{esc(", ".join(x["title"] for x in stale))}: not counted because the tested data are not current.</small></p>' if stale else "")
+        + '<p class="oneline"><a href="market-risk.html">See the evidence →</a></p></section>'
+        '<section class="card" aria-labelledby="cr"><h2 id="cr" class="sr-only">What concerns us and what reassures us</h2>'
+        '<div class="two">'
+        f'<div><h3>Concerning</h3>{li(concern)}</div><div><h3>Reassuring</h3>{li(reassure)}</div></div>'
+        + fold("What would raise concern", li(raise_)) + fold("What would ease concern", li(ease))
+        + fold("What this cannot predict", li([
+            "When a decline will start, how deep it will be, or whether one happens at all.",
+            "We tested a combined model of these signals: it was overconfident and no better than the long-run average, "
+            "so we publish no crash probability or overall risk score.",
+            "Sudden shocks (1987, 2020) gave little or no warning in these measures."]))
+        + '</section>'
+        '<div class="two">'
+        f'<section class="card" aria-labelledby="mv"><div class="row-head"><h2 id="mv">Recent market moves</h2>'
+        f'<a href="market-risk.html#indexes">More →</a></div>{indexes_table(cur)}</section>'
+        '<section class="card" aria-labelledby="hist"><h2 id="hist">How deep past declines went</h2>'
+        f'{drawdown_chart(c, "1950-01", h=150)}</section></div>'
+        '<div class="two">'
+        f'<section class="card" aria-labelledby="eco"><p class="eyebrow">Supporting context</p><div class="row-head">'
+        f'<h2 id="eco">The economy: {esc(v["condition"])}</h2><a href="forecast.html">Economy →</a></div>'
+        + ts_chart([{"name": "Industrial production, 12-month change", "pts": ipg, "color": "var(--brand2)"}],
+                   y0=-20, y1=10, start="2012-01", h=120, yfmt="{:.0f}%", hlines=((0, "0%"),),
+                   label=f"Industrial production, 12-month change, 2012 to {_fmt_month(ipg[-1][0])}.",
+                   caption=f"Industrial production, 12-month change (FRED), through {_fmt_month(ipg[-1][0])}.")
+        + f'<p class="oneline">Job market weakens within 12 months: <strong>{esc(labor["text"] or "not enough evidence")}</strong>'
+          f'{" (" + esc(labor["band"]).lower() + ")" if labor["band"] else ""}. Recession outlooks: not enough evidence yet.</p></section>'
+        f'<section class="card" aria-labelledby="sec"><p class="eyebrow">Where to look</p><div class="row-head">'
+        f'<h2 id="sec">Sectors worth researching</h2><a href="sectors.html">All 11 →</a></div><ul class="rows">{srows}</ul>'
+        '<p class="oneline"><small>Research guidance, not a recommendation.</small></p></section></div>'
+        '</div>')
+    return page("Market Risk Check", "home", body, "Is the stock market vulnerable to a major decline? Historically tested warning signs, with their records.")
+
+
+def market_page(inp):
+    c = inp["crash"]
+    site_, cur = c["site"], c["current"]
+    ws, ch = site_["warnings"], site_["charts"]
+    w = {x["key"]: x for x in ws}
+    signal_charts = {
+        "curve": lambda: ts_chart([{"name": "10-year minus 3-month Treasury", "pts": ch["curve"], "color": "var(--brand2)"}],
+                                  y0=-4, y1=5, start="1960-01", h=130, yfmt="{:.0f}", hlines=((0, "Inverted below 0"),),
+                                  shade=ch["recession_months"], label="Yield curve, 10-year minus 3-month, 1960 to date.",
+                                  caption="Points; monthly averages (FRED GS10 − TB3MS)."),
+        "credit": lambda: ts_chart([{"name": "BAA corporate minus 10-year Treasury", "pts": ch["credit"], "color": "var(--warn)"}],
+                                   y0=0, y1=6, start="1960-01", h=130, yfmt="{:.0f}", hlines=((2.5, "Stress 2.5"),),
+                                   shade=ch["recession_months"], label="Corporate credit spread, BAA minus 10-year Treasury, 1960 to date.",
+                                   caption="Points; monthly (FRED BAA − GS10)."),
+        "conditions": lambda: ts_chart([{"name": "Chicago Fed NFCI", "pts": ch["nfci"], "color": "var(--brand2)"}],
+                                       y0=-1.5, y1=3, start="1971-01", h=130, yfmt="{:.1f}", hlines=((0, "Tighter above 0"),),
+                                       shade=ch["recession_months"], label="Chicago Fed National Financial Conditions Index, 1971 to date.",
+                                       caption="Monthly average of the weekly index (FRED NFCI)."),
+        "breadth": lambda: ts_chart([{"name": "Industries above trend", "pts": [[m, 100 * v] for m, v in ch["breadth"]],
+                                      "color": "var(--good)"}], y0=0, y1=100, start="2000-01", h=130, yfmt="{:.0f}%",
+                                    hlines=((40, "Weak below 40%"),), shade=ch["recession_months"],
+                                    label="Share of 49 industries above their 10-month average, 2000 to date.",
+                                    caption="Kenneth R. French 49 industry portfolios, monthly."),
+        "trend": lambda: ts_chart([{"name": n, "pts": [[d, 100 * v / pts[0][1]] for d, v in pts], "color": col}
+                                   for (n, pts, col) in (("S&P 500", ch["index_1y"]["SP500"], "var(--brand2)"),
+                                                         ("Nasdaq", ch["index_1y"]["NASDAQCOM"], "var(--bad)"),
+                                                         ("Dow", ch["index_1y"]["DJIA"], "var(--good)")) if pts],
+                                  y0=80, y1=125, start=ch["index_1y"]["SP500"][0][0], h=140, yfmt="{:.0f}",
+                                  hlines=((100, "Start = 100"),), ticks_every=1,
+                                  label=f'S&P 500, Nasdaq and Dow, {day(ch["index_1y"]["SP500"][0][0])} to '
+                                        f'{day(ch["index_1y"]["SP500"][-1][0])}, rebased to 100.',
+                                  caption=f'Daily closes (FRED), rebased to 100, through {day(ch["index_1y"]["SP500"][-1][0])}.'),
+        "valuation": lambda: "",
+    }
+    cards = []
+    for x in ws:
+        r = x["record"]
+        extra = ""
+        if x["key"] == "trend":
+            extra = "".join(f'<li>{esc(k)}: {num(o["gap_pct"], "%")} vs its 10-month average ({day(o["date"])})</li>'
+                            for k, o in x.get("others", {}).items())
+            extra = f'<ul class="clean">{extra}</ul>' if extra else ""
+        cards.append(
+            f'<section class="card" id="w-{x["key"]}" aria-labelledby="h-{x["key"]}"><div class="row-head">'
+            f'<h2 id="h-{x["key"]}">{esc(x["title"])}</h2>{status_pill(x["status"])}</div>'
+            f'<p class="oneline"><strong>{esc(warn_value(x))}</strong> {esc(x.get("detail", "").replace(" -", " −"))}'
+            + (f' · {esc(day(x["date"]))} ({esc(x["frequency"])})' if x.get("date") else "") + "</p>"
+            + extra + signal_charts[x["key"]]()
+            + f'<p class="oneline">{esc(WHY[x["key"]])}</p>'
+            + fold("Trigger and track record", f'<ul class="clean"><li>Warning when: {esc(x["trigger"])}'
+                   + (f' (near: {esc(x["near_rule"])})' if x.get("near_rule") else "") + "</li>"
+                   f'<li>{esc(record_text(x))}</li><li>Median lead from first warning to the market peak: '
+                   f'{r.get("median_lead_months")} months.</li><li>Source: {esc(x.get("source", ""))}.</li></ul>')
+            + "</section>")
+    cmp_ = site_["compare_today"]
+    t = w
+    tr = cur.get("US_total_market_French", {})
+    rows = [
+        ("Yield curve, lowest in 12 months (points)", num(cmp_["curve_min12"]["median_at_peaks"], digits=2),
+         num(t["curve"]["low12"], digits=2), _fmt_month(t["curve"]["date"])),
+        ("Credit spread (points)", num(cmp_["credit"]["median_at_peaks"], sign=False, digits=2),
+         num(t["credit"]["value"], sign=False, digits=2), _fmt_month(t["credit"]["date"])),
+        ("Market vs 10-month average", num(100 * cmp_["trend_gap"]["median_at_peaks"], "%"),
+         num(t["trend"]["value"], "%") + " (S&P 500)", day(t["trend"]["date"])),
+        ("Industries above trend", f'{100 * cmp_["breadth"]["median_at_peaks"]:.0f}%', f'{t["breadth"]["value"]:.0f}%',
+         _fmt_month(t["breadth"]["date"])),
+        ("12-month market return", num(cmp_["ret12"]["median_at_peaks"], "%"), num(tr.get("12m"), "%"),
+         _fmt_month(tr.get("date", "2026-09")[:7])),
+    ]
+    compare = ("<div class=\"scroll\" tabindex=\"0\" role=\"region\" aria-label=\"Today versus past peaks\"><table class=\"grid7\"><caption class=\"sr-only\">Today compared with the median of past bear-market peaks"
+               "</caption><thead><tr><th scope=\"col\">Measure</th><th scope=\"col\">At past peaks (median)</th>"
+               "<th scope=\"col\">Today</th></tr></thead><tbody>"
+               + "".join(f'<tr><th scope="row" style="white-space:normal">{esc(a_)}</th><td>{esc(b_)}</td><td>{esc(c_)}'
+                         f'<br><small>{esc(d_)}</small></td></tr>' for a_, b_, c_, d_ in rows) + "</tbody></table></div>")
+    mat = site_["warning_matrix"]
+    cols = [x["title"] for x in ws]
+    short = {"Yield curve": "Curve", "Market trend": "Trend", "Market breadth": "Breadth",
+             "Financial conditions": "Cond.", "Credit spreads": "Credit", "Valuation": "Value"}
+    bears = {b["peak"][:7]: b for b in c["bear_markets"]}
+    mrows = []
+    for pk in sorted(k for k in mat if k >= "1954"):
+        cells = []
+        for col in cols:
+            v = mat[pk].get(col)
+            cells.append('<td><span class="off">–</span><span class="sr-only">no data</span></td>' if v is None else
+                         f'<td><span class="{"on" if v else "off"}" aria-hidden="true">{"●" if v else "○"}</span>'
+                         f'<span class="sr-only">{"warned" if v else "no warning"}</span></td>')
+        b = bears.get(pk, {})
+        mrows.append(f'<tr><th scope="row">{pk[:4]}<br><small>{num(b.get("depth_pct"), "%", digits=0)}</small></th>{"".join(cells)}</tr>')
+    matrix_html = (f'<div class="scroll" tabindex="0" role="region" aria-label="Warning record before past bear markets">'
+                   f'<table class="grid7"><caption class="sr-only">Was each warning on in the 12 months before each bear-market '
+                   f'peak?</caption><thead><tr><th scope="col">Peak</th>'
+                   + "".join(f'<th scope="col" title="{esc(cn)}">{esc(short[cn])}</th>' for cn in cols)
+                   + f'</tr></thead><tbody>{"".join(mrows)}</tbody></table></div>')
+    lead = cur.get("industries_French", {})
+    lbars = diverging_bars([(INDUSTRY.get(n, n), v) for n, v in lead.get("leaders_12m", []) + lead.get("laggards_12m", [])],
+                           unit="%")
+    size = cur.get("size_deciles_French", {})
+    models = [c[k] for k in ("model_T12_core", "model_T6_core", "model_T12_with_cape", "model_T6_with_cape")]
+    mtxt = "; ".join(f'{m["horizon_months"]} months: skill {m["full_sample"]["bss_vs_base_rate"]:+.2f}, '
+                     f'ranking {m["full_sample"]["auc"]:.2f}' for m in models)
+    body = (
+        '<h1>Market risk</h1><p class="lede">Warning signs that came before past major declines, measured today, with their '
+        'track records. Market data are daily or weekly; economic conclusions are monthly.</p><div class="stack">'
+        + "".join(cards)
+        + '<section class="card" aria-labelledby="cmp"><h2 id="cmp">Today versus past market peaks</h2>'
+        f'<p class="muted oneline">Median of {cmp_["credit"]["n"]} U.S. bear-market peaks since 1953, compared with the latest data.</p>'
+        f'{compare}<p class="oneline"><small>Past peaks use the total U.S. market (monthly); today’s trend uses S&amp;P 500 daily '
+        'closes. Breadth today is far weaker than at a typical past peak; credit and the yield curve look calmer.</small></p></section>'
+        '<section class="card" aria-labelledby="mx"><h2 id="mx">Which warnings came before past bear markets</h2>'
+        '<p class="muted oneline">● = on at some point in the 12 months before the peak. No warning caught every decline.</p>'
+        f'{matrix_html}</section>'
+        '<section class="card" id="history" aria-labelledby="dd"><h2 id="dd">A century of declines</h2>'
+        f'{drawdown_chart(c, "1926-07", h=190)}'
+        + fold("All 16 bear markets since 1926", '<ul class="clean">' + "".join(
+            f'<li>{_fmt_month(b["peak"][:7])} to {_fmt_month(b["trough"][:7])}: {num(b["depth_pct"], "%", digits=0)} '
+            f'over {b["months_peak_to_trough"]} months</li>' for b in c["bear_markets"]) + "</ul>")
+        + '</section>'
+        '<section class="card" id="indexes" aria-labelledby="ix"><h2 id="ix">Index performance</h2>'
+        + indexes_table(cur, (("1m", "1m"), ("3m", "3m"), ("12m", "12m"), ("from_52w_high", "From high")))
+        + '<p class="oneline"><small>FRED keeps about one year of S&amp;P 500 history, so its 12-month change is unavailable.</small></p>'
+        '<h3>Leaders and laggards, past 12 months</h3>' + lbars
+        + f'<p class="oneline"><small>Kenneth R. French industry portfolios through {_fmt_month(lead.get("month", "2026-09"))}. '
+          f'Smallest 10% of companies: {num(size.get("3m_Lo 10"), "%")} over 3 months; largest 10%: {num(size.get("3m_Hi 10"), "%")}.</small></p>'
+        '</section>'
+        '<section class="card" aria-labelledby="dv"><h2 id="dv">When the economy and the market disagree</h2>'
+        + ts_chart([{"name": "Industrial production, 12-month change", "pts": ch["ip_growth"], "color": "var(--brand2)"}],
+                   y0=-20, y1=10, start="1985-01", h=120, yfmt="{:.0f}%", hlines=((0, "0%"),), shade=ch["recession_months"],
+                   label="Industrial production, 12-month change, 1985 to date.")
+        + drawdown_chart(c, "1985-01", h=120, label_min=-30)
+        + '<p class="oneline">The market fell 20% or more in 1987, 1998, 2018 and 2022 while production was still growing. '
+          'An expanding economy does not rule out a major decline.</p></section>'
+        '<section class="card">' + fold("Why we publish no crash probability", li_p([
+            f"We tested a combined model of these warnings out of sample, without hindsight: {mtxt}.",
+            "Every version was worse than simply using the long-run average and was badly overconfident, so it is not published.",
+            "Each warning’s record above is a historical frequency, not today’s odds.",
+            "Valuation (Shiller CAPE) is excluded from the count until a current, licensed series is available."]))
+        + fold("Data and method", li_p([
+            "Declines: U.S. total stock market, daily total return, Kenneth R. French Data Library (1926 onward).",
+            "A bear market is a fall of 20% or more from a previous high before that high is regained.",
+            "Warnings use fixed thresholds set before testing (docs/V7_PREREGISTRATION_CRASH_RESEARCH.md).",
+            "Market and rate data: FRED (S&P 500, Nasdaq, Dow, VIX, Treasury and BAA yields, NFCI).",
+            "Daily and weekly observations are shown with their dates; they do not change the monthly economic conclusions."]))
+        + '</section></div>')
+    return page("Market Risk", "market", body, "Historically tested stock-market warning signs, today’s readings and their records.")
+
+
+def li_p(items):
+    return '<ul class="clean">' + "".join(f"<li>{esc(t)}</li>" for t in items) + "</ul>"
+
 
 def forecast(inp, matrix):
     pub = next((r for r in matrix if r["published"]), None)
@@ -434,12 +825,32 @@ def forecast(inp, matrix):
                       f'<span class="rsub">{esc(TARGET_PLAIN[target])} within 3, 6 or 12 months.</span>'
                       f'<span class="badges" style="grid-column:1/-1;justify-content:flex-start">{badges}</span>'
                       f'<span class="rsub">{esc(why)}</span></div></li>')
+    v, a = inp["view"], inp["assessment"]
+    lst = lambda items: "<ul class=\"clean\">" + "".join(f"<li>{esc(i)}</li>" for i in items) + "</ul>"
+    ipg = inp["crash"]["site"]["charts"]["ip_growth"]
+    hl = v["headline"].replace("Our assessment: ", "")
+    cond = (f'<section class="card hero" aria-labelledby="now"><p class="eyebrow">Economic conditions · data through '
+            f'{esc(_fmt_month(a["sources"]["UNRATE"]["latest_used_month"]))}</p>'
+            f'<h2 id="now" class="big">{esc(v["condition"])}</h2>'
+            f'<p class="oneline"><span class="chip">Direction: {esc(v["direction"])}</span><span class="chip">Evidence: {esc(v["evidence_confidence"])}</span></p>'
+            f'<p class="oneline">{esc(hl[:1].upper() + hl[1:])}</p>'
+            + ts_chart([{"name": "Industrial production, 12-month change", "pts": ipg, "color": "var(--brand2)"}],
+                       y0=-20, y1=10, start="2000-01", h=130, yfmt="{:.0f}%", hlines=((0.5, "Expanding above +0.5%"),),
+                       shade=inp["crash"]["site"]["charts"]["recession_months"],
+                       label=f"Industrial production, 12-month change, 2000 to {_fmt_month(ipg[-1][0])}.",
+                       caption="Industrial production (FRED). Shaded: recessions.")
+            + '<p class="oneline"><small>This describes economic activity, not stock-market risk; see '
+              '<a href="market-risk.html">Market risk</a>. "Evidence" rates data quality, not the odds of any event.</small></p>'
+            + fold("Why we think this", lst(v["drivers"]))
+            + fold("What could prove us wrong", lst(v["counterevidence"] + v.get("evidence_gaps", [])))
+            + fold("What would change our view", lst(v["reversal_conditions"])) + "</section>")
     body = (
-        '<h1>Forecast</h1><p class="lede">Each outlook is tested against history before we publish it. If it fails, we say so instead of showing a number.</p>'
-        f'<div class="stack">{detail}'
+        '<h1>Economy</h1><p class="lede">Where the U.S. economy stands, and outlooks that are tested against history before we '
+        'publish them. If an outlook fails, we say so instead of showing a number.</p>'
+        f'<div class="stack">{cond}{detail}'
         f'<section class="card" aria-labelledby="all"><div class="row-head"><h2 id="all">All outlooks</h2><a href="track-record.html">Test results →</a></div>'
         f'<ul class="rows">{"".join(groups)}</ul></section></div>')
-    return page("Forecast", "forecast", body, "Tested 3-, 6- and 12-month economic outlooks.")
+    return page("Economy", "forecast", body, "Economic conditions and tested 3-, 6- and 12-month economic outlooks.")
 
 def sectors_page(inp):
     order = ("Worth researching now", "Monitor", "Lower priority for now")
@@ -547,13 +958,18 @@ def track_page(inp, matrix):
         f'<ul class="rows">{"".join(rows)}</ul></section>'
         f'<section class="card"><h2 class="sr-only">Notes and data</h2>{fold("Honest notes", notes)}'
         '<p class="oneline"><a href="forecast_archive.csv">Download every past forecast (CSV)</a></p></section></div>')
-    return page("Track Record", "track", body, "Historical performance of every outlook, including failures.")
+    return page("Track Record", "forecast", body, "Historical performance of every outlook, including failures.")
 
 def research_page(inp):
     body = (
         '<h1>Research &amp; Data</h1><p class="lede">Methods, sources and evidence behind every number on this site.</p>'
         '<section class="card">'
-        '<details class="fold" open><summary>How the outlooks work</summary><div><ul class="clean">'
+        '<details class="fold" open><summary>How the market warning check works</summary><div><ul class="clean">'
+        '<li>Six warning signs were chosen and given fixed thresholds before testing: yield curve, market trend, breadth, financial conditions, credit spreads and valuation.</li>'
+        '<li>Each was checked against every U.S. bear market (a fall of 20% or more) since 1926, using only information available at the time. We report how often a decline followed, the bear markets it missed and its false alarms.</li>'
+        '<li>A combined model of these warnings failed our out-of-sample test, so no crash probability or overall risk score is published; the homepage counts warnings, nothing more.</li>'
+        '<li>Valuation is shown but not counted while the long-history series (Shiller CAPE) is not current.</li></ul></div></details>'
+        '<details class="fold"><summary>How the outlooks work</summary><div><ul class="clean">'
         '<li>A small logistic model reads the yield curve, corporate borrowing premium, unemployment trend and job growth.</li>'
         '<li>It is re-fitted once a year using only past data, then tested month by month from 1972 against the long-run average, a yield-curve-only model and our earlier descriptive rules.</li>'
         '<li>Market data are used for the current month; government data only once published (one-month lag). Recession dates are used only to score.</li>'
@@ -566,7 +982,10 @@ def research_page(inp):
         '<li>Federal Reserve Bank of St. Louis — FRED and ALFRED (economic data, first releases).</li>'
         '<li>Kenneth R. French Data Library, Tuck School of Business at Dartmouth — industry portfolio and market returns.</li>'
         '<li>Aswath Damodaran, NYU Stern — US industry P/E and expected growth (annual).</li>'
-        '<li>NBER — U.S. business-cycle dates (scoring only).</li></ul></div></details>'
+        '<li>NBER — U.S. business-cycle dates (scoring and chart shading only).</li>'
+        '<li>Kenneth R. French Data Library — daily U.S. total-market returns since 1926 and size portfolios (market declines, breadth, small vs large).</li>'
+        '<li>FRED — S&amp;P 500, Nasdaq, Dow and VIX daily closes; Chicago Fed NFCI; Federal Reserve Z.1 equity values; IMF commodity prices.</li>'
+        '<li>Robert Shiller’s stock-market data (public mirror) — CAPE history to 2023-09.</li></ul></div></details>'
         '<details class="fold"><summary>Limitations</summary><div><ul class="clean">'
         '<li>Most history uses today\'s revised data; the job-market outlook was re-checked on data as first published.</li>'
         '<li>Few recessions since 1972; recession outlooks remain unpublished.</li>'
@@ -581,7 +1000,7 @@ def build(out_dir: Path, inp: dict) -> list:
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     matrix = outlook_matrix(inp)
-    pages = {"index.html": home(inp, matrix), "forecast.html": forecast(inp, matrix),
+    pages = {"index.html": home(inp, matrix), "market-risk.html": market_page(inp), "forecast.html": forecast(inp, matrix),
              "sectors.html": sectors_page(inp), "track-record.html": track_page(inp, matrix),
              "research.html": research_page(inp)}
     for x in inp["sectors"]["sectors"]:
@@ -604,9 +1023,10 @@ def main():
     ap.add_argument("--sectors", default="docs/evidence/v7_sectors_2026-11-18.json")
     ap.add_argument("--archive", default="data/v7/forecast_archive.csv")
     ap.add_argument("--fred-dir", default="data/v7")
+    ap.add_argument("--crash", default=CRASH_EVIDENCE)
     ap.add_argument("--output", default="audit-output/v7-site")
     a = ap.parse_args()
-    print(build(Path(a.output), load_inputs(a.forecast, a.research, a.sectors, a.archive, a.fred_dir)))
+    print(build(Path(a.output), load_inputs(a.forecast, a.research, a.sectors, a.archive, a.fred_dir, a.crash)))
 
 
 if __name__ == "__main__":
