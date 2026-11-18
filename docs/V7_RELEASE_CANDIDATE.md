@@ -1,7 +1,7 @@
 # Economic Cycle Research — Version 7 Release Candidate
 
 **Status:** RELEASE CANDIDATE. **Not merged into `main`. Not deployed.** It awaits owner visual and technical evaluation and explicit approval.
-**Candidate commit (`v7-development`):** `{CANDIDATE}`
+**Candidate code commit (`v7-development`):** `d57358d87990998345ae5f44366f63f2fbd5718c`. Later commits on the branch add only this report and evidence files; there are no code changes. The exact branch head to merge is given in the owner's approval request.
 **Production baseline (unchanged):** V6.3, `main` at `7dfc811e765fd8ca927f082c2fa0c63948799bb3`. It remains production and the rollback target.
 
 ## 1. Recommendation
@@ -13,7 +13,7 @@
 None of these could be performed by the development agent, so they are listed as **unverified**, not passed. There are no technical release blockers. A licensed valuation-data subscription is **not** a blocker.
 
 ## 2. What the application currently shows (actual pipeline output of the candidate commit)
-Real data from FRED, the French Data Library and Damodaran were fetched in CI on 2026-11-18. The pipeline is monthly assessment run `{MONTHLY}`, published through the rehearsal of the daily publisher.
+Real data from FRED, the French Data Library and Damodaran were fetched in CI on 2026-11-18. The pipeline is monthly assessment run `44307600691`, published through the rehearsal of the daily publisher.
 
 | Question | Answer shown |
 |---|---|
@@ -41,17 +41,17 @@ Real data from FRED, the French Data Library and Damodaran were fetched in CI on
 | Acceptance checks | The V7 site contract checks: 16 pages; doctype, viewport, `lang`, `main` and one `h1` on each; the disclaimer; exactly five nav destinations; every internal link; no recession percentage on Home; published badges equal to the manifest; and an unrated attractiveness. |
 | Fail closed | An unreachable, incomplete, tampered or unqualified live V7 bundle means **deployment refused**. Transient 5xx and network errors are retried a bounded number of times. This change came from a real Pages 503 seen during the rehearsal. |
 | V6.3 not broken | The V6 steps are unchanged. The V6 post-deploy checks are relaxed only for `index.html == overview.html` when a V7 manifest is present. All V6, V6.2 and V6.3 tests pass. |
-| Actual data, whole process | The real monthly run on `v7-development` was `{MONTHLY}`, followed by **V7 Release Rehearsal** run `{REHEARSAL}`. The rehearsal took the actual last-deployed production bundle from `main` and showed: `NEW_QUALIFIED`, then `V7_SITE_CONTRACT_PASS` (16 pages), then `V7_LIVE_VERIFIED` (17 files served), then `PRESERVED_PREVIOUS` (identical bytes), then the old-bundle notice, then unreachable site → deployment blocked, then the rollback bundle valid (V6.2 manifest `7dfc811`, 2026-11-17). |
+| Actual data, whole process | The real monthly run on `v7-development` was `44307600691`, followed by **V7 Release Rehearsal** run `44307784658`. The rehearsal took the actual last-deployed production bundle from `main` and showed: `NEW_QUALIFIED`, then `V7_SITE_CONTRACT_PASS` (16 pages), then `V7_LIVE_VERIFIED` (17 files served), then `PRESERVED_PREVIOUS` (identical bytes), then the old-bundle notice, then unreachable site → deployment blocked, then the rollback bundle valid (V6.2 manifest `7dfc811`, 2026-11-17). |
 
 ## 4. M6 — release readiness (complete, except testing by a person)
 | Check | Result |
 |---|---|
-| Forecast evidence integrity | The CI `V7 Forecast Research` run `{RESEARCH}` reproduces the committed forecast and sector evidence from the dated snapshot. The monthly pipeline re-evaluates on fresh data with the same gate. |
+| Forecast evidence integrity | The CI `V7 Forecast Research` run `44307784651` (code identical to the candidate) runs the full suite and reproduces the committed forecast and sector evidence from the dated snapshot. The monthly pipeline re-evaluates on fresh data with the same gate. |
 | Daily and monthly publication | Rehearsed as above. Daily source acquisition is unchanged. |
 | Data freshness and failure recovery | Freshness gate, preserve-previous, old-bundle notice and blocked deployment are tested, and rehearsed on real infrastructure. |
 | Navigation and generated pages | Site contract plus tests: 16 pages and every internal link. |
 | Mobile and desktop layout | 320/375/390/430 px × light/dark × 100%/200% text × 6 pages, with all sections expanded: **0 problems** (`docs/evidence/v7_rc_layout_sweep_2026-11-18.txt`). Home conclusions end at 1406 px at 390×844, within two screens. |
-| Accessibility | axe-core 4.10.2 (WCAG 2.0/2.1/2.2 A/AA), 16 pages × 3 widths × 2 schemes = 96 page checks: {AXE}. Keyboard: every link and section reachable. Focus is never hidden behind the tab bar (474 focus checks). |
+| Accessibility | axe-core 4.10.2 (WCAG 2.0/2.1/2.2 A/AA), 16 pages × 3 widths × 2 schemes = 96 page checks: **0 violations** in every rule except `target-size`. That rule shows 3 position-dependent findings (dark, 640 px: two sector pages; 320 px: Research). In each, a 56 px-tall, full-width section heading sits under the sticky tab bar at the initial scroll position. Re-tested with the element scrolled clear of the bar, each passes. These are disclosed rather than suppressed. Keyboard: every link and section reachable. Focus is never hidden behind the tab bar (474 focus checks). |
 | Security and dependencies | Pages contain no JavaScript, forms, iframes or external resources. Generators use the standard library only. Content is HTML-escaped. Workflows use pinned major versions of GitHub-owned actions only. The rehearsal workflow has read-only permissions and never deploys. |
 | Build reproducibility | Deterministic generators; the committed evidence is reproduced in CI. The real-data pages matched the snapshot build except for one revised FRED value (industrial production growth 2.22% → 2.12%), which is a current-vintage revision as expected. |
 | Rollback readiness | `docs/V7_RELEASE_RUNBOOK.md`. The pre-V7 production bundle is preserved as a Milestone 1 artifact, and the rehearsal validated it. |
@@ -111,9 +111,9 @@ Whether an ordinary person grasps all of this in 30 seconds is **unverified unti
 - During a revert, the immediate Milestone 1 run may briefly carry the V7 `sectors.html` and `research.html` until the monthly-triggered V6 republication completes. See the runbook.
 
 ## 7. CI and links
-- Real monthly assessment with V7, candidate code: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{MONTHLY}>
-- V7 Release Rehearsal: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{REHEARSAL}>
-- V7 Forecast Research (tests and evidence reproduction): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/{RESEARCH}>
+- Real monthly assessment with V7, candidate code: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44307600691>
+- V7 Release Rehearsal: <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44307784658>
+- V7 Forecast Research (tests and evidence reproduction): <https://github.com/landrumc16/Economic-Cycle-Research/actions/runs/44307784651>
 - Owner checklist: `docs/V7_OWNER_EVALUATION_CHECKLIST.md` · Runbook: `docs/V7_RELEASE_RUNBOOK.md`
 
 ## 8. Release authorization

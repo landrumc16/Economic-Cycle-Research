@@ -239,3 +239,13 @@ On Home, the condition card ends at 424 px, the outlook at 874 px and the sector
 4. *Can I trust it?* "1 of 12 outlooks pass our reliability test" links to Track Record.
 
 Limits: automated checks and a self-evaluation only. Real-device and screen-reader testing by a person is still outstanding.
+
+## Pass C — M5 integration and M6 release preparation (2026-11-18)
+- **M5:** `scripts/v7_release.py` is wired into the Monthly assessment (build, gate, manifest) and the Milestone 1 daily publisher (promote, preserve or leave V6, then verify live). Tests: `tests/test_v7_release.py` (14). The new `V7 Release Rehearsal` workflow exercises the whole path on real data and never deploys.
+- **Real-data evidence:**
+  - monthly run 44307600691 at code commit `d57358d` gave `NEW_QUALIFIED`;
+  - rehearsal run 44307784658 passed every stage: promote, contract, live verify, preserve, old-bundle notice, fail-closed, rollback bundle.
+- **Defects found and fixed in M6:** Pages 503 handling (bounded retries); tab labels clipped at 200% text; the wrapped tab bar covering content (now sticky); focus clearance (scroll padding).
+- **Release candidate:** `docs/V7_RELEASE_CANDIDATE.md`; screenshots in `docs/evidence/v7-rc-screenshots/` (31, from the actual pipeline output); runbook and owner checklist.
+- **Unverified (needs a person):** real devices and safe area; VoiceOver and TalkBack; plain-language review.
+- **Not merged, not deployed.**

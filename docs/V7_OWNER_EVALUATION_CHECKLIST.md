@@ -24,7 +24,7 @@ Tick each item before approving a merge of `v7-development` into `main`. Items m
 - [ ] The track record shows failures (✗) and the honest notes.
 
 ## 4. Accessibility
-- [x] Automated axe-core WCAG 2.2 AA: 0 violations (see the release candidate report).
+- [x] Automated axe-core WCAG 2.2 AA: 0 violations except 3 position-dependent `target-size` findings next to the sticky tab bar, each passing once scrolled clear of it (details in the release candidate report).
 - [x] Keyboard reach and 200% text reflow (automated).
 - [ ] **(human)** VoiceOver (iOS) and TalkBack (Android) read the cycle gauge, outlook rows and sector rows sensibly.
 - [ ] **(human)** Plain-language review by a non-expert.
