@@ -69,9 +69,9 @@ nav.primary{margin-left:auto;display:none;gap:4px}
 nav.primary a{text-decoration:none;color:var(--muted);padding:8px 12px;border-radius:999px;font-weight:600;font-size:.95rem}
 nav.primary a[aria-current=page]{background:var(--chip);color:var(--brand)}
 nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:grid;
-grid-template-columns:repeat(5,1fr);z-index:6;padding-bottom:env(safe-area-inset-bottom)}
+grid-template-columns:repeat(5,minmax(0,1fr));z-index:6;padding-bottom:env(safe-area-inset-bottom)}
 nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 10px;font-size:.72rem;
-color:var(--muted);text-decoration:none;min-height:56px;text-align:center;line-height:1.15}
+color:var(--muted);text-decoration:none;min-height:56px;text-align:center;line-height:1.15;overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto;min-width:0}
 nav.tabs a[aria-current=page]{color:var(--brand);font-weight:700}
 nav.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 main{max-width:1120px;margin:auto;padding:18px 16px 96px}
