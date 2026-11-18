@@ -169,6 +169,32 @@ class PublishTests(_Fixture):
             rel.verify_live(t, "https://x", fetch=lambda u: b"x" if u.endswith("track-record.html") else live(u))
 
 
+class HttpTests(unittest.TestCase):
+    def opener(self, codes):
+        import urllib.error
+        seq = iter(codes)
+
+        def op(url, timeout):
+            c = next(seq)
+            if c == 200:
+                class R:
+                    status = 200
+                    def __enter__(s): return s
+                    def __exit__(s, *a): return False
+                    def read(s): return b"ok"
+                return R()
+            raise urllib.error.HTTPError(url, c, "x", {}, None)
+        return op
+
+    def test_transient_5xx_is_retried_404_is_absent_and_persistent_failure_blocks(self):
+        self.assertEqual(rel.http_get("u", opener=self.opener([503, 503, 200]), sleep=lambda s: None), b"ok")
+        self.assertIsNone(rel.http_get("u", opener=self.opener([404]), sleep=lambda s: None))
+        with self.assertRaises(RuntimeError):
+            rel.http_get("u", attempts=3, opener=self.opener([503, 502, 500]), sleep=lambda s: None)
+        with self.assertRaises(RuntimeError):
+            rel.http_get("u", opener=self.opener([403]), sleep=lambda s: None)
+
+
 class ContractTests(_Fixture):
     def test_manifest_rejects_unapproved_outlook_and_bad_commit(self):
         m = self.manifest(self.bundle)

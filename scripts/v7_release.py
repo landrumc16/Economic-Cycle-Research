@@ -269,17 +269,27 @@ def monthly(fred_dir: Path, research_dir: Path, gate_path: Path, out: Path, as_o
 # ---------------------------------------------------------------------------
 # Daily publication (Milestone 1 Pages workflow)
 # ---------------------------------------------------------------------------
-def http_get(url: str) -> bytes | None:
-    """Return the body, None on 404; raise on any other failure (fail closed)."""
-    try:
-        with urllib.request.urlopen(url, timeout=15) as r:
-            if r.status != 200:
-                raise RuntimeError(f"HTTP {r.status} for {url}")
-            return r.read()
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            return None
-        raise RuntimeError(f"HTTP {exc.code} for {url}") from exc
+def http_get(url: str, attempts: int = 6, wait: float = 10.0, opener=urllib.request.urlopen, sleep=None) -> bytes | None:
+    """Return the body, or None on 404. Transient 5xx and network errors are retried a bounded
+    number of times; anything still failing raises (fail closed: deployment is refused)."""
+    import time
+    sleep = sleep or time.sleep
+    for attempt in range(attempts):
+        try:
+            with opener(url, timeout=15) as r:
+                if r.status != 200:
+                    raise RuntimeError(f"HTTP {r.status} for {url}")
+                return r.read()
+        except urllib.error.HTTPError as exc:
+            if exc.code == 404:
+                return None
+            if exc.code < 500 or attempt == attempts - 1:
+                raise RuntimeError(f"HTTP {exc.code} for {url}") from exc
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            if attempt == attempts - 1:
+                raise RuntimeError(f"Unreachable: {url}: {exc}") from exc
+        sleep(wait * (attempt + 1))
+    raise RuntimeError("unreachable")
 
 
 def files_of(manifest: dict) -> list:
