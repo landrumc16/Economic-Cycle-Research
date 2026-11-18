@@ -278,3 +278,15 @@ Limits: automated checks and a self-evaluation only. Real-device and screen-read
   - expandable research sections;
   - five-destination navigation, sector pages and the track record.
 - **Daily refresh:** `v7_release.py refresh-market` runs in the daily Pages workflow after an owner-approved merge. The preview itself is a snapshot and is republished on request.
+
+## Daily market intelligence (2026-11-18)
+- **Monitoring:** `scripts/v7_market_monitor.py` adds dated assessments, deterministic change detection (tested warnings separated from descriptive monitoring thresholds), event reviews and a weekly interpretation. Cadence and thresholds are in `docs/V7_MARKET_MONITORING.md`.
+- **Pages:**
+  - Home shows "What changed since the last market assessment?", with the assessment time, the data date and a stale-data notice.
+  - Market Risk shows the weekly interpretation and an assessment log.
+- **Pipeline:** the history is published and hash-verified. A repeat run with no new data writes nothing. A skipped or failed refresh is annotated on the workflow run. Monthly conclusions are unchanged by design.
+- **Evidence:**
+  - rehearsal 44398368545 at `ae1756c`: `BASELINE_RECORDED` (market data through 2026-11-17), then `NO_NEW_DATA` on the repeat run; all stages pass;
+  - research CI 44398368583;
+  - 544 tests.
+- **Preview:** https://claude.ai/artifact/LrasGuZVxqsWeNv3Ao78Jz (Version 2). Production is unchanged.
