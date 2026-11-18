@@ -214,7 +214,7 @@ def _plain(code: str) -> str:
     return INDUSTRY.get(code, code)
 
 
-def weekly(crash: dict, data_dir: Path, through: str, economy: dict) -> dict:
+def weekly(crash: dict, data_dir: Path, through: str, economy: dict, assessments: list | None = None) -> dict:
     """Interpretation of the most recent completed week, from the daily data; conclusions only from tested evidence."""
     mon, fri = _week_bounds(through)
     before = (date.fromisoformat(mon) - timedelta(days=1)).isoformat()
@@ -233,10 +233,15 @@ def weekly(crash: dict, data_dir: Path, through: str, economy: dict) -> dict:
         big = any(abs(m) >= 3 for _, m, _ in moves)
         meaningful |= big
         lines.append({"topic": "Market moves", "text": f"Week to {fri}: {txt}."})
+    in_week = [c for a in (assessments or []) if mon <= (a.get("market_data_through") or "") <= fri
+               for c in a.get("changes", []) if c["kind"] == "tested"]
+    meaningful |= bool(in_week)
+    latest_day = max((w.get("date") or "" for w in warns if w.get("frequency") == "daily"), default=through)
     lines.append({"topic": "Direction of vulnerability",
-                  "text": (f"Tested warnings on: {', '.join(on) or 'none'}; near trigger: {', '.join(near) or 'none'}. "
-                           "This is a count of historically tested signs, not a probability.")})
-    meaningful |= bool(on)
+                  "text": ((f"During the week: {'; '.join(c['title'] for c in in_week)}. " if in_week else
+                            "No tested warning changed state during the week. " if assessments else "")
+                           + f"Latest readings (data through {latest_day}): tested warnings on: {', '.join(on) or 'none'}; "
+                           f"near trigger: {', '.join(near) or 'none'}. A count of historically tested signs, not a probability.")})
     b = next((w for w in warns if w["key"] == "breadth"), None)
     lead = crash["current"].get("industries_French", {})
     if b:
@@ -287,7 +292,7 @@ def update(history: dict | None, crash: dict, data_dir: Path, assessed_at: str, 
         return history, "NO_NEW_DATA"
     cur["changes"], cur["events"] = changes(prev, cur) if prev else ([], [])
     history["assessments"] = (history["assessments"] + [cur])[-KEEP_ASSESSMENTS:]
-    wk = weekly(crash, data_dir, cur["market_data_through"], economy)
+    wk = weekly(crash, data_dir, cur["market_data_through"], economy, history["assessments"])
     if not history["weekly"] or history["weekly"][-1]["week"] != wk["week"]:
         history["weekly"] = (history["weekly"] + [wk])[-KEEP_WEEKLY:]
     return history, "NEW_ASSESSMENT"

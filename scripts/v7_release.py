@@ -467,7 +467,7 @@ def refresh_market(source: Path, target: Path, crash_dir: Path, today: date, com
         status = "BASELINE_RECORDED"
         history["weekly"] = history["weekly"] or [monitor.weekly(inp["crash"], Path(crash_dir),
                                                                  history["assessments"][-1]["market_data_through"],
-                                                                 economy_of(inp))]
+                                                                 economy_of(inp), history["assessments"])]
     if status == "NO_NEW_DATA":
         shutil.rmtree(work, ignore_errors=True)
         last = history["assessments"][-1]
