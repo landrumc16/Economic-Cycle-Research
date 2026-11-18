@@ -68,13 +68,13 @@ header.top{background:var(--card);border-bottom:1px solid var(--line);position:s
 nav.primary{margin-left:auto;display:none;gap:4px}
 nav.primary a{text-decoration:none;color:var(--muted);padding:8px 12px;border-radius:999px;font-weight:600;font-size:.95rem}
 nav.primary a[aria-current=page]{background:var(--chip);color:var(--brand)}
-nav.tabs{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:grid;
+nav.tabs{position:sticky;bottom:0;background:var(--card);border-top:1px solid var(--line);display:grid;
 grid-template-columns:repeat(5,minmax(0,1fr));z-index:6;padding-bottom:env(safe-area-inset-bottom)}
 nav.tabs a{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 2px 10px;font-size:.72rem;
 color:var(--muted);text-decoration:none;min-height:56px;text-align:center;line-height:1.15;overflow-wrap:anywhere;hyphens:auto;-webkit-hyphens:auto;min-width:0}
 nav.tabs a[aria-current=page]{color:var(--brand);font-weight:700}
 nav.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-main{max-width:1120px;margin:auto;padding:18px 16px 96px}
+main{max-width:1120px;margin:auto;padding:18px 16px 24px}
 h1{font-size:1.6rem;line-height:1.2;margin:.2em 0 .3em;letter-spacing:-.02em}
 h2{font-size:1.2rem;margin:0 0 .5em;line-height:1.25}h3{font-size:1rem;margin:1em 0 .3em}
 .lede{color:var(--muted);margin:0 0 1em;max-width:62ch}
@@ -101,7 +101,7 @@ th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--mu
 details{border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--card);margin:10px 0}
 summary{cursor:pointer;font-weight:700;min-height:28px}
 .note{border-left:4px solid var(--brand2);padding:8px 12px;background:var(--chip);border-radius:8px;margin:10px 0}
-footer{max-width:1120px;margin:auto;padding:0 16px 110px;color:var(--muted);font-size:.85rem}
+footer{max-width:1120px;margin:auto;padding:0 16px 16px;color:var(--muted);font-size:.85rem}
 svg text{fill:currentColor}
 .chart{width:100%;height:auto;display:block;color:var(--ink)}
 .chart.square{max-width:340px;margin:auto}
@@ -150,8 +150,8 @@ details.fold>div{padding:0 0 12px}
 main h1,main h2,main p,main li,main summary,.rname,.rsub{overflow-wrap:anywhere}
 .row-head a{display:inline-flex;align-items:center;min-height:32px}
 code{font-size:.9em;overflow-wrap:anywhere}
-@media(max-width:719px){main{padding:12px 14px calc(84px + env(safe-area-inset-bottom))}.card{padding:14px;border-radius:14px}
-h1{font-size:1.35rem;margin:.1em 0 .4em}footer{padding:0 14px calc(90px + env(safe-area-inset-bottom))}}
+@media(max-width:719px){main{padding:12px 14px 16px}.card{padding:14px;border-radius:14px}
+h1{font-size:1.35rem;margin:.1em 0 .4em}footer{padding:0 14px 12px}}
 @media(min-width:720px){.desk{display:block}nav.primary{display:flex}nav.tabs{display:none}main{padding-bottom:40px}footer{padding-bottom:30px}
 .cols-2{grid-template-columns:1fr 1fr}.cols-3{grid-template-columns:repeat(3,1fr)}.horizons{grid-template-columns:repeat(3,1fr)}h1{font-size:2rem}}
 """

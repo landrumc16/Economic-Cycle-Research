@@ -175,6 +175,14 @@ class SiteTests(unittest.TestCase):
         self.assertNotIn("ranking", html.lower().split("<footer>")[0])
         self.assertIn("too confident", html)
 
+    def test_bottom_navigation_never_covers_content_or_clips_labels(self):
+        html = (self.out / "index.html").read_text()
+        # Sticky (in normal flow) rather than fixed: it cannot overlap content at any text size.
+        self.assertIn("nav.tabs{position:sticky;bottom:0;", html)
+        self.assertIn("grid-template-columns:repeat(5,minmax(0,1fr))", html)
+        self.assertLess(html.index('<nav class="tabs"'), html.index("</body>"))
+        self.assertGreater(html.index('<nav class="tabs"'), html.index("</footer>"))
+
     def test_sectors_page_lists_each_sector_once_without_duplicate_chart(self):
         html = (self.out / "sectors.html").read_text()
         for x in self.inp["sectors"]["sectors"]:
