@@ -69,7 +69,7 @@ jobs:
           python scripts/v7_crash_research.py fetch --out /tmp/v7-market > /dev/null
           python scripts/v7_release.py refresh-market --source /tmp/economic-monthly --target rehearsal/dashboard \
             --crash-dir /tmp/v7-market --commit "$GITHUB_SHA" --built-at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" | tee rehearsal/refresh.json
-          grep -Eq '"status": "(REFRESHED|NO_NEW_DATA)"' rehearsal/refresh.json
+          grep -Eq '"status": "(REFRESHED|BASELINE_RECORDED|NO_NEW_DATA)"' rehearsal/refresh.json
           python scripts/v7_release.py verify --directory rehearsal/dashboard
           # A second run with the same data must not create a new assessment (no re-dating of unchanged readings).
           python scripts/v7_release.py refresh-market --source /tmp/economic-monthly --target rehearsal/dashboard \

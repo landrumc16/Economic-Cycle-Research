@@ -460,6 +460,14 @@ def refresh_market(source: Path, target: Path, crash_dir: Path, today: date, com
         baseline = monitor.assess(json.loads((bundle / "v7_crash_research.json").read_text()), root / "data" / "v7_crash_fresh",
                                   pub["build_time_utc"])
     history, status = monitor.update(prev_hist, inp["crash"], Path(crash_dir), built_at, economy_of(inp), baseline)
+    if status == "NEW_ASSESSMENT" and prev_hist is None and len(history["assessments"]) == 1:
+        status = "BASELINE_RECORDED"  # nothing to compare with yet
+    if status == "NO_NEW_DATA" and prev_hist is None:
+        # No newer data than the monthly build, but no history yet: record that state as the first assessment.
+        status = "BASELINE_RECORDED"
+        history["weekly"] = history["weekly"] or [monitor.weekly(inp["crash"], Path(crash_dir),
+                                                                 history["assessments"][-1]["market_data_through"],
+                                                                 economy_of(inp))]
     if status == "NO_NEW_DATA":
         shutil.rmtree(work, ignore_errors=True)
         last = history["assessments"][-1]
@@ -487,7 +495,8 @@ def refresh_market(source: Path, target: Path, crash_dir: Path, today: date, com
     (target / MANIFEST).write_text(json.dumps(new, indent=2, sort_keys=True) + "\n")
     shutil.rmtree(work, ignore_errors=True)
     latest = history["assessments"][-1]
-    return {"status": "REFRESHED", "market_data_through": sp_last, "non_critical_gaps": cman.get("gaps", []),
+    return {"status": "REFRESHED" if status == "NEW_ASSESSMENT" else status, "market_data_through": sp_last,
+            "non_critical_gaps": cman.get("gaps", []),
             "changes": [c["title"] for c in latest.get("changes", [])], "events": latest.get("events", []),
             "warnings": {w["key"]: w["status"] for w in new["market_warnings"]}}
 

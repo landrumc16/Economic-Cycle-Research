@@ -277,6 +277,22 @@ class RefreshTests(_Fixture):
             r = rel.refresh_market(self.bundle.parent.parent, self.t, d, date(2026, 11, 18), COMMIT, "2026-11-19T12:20:00Z")
             self.assertEqual(r["status"], expected, gap)
 
+    def test_first_refresh_without_history_records_a_baseline_not_a_comparison(self):
+        old = self.tmp / "nohist"
+        if old.exists():
+            shutil.rmtree(old)
+        shutil.copytree(self.t, old)
+        m = self.manifest(old)
+        (old / "v7_market_history.json").unlink()
+        m.pop("data_files"), m.pop("market_assessment")
+        (old / rel.MANIFEST).write_text(json.dumps(m))
+        r = rel.refresh_market(self.bundle.parent.parent, old, ROOT / "data/v7_crash", date(2026, 11, 18), COMMIT, "x")
+        self.assertEqual(r["status"], "BASELINE_RECORDED")
+        hist = json.loads((old / "v7_market_history.json").read_text())
+        self.assertEqual(len(hist["assessments"]), 1)
+        self.assertEqual(hist["assessments"][0]["changes"], [])
+        self.assertIn("First market assessment", (old / "index.html").read_text())
+
     def test_market_history_is_published_and_survives_preservation(self):
         m = self.manifest(self.t)
         self.assertIn("v7_market_history.json", m["data_files"])
