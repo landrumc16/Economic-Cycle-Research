@@ -268,10 +268,11 @@ def ts_chart(series, *, y0, y1, start, label, caption="", h=170, w=400, shade=()
     for t, v, txt in sorted((a_ for a_ in ann if a_[0] >= start), key=lambda a_: a_[0]):
         x, y = X(t), Y(v)
         anchor = "end" if x > w * 0.8 else "start" if x < w * 0.2 else "middle"
-        below = v < (y0 + y1) / 2 and x - prev_x > 70  # crowded labels go above the point instead
-        prev_x = x if below else prev_x
+        crowded = x - prev_x <= 70  # a label close to the previous one goes beside its point instead
+        prev_x = x
+        tx, ty = (x + 6, y + 4) if crowded else (x, y + (13 if v < (y0 + y1) / 2 else -6))
         out.append(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="2.6" fill="var(--ink)"/>'
-                   f'<text x="{x:.1f}" y="{y + (13 if below else -6):.1f}" text-anchor="{anchor}" '
+                   f'<text x="{tx:.1f}" y="{ty:.1f}" text-anchor="{"start" if crowded else anchor}" '
                    f'font-size="10.5" font-weight="700">{esc(txt)}</text>')
     legend = ""
     if len(series) > 1 or shade or hlines:
