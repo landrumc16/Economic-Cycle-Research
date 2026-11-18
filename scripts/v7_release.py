@@ -340,8 +340,14 @@ def publish(source: Path | None, target: Path, live_base: str, today: date, fetc
     base = live_base.rstrip("/") + "/"
     bundle = find_bundle(source)
     raw = fetch(base + MANIFEST)  # the live V7 publication, if any (errors propagate: fail closed)
+    rejected = None
     if bundle:
-        m = validate_manifest(json.loads((bundle / MANIFEST).read_text()))
+        try:  # an invalid candidate is never published; the accepted publication is kept instead
+            m = validate_manifest(json.loads((bundle / MANIFEST).read_text()))
+            validate_site(bundle, m) if m["promotion_outcome"] == "NEW_QUALIFIED" else None
+        except (ValueError, KeyError, json.JSONDecodeError) as exc:
+            rejected, bundle = f"Candidate bundle rejected: {exc}", None
+    if bundle:
         live_time = validate_manifest(json.loads(raw))["build_time_utc"] if raw is not None else ""
         if m["promotion_outcome"] == "NEW_QUALIFIED" and m["build_time_utc"] >= live_time:
             validate_site(bundle, m)
@@ -350,7 +356,7 @@ def publish(source: Path | None, target: Path, live_base: str, today: date, fetc
             (target / MANIFEST).write_text(json.dumps(m, indent=2, sort_keys=True) + "\n")
             return {"outcome": "NEW_QUALIFIED", "assessment_date": m["assessment_date"], "commit": m["build_commit"]}
     if raw is None:
-        return {"outcome": "NOT_PUBLISHED", "reason": "No qualified V7 bundle and no previous V7 publication"}
+        return {"outcome": "NOT_PUBLISHED", "reason": rejected or "No qualified V7 bundle and no previous V7 publication"}
     prev = validate_manifest(json.loads(raw))
     if prev["research_gate"]["qualified"] is not True:
         raise RuntimeError("Previous V7 publication was not qualified; refusing preservation")
@@ -380,7 +386,8 @@ def publish(source: Path | None, target: Path, live_base: str, today: date, fetc
             out["pages"][name] = sha(html.encode())
     validate_site(target, out)
     (target / MANIFEST).write_text(json.dumps(out, indent=2, sort_keys=True) + "\n")
-    return {"outcome": "PRESERVED_PREVIOUS", "assessment_date": prev["assessment_date"], "stale_notice": old}
+    return {"outcome": "PRESERVED_PREVIOUS", "assessment_date": prev["assessment_date"], "stale_notice": old,
+            **({"rejected_candidate": rejected} if rejected else {})}
 
 
 def verify_live(target: Path, live_base: str, fetch=http_get) -> dict:

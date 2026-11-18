@@ -151,6 +151,22 @@ class PublishTests(_Fixture):
         self.assertEqual(r["outcome"], "PRESERVED_PREVIOUS")
         self.assertEqual(self.manifest(t)["build_time_utc"], "2026-12-20T06:00:00Z")
 
+    def test_invalid_candidate_is_rejected_and_previous_kept(self):
+        bad = self.tmp / "bad" / "audit-output" / "v7-site"
+        if bad.exists():
+            shutil.rmtree(bad)
+        shutil.copytree(self.bundle, bad)
+        m = self.manifest(bad)
+        del m["pages"]["market-risk.html"]
+        (bad / rel.MANIFEST).write_text(json.dumps(m))
+        t = self.target("badcand")
+        r = rel.publish(bad.parent.parent, t, "https://x", date(2026, 12, 1), fetch=self.live_from(self.bundle))
+        self.assertEqual(r["outcome"], "PRESERVED_PREVIOUS")
+        self.assertIn("rejected", r["rejected_candidate"])
+        t2 = self.target("badcand2")
+        r = rel.publish(bad.parent.parent, t2, "https://x", date(2026, 12, 1), fetch=lambda u: None)
+        self.assertEqual(r["outcome"], "NOT_PUBLISHED")
+
     def test_no_previous_v7_leaves_dashboard_untouched(self):
         t = self.target("none")
         r = rel.publish(None, t, "https://x", date(2026, 12, 1), fetch=lambda u: None)
